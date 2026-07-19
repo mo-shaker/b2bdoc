@@ -1,0 +1,8 @@
+{
+  "label": "AI Platform",
+  "position": 7,
+  "link": {
+    "type": "generated-index",
+    "description": "AI architecture, predictive capabilities, optimization support, explainability, model governance, monitoring, and learning for SCOP."
+  }
+}

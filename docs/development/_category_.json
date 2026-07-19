@@ -1,0 +1,8 @@
+{
+  "label": "Development",
+  "position": 8,
+  "link": {
+    "type": "generated-index",
+    "description": "Engineering architecture, development standards, Odoo extension principles, integration patterns, testing, security, delivery, and technical governance for SCOP."
+  }
+}

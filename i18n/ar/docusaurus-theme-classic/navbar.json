@@ -1,0 +1,14 @@
+{
+  "title": {
+    "message": "B2B Knowledge Hub",
+    "description": "The title in the navbar"
+  },
+  "logo.alt": {
+    "message": "شعار B2B Knowledge Hub",
+    "description": "The alt text of navbar logo"
+  },
+  "item.label.Documentation": {
+    "message": "التوثيق",
+    "description": "Navbar item with label Documentation"
+  }
+}

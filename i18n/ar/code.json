@@ -1,0 +1,38 @@
+{
+  "documentInfo.title": {
+    "message": "معلومات الوثيقة"
+  },
+  "documentInfo.category": {
+    "message": "الفئة"
+  },
+  "documentInfo.audience": {
+    "message": "الجمهور"
+  },
+  "documentInfo.status": {
+    "message": "الحالة"
+  },
+  "documentInfo.version": {
+    "message": "الإصدار"
+  },
+  "documentInfo.owner": {
+    "message": "المالك"
+  },
+  "documentInfo.lastUpdated": {
+    "message": "آخر تحديث"
+  },
+  "documentInfo.readingTime": {
+    "message": "زمن القراءة"
+  },
+  "documentInfo.status.draft": {
+    "message": "مسودة"
+  },
+  "documentInfo.status.review": {
+    "message": "قيد المراجعة"
+  },
+  "documentInfo.status.approved": {
+    "message": "معتمدة"
+  },
+  "documentInfo.status.deprecated": {
+    "message": "متقادمة"
+  }
+}

@@ -1,0 +1,91 @@
+.card {
+  margin-bottom: 2rem;
+  padding: 1.25rem 1.5rem;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: var(--ifm-global-radius);
+  background-color: var(--ifm-background-surface-color);
+  box-shadow: var(--ifm-global-shadow-lw);
+}
+
+.cardTitle {
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--ifm-color-emphasis-200);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--ifm-color-emphasis-700);
+}
+
+.fieldGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem 1.5rem;
+  margin: 0;
+}
+
+.field {
+  min-width: 0;
+}
+
+.fieldLabel {
+  margin-bottom: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ifm-color-emphasis-600);
+}
+
+.fieldValue {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--ifm-font-color-base);
+  overflow-wrap: break-word;
+}
+
+.statusBadge {
+  display: inline-block;
+  padding: 0.15rem 0.6rem;
+  border: 1px solid transparent;
+  border-radius: 1rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.statusDraft {
+  background-color: var(--ifm-color-secondary-contrast-background);
+  border-color: var(--ifm-color-secondary-dark);
+  color: var(--ifm-color-secondary-contrast-foreground);
+}
+
+.statusReview {
+  background-color: var(--ifm-color-warning-contrast-background);
+  border-color: var(--ifm-color-warning-dark);
+  color: var(--ifm-color-warning-contrast-foreground);
+}
+
+.statusApproved {
+  background-color: var(--ifm-color-success-contrast-background);
+  border-color: var(--ifm-color-success-dark);
+  color: var(--ifm-color-success-contrast-foreground);
+}
+
+.statusDeprecated {
+  background-color: var(--ifm-color-danger-contrast-background);
+  border-color: var(--ifm-color-danger-dark);
+  color: var(--ifm-color-danger-contrast-foreground);
+}
+
+@media (max-width: 576px) {
+  .card {
+    padding: 1rem;
+  }
+
+  .fieldGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+}

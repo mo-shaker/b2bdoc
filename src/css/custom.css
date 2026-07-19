@@ -1,0 +1,37 @@
+/**
+ * Any CSS included here will be global. The classic template
+ * bundles Infima by default. Infima is a CSS framework designed to
+ * work well for content-centric websites.
+ *
+ * B2B Knowledge Hub brand palette — sourced from the B2B logo (blue gradient).
+ */
+
+/* Light mode — B2B brand blue. */
+:root {
+  --ifm-color-primary: #1878c0;
+  --ifm-color-primary-dark: #156cad;
+  --ifm-color-primary-darker: #1466a3;
+  --ifm-color-primary-darkest: #105486;
+  --ifm-color-primary-light: #2185cf;
+  --ifm-color-primary-lighter: #328dd3;
+  --ifm-color-primary-lightest: #58a4dc;
+
+  --ifm-code-font-size: 95%;
+  --docusaurus-highlighted-code-line-bg: rgba(24, 120, 192, 0.1);
+
+  /* B2B brand gradient (top → bottom of the logo). */
+  --b2b-gradient: linear-gradient(180deg, #2ca9e1 0%, #1c6fb3 100%);
+}
+
+/* Dark mode — a lighter, more luminous blue for readability. */
+[data-theme='dark'] {
+  --ifm-color-primary: #35aee6;
+  --ifm-color-primary-dark: #1fa3e2;
+  --ifm-color-primary-darker: #159ad9;
+  --ifm-color-primary-darkest: #117fb3;
+  --ifm-color-primary-light: #52bbea;
+  --ifm-color-primary-lighter: #66c3ec;
+  --ifm-color-primary-lightest: #8fd3f1;
+
+  --docusaurus-highlighted-code-line-bg: rgba(53, 174, 230, 0.15);
+}

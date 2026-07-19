@@ -1,0 +1,70 @@
+{
+  "version.label": {
+    "message": "الحالي",
+    "description": "The label for version current"
+  },
+  "sidebar.tutorialSidebar.category.Getting Started": {
+    "message": "البداية",
+    "description": "The label for category 'Getting Started' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.Getting Started.link.generated-index.description": {
+    "message": "الأدلة والمعايير التأسيسية لمركز معرفة SCOP.",
+    "description": "The generated-index page description for category 'Getting Started' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.Product": {
+    "message": "المنتج",
+    "description": "The label for category 'Product' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.Product.link.generated-index.description": {
+    "message": "رؤية المنتج ونطاقه وأهدافه ونموذج تشغيله وتوجهه الاستراتيجي لمنصة SCOP.",
+    "description": "The generated-index page description for category 'Product' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.Business": {
+    "message": "الأعمال",
+    "description": "The label for category 'Business' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.Business.link.generated-index.description": {
+    "message": "بنية الأعمال ونموذج التشغيل والنطاقات والعمليات والأدوار والقواعد الحاكمة لمنصة SCOP.",
+    "description": "The generated-index page description for category 'Business' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.Operations": {
+    "message": "العمليات",
+    "description": "The label for category 'Operations' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.Operations.link.generated-index.description": {
+    "message": "النماذج التشغيلية وتدفقات العمل وضوابط دورة الحياة وعمليات التنفيذ والإجراءات اللوجستية لمنصة SCOP.",
+    "description": "The generated-index page description for category 'Operations' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.Decision Engine": {
+    "message": "محرك القرار",
+    "description": "The label for category 'Decision Engine' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.Decision Engine.link.generated-index.description": {
+    "message": "نماذج القرار ومنطق التخطيط والقواعد والقيود وأهداف التحسين والتوصيات والاعتمادات وقياس النتائج لمنصة SCOP.",
+    "description": "The generated-index page description for category 'Decision Engine' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.AI Platform": {
+    "message": "منصة الذكاء الاصطناعي",
+    "description": "The label for category 'AI Platform' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.AI Platform.link.generated-index.description": {
+    "message": "بنية الذكاء الاصطناعي والقدرات التنبؤية ودعم التحسين وقابلية التفسير وحوكمة النماذج والمراقبة والتعلم لمنصة SCOP.",
+    "description": "The generated-index page description for category 'AI Platform' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.Development": {
+    "message": "التطوير",
+    "description": "The label for category 'Development' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.Development.link.generated-index.description": {
+    "message": "البنية الهندسية ومعايير التطوير ومبادئ امتداد Odoo وأنماط التكامل والاختبار والأمان والتسليم والحوكمة التقنية لمنصة SCOP.",
+    "description": "The generated-index page description for category 'Development' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.Release Notes": {
+    "message": "ملاحظات الإصدارات",
+    "description": "The label for category 'Release Notes' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.Release Notes.link.generated-index.description": {
+    "message": "حوكمة الإصدارات وتاريخ النسخ وتغييرات المنتج وتواصل النشر والقيود المعروفة وإرشادات الترقية وسجلات الإصدار التشغيلية لمنصة SCOP.",
+    "description": "The generated-index page description for category 'Release Notes' in sidebar 'tutorialSidebar'"
+  }
+}

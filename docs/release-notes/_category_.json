@@ -1,0 +1,8 @@
+{
+  "label": "Release Notes",
+  "position": 9,
+  "link": {
+    "type": "generated-index",
+    "description": "Release governance, version history, product changes, deployment communication, known limitations, upgrade guidance, and operational release records for SCOP."
+  }
+}
