@@ -1,0 +1,187 @@
+---
+id: reports-you-should-know
+title: Reports You Should Know
+description: The six SCOP reports a new user needs first, and the question each one answers.
+sidebar_label: Reports You Should Know
+sidebar_position: 6
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+import Screenshot from '@site/src/components/Screenshot';
+
+# Reports You Should Know
+
+<DocumentInfo
+  category="Quick Start"
+  audience={['Operations', 'Management', 'Planning', 'UAT']}
+  status="Review"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="5 min"
+/>
+
+**Navigate to**
+`SCOP → Reporting`
+
+There are eleven reports. Six matter on your first day. Each answers one question.
+
+| Report | Question it answers |
+| --- | --- |
+| Plan Coverage | Did we plan what could be planned? |
+| Unplanned Demand | What prevented planning? |
+| OTIF | Did the customer receive the committed quantity, on time and in full? |
+| Exception Ageing | Which operational problems are overdue? |
+| Decision Quality | How often did planners accept or override the recommendation? |
+| Operation Timeline | What happened to this operation from beginning to end? |
+
+Every report is read-only and built on standard list, pivot and graph views, so you can group, filter and export without special training.
+
+---
+
+## Plan Coverage
+
+**Question:** did we plan what could be planned?
+
+`SCOP → Reporting → Plan Coverage`
+
+<Screenshot
+  src="quick-start/40-report-plan-coverage.png"
+  alt="SCOP Plan Coverage report showing one released plan with its planned and unplanned demand counts."
+  caption="One row per plan: the plan, its date, state, demand offered, demand placed, demand unplanned, and the coverage figure."
+/>
+
+Read it as the honest scorecard of the planning step. A plan that placed everything offered is full coverage; a plan that left demand behind shows exactly how much.
+
+:::warning
+
+The coverage percentage is currently rendered a hundred times too large — a plan with full coverage displays as `10000%` rather than `100%`. The underlying counts are correct. Recorded in [Release 1 Boundaries](./release-1-boundaries.mdx).
+
+:::
+
+---
+
+## Unplanned Demand
+
+**Question:** what prevented planning?
+
+`SCOP → Reporting → Unplanned Demand`
+
+<Screenshot
+  src="quick-start/41-report-unplanned-demand.png"
+  alt="SCOP Unplanned Demand report, empty because all demand in the walkthrough was planned."
+  caption="Empty here because the walkthrough placed everything. Group by Reason to see which constraint costs the most service."
+/>
+
+Group by **Reason** to turn a list of daily irritations into a ranked list of constraints. If *capacity shortage* dominates the month, that is a fleet conversation; if *missing required data* dominates, it is a master-data conversation.
+
+See [Unplanned Demand](./exceptions/unplanned-demand.mdx) for the reason and next-action values.
+
+---
+
+## OTIF
+
+**Question:** did the customer receive the committed quantity, on time and in full?
+
+`SCOP → Reporting → OTIF`
+
+<Screenshot
+  src="quick-start/42-report-otif.png"
+  alt="SCOP OTIF report list view."
+  caption="One row per demand, comparing what was committed against what actually arrived and when."
+/>
+
+OTIF compares two things SCOP captured independently:
+
+- **In full** — quantity requested against quantity fulfilled, read from the validated Odoo transfer.
+- **On time** — actual arrival against the delivery window, interpreted in the destination's own timezone.
+
+The commitment was captured once, when the order was confirmed, and is never re-read — so a later edit to the order cannot quietly improve the score.
+
+:::warning
+
+In this release a completed delivery does not appear in OTIF, because the demand and shipment lifecycles do not advance during execution. This is the most consequential open item for pilot measurement. Recorded in [Release 1 Boundaries](./release-1-boundaries.mdx).
+
+:::
+
+---
+
+## Exception Ageing
+
+**Question:** which operational problems are overdue?
+
+`SCOP → Reporting → Exception Ageing`
+
+<Screenshot
+  src="quick-start/43-report-exception-ageing.png"
+  alt="SCOP Exception Ageing report list view."
+  caption="Open exceptions with their age against target, so the oldest unresolved problem is the one you see first."
+/>
+
+An Exception runs a ten-state lifecycle from **Detected** through **Investigating** and **Resolution Defined** to **Closed**, with an owner and an SLA clock. This report is the queue view: what is open, how old, and who holds it.
+
+---
+
+## Decision Quality
+
+**Question:** how often did planners accept or override the recommendation?
+
+`SCOP → Reporting → Decision Quality`
+
+<Screenshot
+  src="quick-start/44-report-decision-quality.png"
+  alt="SCOP Decision Quality report list view."
+  caption="Acceptance and override behaviour per plan, measured against the recommendation snapshot taken at generation."
+/>
+
+Three measures, all taken against the untouched recommendation snapshot:
+
+| Measure | Meaning |
+| --- | --- |
+| Recommendation accepted | The plan was released as produced, unmodified |
+| Modification count | How many times a planner changed it |
+| Override reason | What the planner knew that the engine did not |
+
+This is the report that decides whether the engine earns more autonomy. A high acceptance rate is a case for automating more; a high override rate with a consistent reason is a specification for the next version of the engine.
+
+Group by **Was Modified** to see the acceptance rate directly.
+
+---
+
+## Operation Timeline
+
+**Question:** what happened to this operation from beginning to end?
+
+`SCOP → Reporting → Operation Timeline`
+
+<Screenshot
+  src="quick-start/45-report-operation-timeline.png"
+  alt="SCOP Operation Timeline wizard asking for a correlation reference."
+  caption="The timeline asks for one input: the correlation reference that ties an operation's records together."
+/>
+
+This is the report to reach for when someone asks *"what happened to this delivery?"* Enter the correlation reference and SCOP reconstructs the sequence — demand created, ownership resolved, shipment readied, plan generated, approved, released, loaded, departed, arrived, delivered — from the records themselves rather than from anyone's memory.
+
+Use it for customer queries, incident review, and UAT evidence.
+
+---
+
+## The other five reports
+
+Available, but not needed on day one:
+
+| Report | Purpose |
+| --- | --- |
+| Vehicle Utilization | Use of available vehicle capacity across the fleet |
+| Trip Planned vs Actual | Distance, duration and load, planned against actual |
+| Ownership Data Quality | Lines whose owner is unresolved — the queue that unblocks planning |
+| Failed Projections | Technical: domain events that did not process |
+| Orphan Moves | Technical: stock moves not covered by a demand |
+
+**Ownership Data Quality** is worth knowing early despite not being in the six: it is the list of records that will block planning tomorrow, and working it down is the highest-value warehouse data task in a pilot.
+
+## Related Pages
+
+- [Unplanned Demand](./exceptions/unplanned-demand.mdx)
+- [End-to-End Test Checklist](./end-to-end-test-checklist.mdx)
+- [Release 1 Boundaries](./release-1-boundaries.mdx)

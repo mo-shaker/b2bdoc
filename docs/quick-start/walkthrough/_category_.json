@@ -1,0 +1,8 @@
+{
+  "label": "Customer Delivery Walkthrough",
+  "position": 4,
+  "link": {
+    "type": "generated-index",
+    "description": "One customer delivery, step by step, on the running system: who acts, which screen they open, what SCOP records, and how to confirm each step worked."
+  }
+}

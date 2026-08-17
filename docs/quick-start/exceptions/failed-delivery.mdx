@@ -1,0 +1,133 @@
+---
+id: failed-delivery
+title: Failed Delivery
+description: What the driver does when a delivery cannot be completed, and the rule that requires an outcome reason.
+sidebar_label: Failed Delivery
+sidebar_position: 2
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+import Screenshot from '@site/src/components/Screenshot';
+
+# Failed Delivery
+
+<DocumentInfo
+  category="Quick Start"
+  audience={['Driver', 'Operations', 'Customer Service', 'UAT']}
+  status="Review"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="4 min"
+/>
+
+## When to use this
+
+The driver is at the customer's door and cannot complete the delivery — the branch is closed, the customer refuses the goods, the loading bay is blocked, the goods were damaged in transit.
+
+## The walkthrough
+
+**Role**
+Driver
+
+**Navigate to**
+`SCOP → My Work → My Stops` → open the stop
+
+**What to do**
+Tap **Could not deliver**.
+
+**Expected result on a first attempt: refusal.**
+
+<Screenshot
+  src="quick-start/34-failed-delivery-needs-reason.png"
+  alt="Odoo warning dialog stating that the reason why the stop failed must be recorded before it can be closed."
+  caption="The refusal, verbatim: “Record why stop 1 failed before closing it.”"
+/>
+
+:::danger[BR-EXE-001 — a failure must say why]
+
+Anything other than a clean, complete delivery must record an **outcome reason**.
+
+There is no version of *"the customer refused the goods and we did not record why"* that is acceptable. So this is a hard constraint rather than a warning: it holds in every state and admits no middle answer.
+
+It applies to **partial** deliveries too, not only outright failures. A stop that delivered less than planned needs a reason just as much as one that delivered nothing.
+
+:::
+
+Notice where the refusal is raised. SCOP asks for the reason **at the moment the driver presses the button**, while they are standing at the customer's door and know the answer — not later, in a validation message naming a field they never saw.
+
+## Choose the reason
+
+**What to do**
+Set **Outcome Reason** in the **What happened** section, then tap **Could not deliver** again.
+
+<Screenshot
+  src="quick-start/35-failed-delivery-reasons.png"
+  alt="SCOP driver stop form with the Outcome Reason dropdown open, listing the seven governed stop outcome reasons."
+  caption="The governed reason list. These are the actual values in the system — a driver picks one, they do not type prose."
+/>
+
+| Code | Reason |
+| --- | --- |
+| `customer_closed` | Customer location closed |
+| `customer_refused` | Customer refused the delivery |
+| `goods_damaged` | Goods damaged in transit |
+| `access_blocked` | Access to the location blocked |
+| `time_exhausted` | Ran out of time on the route |
+| `vehicle_issue` | Vehicle issue |
+| `rescheduled_by_customer` | Rescheduled at the customer's request |
+
+:::info
+
+The list is governed, not free text, because reports group by it. A reason typed differently by every driver cannot be counted, and a reason that cannot be counted cannot be fixed.
+
+:::
+
+**What SCOP does**
+
+- Sets the stop's **Status** to **Failed** and its **Outcome** to the derived value — `Failed`, `Partially Completed`, `Skipped`, or `Rescheduled`.
+- Records the reason against the stop, where reporting and any resulting Exception can read it.
+
+**Expected result**
+The stop closes as **Failed**, carrying the reason.
+
+**Verify**
+
+- The stop shows **Outcome** and **Outcome Reason**.
+- `SCOP → Operations → Exceptions` — an operational problem that needs follow-up is tracked here, with an owner and an ageing clock.
+- `SCOP → Reporting → OTIF` — the delivery is counted as not in full.
+
+## Status and outcome are two different things
+
+This distinction matters when reading a stop:
+
+| Field | Question it answers |
+| --- | --- |
+| **Status** | How far did the stop get? `Planned → Arrived → Servicing → Completed / Failed / Skipped` |
+| **Outcome** | What happened? `Completed`, `Partially Completed`, `Failed`, `Skipped`, `Rescheduled` |
+
+A stop can reach the end of its journey and still have gone badly. Keeping the two apart is what lets *"we got there and it did not work"* be told apart from *"we never got there"*.
+
+## Partial delivery
+
+A short delivery is not recorded on the stop. It is recorded in Odoo:
+
+1. The warehouse sets the actually delivered quantity on the Odoo transfer and validates it.
+2. SCOP reads the quantities back onto the stop.
+3. Because actual is less than planned, SCOP derives **Partially Completed** and requires an outcome reason.
+
+See [Step 7 — Driver Delivery](../walkthrough/driver-delivery.mdx) for the full sequence and why the order matters.
+
+## What to check if it does not work
+
+| Symptom | Check |
+| --- | --- |
+| The refusal appears even for a good delivery | The Odoo transfer is not validated yet, so actual quantities are still zero |
+| The reason list is empty | Reasons are seeded in `SCOP → Governance → Reason Codes` under the stop-outcome category |
+| The reason cannot be changed afterwards | Correct — once a stop is closed its reason is part of the record |
+
+## Related Pages
+
+- [Step 7 — Driver Delivery](../walkthrough/driver-delivery.mdx)
+- [Unplanned Demand](./unplanned-demand.mdx)
+- [Reports You Should Know](../reports-you-should-know.mdx)

@@ -1,0 +1,146 @@
+---
+id: demand-and-ownership
+title: Step 2 — Demand and Ownership
+description: Verify the SCOP Demand created from the Odoo delivery order, and resolve the ownership rule that blocks planning.
+sidebar_label: Step 2 — Demand and Ownership
+sidebar_position: 2
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+import Screenshot from '@site/src/components/Screenshot';
+
+# Step 2 — Demand and Ownership
+
+<DocumentInfo
+  category="Quick Start"
+  audience={['Planning', 'Warehouse', 'Operations', 'UAT']}
+  status="Review"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="6 min"
+/>
+
+## Step 2a — Verify the Demand
+
+**Role**
+Planner / Dispatcher
+
+**Navigate to**
+`SCOP → Operations → Demands`
+
+**What to do**
+Find the demand for the order you just confirmed. It is easiest to search by customer.
+
+**Expected result**
+A demand exists, in state **Draft**, referencing your delivery order.
+
+<Screenshot
+  src="quick-start/03-scop-demand-list.png"
+  alt="SCOP Demands list showing DMD-2026-000001 for Wood Corner in the Draft state."
+  caption="SCOP created DMD-2026-000001 by itself when the delivery order was confirmed."
+/>
+
+**Verify**
+Open the demand and check the fields below.
+
+<Screenshot
+  src="quick-start/04-scop-demand-form.png"
+  alt="SCOP Demand form for DMD-2026-000001 showing the lifecycle status bar, demand type, customer, and demand lines."
+  caption="The Demand form. The status bar runs Draft → Submitted → Validated → Eligible for Planning → Planned → Released → In Execution → Completed."
+/>
+
+**1 — Reference**
+`DMD-<year>-<number>`. Allocated by SCOP, stable for the life of the demand.
+
+**2 — Demand type**
+`Delivery` for an outbound customer movement, `Inbound` for a supplier receipt, plus `Collection`, `Transfer` and `Return`.
+
+**3 — Customer and destination**
+The partner, and the SCOP planning node the goods must reach.
+
+**4 — Status bar**
+The lifecycle. Only a demand at **Eligible for Planning** enters the daily planning process.
+
+**5 — Demand lines**
+Product, quantity requested, quantity fulfilled — and **Owner** with **Ownership Source**, which is the subject of the rest of this page.
+
+---
+
+## Step 2b — Walk the demand forward
+
+**What to do**
+
+1. Click **Submit**. The demand moves to **Submitted**.
+2. Click **Validate**.
+
+**Expected result on a first attempt: refusal.**
+
+<Screenshot
+  src="quick-start/05-ownership-block-validate.png"
+  alt="Odoo warning dialog stating that the action is blocked by BR-INV-002 because ownership source is missing on three products."
+  caption="SCOP refuses to validate the demand, names the rule, and lists the exact products whose owner it cannot establish."
+/>
+
+## Why SCOP blocks this
+
+:::danger[BR-INV-002 — ownership must be resolved before planning]
+
+SCOP must know **who owns the goods** before it will let the movement be planned.
+
+This is not bureaucracy. The company's warehouses hold consignment stock — goods physically present but owned by someone else. Moving goods on someone else's behalf without establishing whose they are is a legal statement, not a data-quality nicety. So SCOP declines to guess.
+
+:::
+
+For an **outbound** movement SCOP will *never* fall back to "presumably ours". It reads the owner recorded against the stock itself. If the warehouse has not recorded an owner, the answer is *unresolved* and the demand stops here — visibly, on a record you can open and fix.
+
+Inbound receipts behave differently: goods the company bought are company-owned by approved policy, unless the supplier is a flagged consignment owner.
+
+## How to resolve it
+
+**Role**
+Warehouse / Administrator
+
+Ownership comes from the stock, so it is fixed in the stock:
+
+1. Record the owner on the inventory. For a first-time setup use
+   `SCOP → Master Data → Onboarding → 2 · Inventory Ownership`, which imports ownership from documented fact rather than assuming it.
+2. Re-reserve the delivery order so the reservation picks up the owner.
+3. On the demand, click **Resolve Ownership**.
+
+**Expected result**
+
+Each demand line now shows an **Owner** and an **Ownership Source** of `stock_move_line` — meaning the answer came from the recorded stock, not from a default.
+
+<Screenshot
+  src="quick-start/06-demand-ownership-resolved.png"
+  alt="SCOP Demand form with each line showing an owner and the ownership source stock_move_line."
+  caption="Ownership resolved from the warehouse's own records. The Resolve Ownership button disappears once there is nothing left to resolve."
+/>
+
+**Now walk it forward again**
+
+1. Click **Validate** — the demand moves to **Validated**.
+2. Click **Mark Eligible** — the demand moves to **Eligible for Planning**.
+
+<Screenshot
+  src="quick-start/07-demand-eligible.png"
+  alt="SCOP Demand form with the status bar highlighting Eligible for Planning."
+  caption="Eligible for Planning. Only demand in this state enters the daily plan."
+/>
+
+**Verify**
+The status bar shows **Eligible for Planning**.
+
+**If it does not work**
+
+| Symptom | Check |
+| --- | --- |
+| `BR-INV-002` still refuses | The reservation was not refreshed after the owner was recorded, so the move lines still carry no owner |
+| Ownership is half-recorded | An owner and its source are set together or not at all; SCOP rejects one without the other |
+| Lines disagree | Two moves on one line resolved to different owners. SCOP leaves this unresolved deliberately — it is a data problem for a person to look at |
+| `Access Error` on `Stock Move` | Your user needs the Odoo **Inventory → User** group as well as its SCOP role |
+
+## Next
+
+[Step 3 — Shipment and Readiness](./shipment-and-readiness.mdx) — turn eligible demand into something a vehicle can be assigned to.

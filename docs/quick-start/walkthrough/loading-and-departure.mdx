@@ -1,0 +1,116 @@
+---
+id: loading-and-departure
+title: Step 6 — Loading and Departure
+description: How the warehouse records loading against the trip, and what the Loading Tasks screen does in this release.
+sidebar_label: Step 6 — Loading and Departure
+sidebar_position: 6
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+import Screenshot from '@site/src/components/Screenshot';
+
+# Step 6 — Loading and Departure
+
+<DocumentInfo
+  category="Quick Start"
+  audience={['Warehouse', 'Operations', 'UAT']}
+  status="Review"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="4 min"
+/>
+
+## Where loading is recorded
+
+A released trip must be loaded before it can depart. The trip's own lifecycle carries this:
+
+```text
+Released → Loading → Ready to Depart → In Progress → Completed
+```
+
+**Role**
+Warehouse
+
+**Navigate to**
+`SCOP → Operations → Trips` → open the released trip
+
+**What to do**
+
+1. Click **Start Loading** when the crew begins loading the vehicle. The trip moves to **Loading**.
+2. Load the vehicle.
+3. Click **Loading Done** when finished. The trip moves to **Ready to Depart**.
+
+**What SCOP does**
+Records the transition times, so the elapsed loading duration becomes a measurable figure rather than an impression. Warehouse-caused delay is one of the Warehouse Productivity measures.
+
+**Expected result**
+The trip reaches **Ready to Depart**, and the driver's **Depart** button becomes available.
+
+<Screenshot
+  src="quick-start/23-trip-released.png"
+  alt="SCOP Trip form for TRP-2026-000001 showing vehicle, planned start and two stops, with the status bar on Released."
+  caption="TRP-2026-000001 — vehicle Opel/Astra, two stops: the warehouse pickup and the Wood Corner delivery. State: Released."
+/>
+
+**Verify**
+The trip's status bar shows **Ready to Depart**.
+
+<Screenshot
+  src="quick-start/24-trip-ready-to-depart.png"
+  alt="SCOP Trip form with the status bar advanced past Loading."
+  caption="After Start Loading and Loading Done: the trip is ready for the driver."
+/>
+
+---
+
+## The Loading Tasks screen
+
+**Navigate to**
+`SCOP → Operations → Loading Tasks`
+
+The screen exists and is designed to hold one task per shipment, with a planned duration, an actual duration recorded by SCOP, an assigned warehouse user, and **Start** / **Done** buttons.
+
+<Screenshot
+  src="quick-start/22-loading-tasks-empty.png"
+  alt="SCOP Loading Tasks list, empty."
+  caption="Loading Tasks is empty. In this release no code path creates these records — loading is recorded on the trip instead."
+/>
+
+:::warning[Loading Tasks are not created in this release]
+
+Nothing in Release 1 creates a Loading Task, so this list stays empty. Record loading on the **trip** as described above.
+
+Two consequences to be aware of:
+
+- The per-shipment **actual loading duration** field is not populated. Loading time is only measurable from the trip's transitions.
+- Assigning loading work to a named warehouse user is not available yet.
+
+Recorded in [Release 1 Boundaries](../release-1-boundaries.mdx).
+
+:::
+
+---
+
+## What you should not do here
+
+:::info[Quantities never come from the loading step]
+
+Do not attempt to record delivered quantities while loading, and do not expect to type them into SCOP later.
+
+**Actual quantities come from the Odoo transfer.** The warehouse validates the delivery order in Odoo, and SCOP reads the result back. This is covered in [Step 7 — Driver Delivery](./driver-delivery.mdx), where you will see the driver's own screen state plainly: *"Quantities come from the warehouse transfer. Record a short delivery there, not here."*
+
+:::
+
+**If it does not work**
+
+| Symptom | Check |
+| --- | --- |
+| **Start Loading** is not offered | The trip is not **Released**. A trip only reaches Released when its plan is released |
+| The trip is still **Draft** after the plan was released | Plan release only releases trips that are already **Approved**. The trip has its own Recommend → Submit → Approve → Release lifecycle |
+| The trip header shows no action buttons at all | Known issue: the driver's simplified trip form is served to every role. See [Release 1 Boundaries](../release-1-boundaries.mdx) |
+| Loading Tasks is empty | Expected in this release — see the warning above |
+
+## Next
+
+[Step 7 — Driver Delivery](./driver-delivery.mdx) — the driver executes the trip and the delivery is closed.

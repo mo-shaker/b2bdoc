@@ -1,0 +1,125 @@
+---
+id: roles-and-responsibilities
+title: الأدوار والمسؤوليات
+description: من يقوم بكل خطوة في دورة SCOP، ومجموعات الأدوار في النظام، وقاعدة فصل المهام التي تحكم اعتماد الخطة.
+sidebar_label: الأدوار والمسؤوليات
+sidebar_position: 3
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+
+# الأدوار والمسؤوليات
+
+<DocumentInfo
+  category="البدء السريع"
+  audience={['أعمال', 'عمليات', 'مستودعات', 'تخطيط', 'اختبار قبول المستخدم']}
+  status="Review"
+  version="1.0"
+  owner="فريق المنتج"
+  updated="أغسطس 2026"
+  readingTime="4 دقائق"
+/>
+
+## من يفعل ماذا
+
+| الدور | المسؤولية الرئيسية |
+| --- | --- |
+| المبيعات / خدمة العملاء | إنشاء أمر العميل وتسجيل ما تم الالتزام به |
+| المستودع | تجهيز البضائع وتهيئتها، وتأكيد الجاهزية، وتحميل المركبة |
+| المخطِّط / المُوزِّع | توليد الخطة اليومية ومراجعتها، ومعالجة الطلب غير المخطط |
+| مدير العمليات | مراجعة الخطة واعتمادها والإفراج عنها |
+| السائق | تنفيذ الرحلة وتسجيل نتيجة التسليم |
+| المشتريات | إدارة التزامات الموردين الواردة |
+| الإدارة | مراجعة مؤشرات الأداء والأداء التشغيلي |
+
+## مجموعات الأدوار في النظام
+
+تشتمل SCOP على تسع مجموعات أدوار، تجدها في سجل المستخدم تحت قسم **SCOP**.
+
+| مجموعة SCOP | من يحملها عادةً | أبرز الصلاحيات |
+| --- | --- | --- |
+| SCOP User | كل من يقرأ بيانات SCOP | قراءة الطلبات والشحنات والرحلات |
+| Warehouse User | موظفو المستودع | جاهزية المستودع، مهام التحميل، التجهيز |
+| Planner / Dispatcher | المخطِّطون والمُوزِّعون | توليد الخطط ومراجعتها وتعديلها، والطلب غير المخطط |
+| Operations Manager | إدارة العمليات | تشمل صلاحيات المخطِّط **و**مستخدم المستودع |
+| Driver | السائقون | رحلاتهم ومحطاتهم فقط، عبر قائمة **My Work** |
+| Procurement User | المشترون | التزامات الموردين |
+| Customer Service User | خدمة العملاء | التزامات الخدمة |
+| Finance User | المالية | أرقام تشغيلية للقراءة فقط |
+| Management | الإدارة | لوحة المعلومات والتقارير |
+| Administrator | مسؤولو النظام | تشمل مدير العمليات والإدارة |
+
+:::warning[مجموعة SCOP لا تمنح صلاحيات Odoo الأساسية]
+
+شاشات SCOP تقرأ سجلات Odoo، لذلك يحتاج المستخدمون التشغيليون إلى مجموعات Odoo المقابلة أيضاً:
+
+| دور SCOP | يحتاج كذلك إلى |
+| --- | --- |
+| أي دور تشغيلي في SCOP | **Inventory → User** |
+| Planner / Dispatcher وOperations Manager | **Inventory → User** و**Fleet → Officer** |
+
+وبدونها يُظهر نموذج الطلب ومعالج التخطيط خطأ `Access Error`. راجع [حدود الإصدار الأول](./release-1-boundaries.mdx).
+
+:::
+
+## فصل المهام
+
+هذه **قاعدة نظام، لا إجراء تنظيمي**:
+
+:::danger[من يُنشئ الخطة لا يستطيع اعتمادها]
+
+`BR-PLN-001` — لا يجوز لمُعِدّ الخطة اليومية اعتمادها ولا الإفراج عنها. وترفض SCOP الإجراء وتوضّح السبب.
+
+ويعلو هذا الرفض على صلاحيات المسؤول (Administrator). فالمسؤول الذي يُنشئ خطة يُرفض أيضاً، لأن جوهر فصل المهام هو ألّا يجمع شخص واحد بين الإنشاء والاعتماد — والمسؤول شخص واحد.
+
+:::
+
+عملياً، هذا يعني:
+
+- **لا يستطيع** مختبِر واحد إتمام الدورة بمفرده؛ فأنت بحاجة إلى حسابين.
+- يجب أن يكون المُعتمِد مستخدماً آخر مخوّلاً.
+- لا يمكن التحايل على الرفض بمنح نفسك صلاحيات أكثر.
+
+```mermaid
+flowchart LR
+    P[Planner<br/>creates the plan] --> S[Submit]
+    S --> UR[Under Review]
+    UR -->|same user tries| X[Refused<br/>BR-PLN-001]
+    UR -->|different authorised user| A[Approved]
+    A --> R[Released]
+
+    classDef bad fill:#fde8e8,stroke:#c0392b,color:#5c1a14
+    classDef good fill:#dff5e1,stroke:#2e7d4f,color:#14361f
+    class X bad
+    class A,R good
+```
+
+وستُجرِّب الحالتين على النظام الفعلي في [المراجعة والاعتماد](./walkthrough/review-and-approve.mdx).
+
+## أي دور يفتح أي قائمة
+
+| القائمة | الأدوار التي تراها |
+| --- | --- |
+| `SCOP → Operations → Demands` | SCOP User وما فوقه |
+| `SCOP → Operations → Shipments` | SCOP User وما فوقه |
+| `SCOP → Operations → Warehouse Readiness` | Warehouse User |
+| `SCOP → Operations → Loading Tasks` | Warehouse User |
+| `SCOP → Operations → Exceptions` | SCOP User وما فوقه |
+| `SCOP → Planning → …` | Planner / Dispatcher |
+| `SCOP → My Work → My Trips` و`My Stops` | Driver |
+| `SCOP → Reporting → …` | SCOP User، وبعض التقارير للمخطِّط فقط |
+| `SCOP → Master Data → …` | SCOP User، وبعض المدخلات للمسؤول فقط |
+| `SCOP → Governance → …` | SCOP User، وبعض المدخلات للمسؤول فقط |
+| `SCOP → Technical → …` | Administrator |
+
+:::info
+
+إخفاء القائمة عرضٌ فقط ولا يُعدّ تحكماً في الوصول. فـ SCOP تفرض الصلاحيات على السجلات نفسها، حتى لا يكون إخفاء قائمة هو الحائل الوحيد بين دور وبياناته.
+
+:::
+
+## صفحات ذات صلة
+
+- [العملية في نظرة واحدة](./process-at-a-glance.mdx)
+- [المراجعة والاعتماد](./walkthrough/review-and-approve.mdx)
+- [قواعد الأعمال](../business/business-rules.mdx)

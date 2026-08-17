@@ -11,6 +11,30 @@
     "message": "الأدلة والمعايير التأسيسية لمركز معرفة SCOP.",
     "description": "The generated-index page description for category 'Getting Started' in sidebar 'tutorialSidebar'"
   },
+  "sidebar.tutorialSidebar.category.SCOP Quick Start Guide": {
+    "message": "دليل البدء السريع لمنصة SCOP",
+    "description": "The label for category 'SCOP Quick Start Guide' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.SCOP Quick Start Guide.link.generated-index.description": {
+    "message": "دليل عملي يأخذ المستخدم الجديد عبر دورة تشغيل كاملة في SCOP — من أمر بيع العميل إلى عملية تسليم مُنفَّذة ومقاسة.",
+    "description": "The generated-index page description for category 'SCOP Quick Start Guide' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.Customer Delivery Walkthrough": {
+    "message": "جولة تنفيذ تسليم لعميل",
+    "description": "The label for category 'Customer Delivery Walkthrough' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.Customer Delivery Walkthrough.link.generated-index.description": {
+    "message": "عملية تسليم واحدة خطوة بخطوة على النظام الفعلي: من يقوم بالإجراء، وأي شاشة يفتح، وماذا يسجّل SCOP، وكيف يتأكد من نجاح كل خطوة.",
+    "description": "The generated-index page description for category 'Customer Delivery Walkthrough' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.When Things Do Not Go to Plan": {
+    "message": "عندما تسير الأمور خلاف الخطة",
+    "description": "The label for category 'When Things Do Not Go to Plan' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.When Things Do Not Go to Plan.link.generated-index.description": {
+    "message": "ما يفعله SCOP عندما يتعذّر تخطيط الطلب أو إتمام التسليم، وما ينبغي أن يفعله المستخدم حينها.",
+    "description": "The generated-index page description for category 'When Things Do Not Go to Plan' in sidebar 'tutorialSidebar'"
+  },
   "sidebar.tutorialSidebar.category.Product": {
     "message": "المنتج",
     "description": "The label for category 'Product' in sidebar 'tutorialSidebar'"

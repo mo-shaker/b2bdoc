@@ -1,0 +1,8 @@
+{
+  "label": "When Things Do Not Go to Plan",
+  "position": 5,
+  "link": {
+    "type": "generated-index",
+    "description": "What SCOP does when demand cannot be planned or a delivery cannot be completed, and what the user should do about it."
+  }
+}
