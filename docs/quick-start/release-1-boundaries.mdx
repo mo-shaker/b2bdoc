@@ -1,0 +1,109 @@
+---
+id: release-1-boundaries
+title: Release 1 Boundaries
+description: What SCOP does and does not do in Release 1, and the verified open items a new user will meet during the walkthrough.
+sidebar_label: Release 1 Boundaries
+sidebar_position: 8
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+
+# Release 1 Boundaries
+
+<DocumentInfo
+  category="Quick Start"
+  audience={['Operations', 'Management', 'Planning', 'UAT']}
+  status="Review"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="5 min"
+/>
+
+## Why this page exists
+
+A guide that describes capability the system does not have wastes a tester's afternoon and damages trust in everything else it says. Everything below was checked against the running application while this guide was written.
+
+## Not in Release 1
+
+These are sometimes assumed to be present. They are not.
+
+| Not available | What Release 1 does instead |
+| --- | --- |
+| **Live vehicle tracking** | Location is captured **once**, at the point of delivery, as part of proof of delivery. SCOP does not follow the vehicle between stops |
+| **Real-time telematics** | No telematics integration exists. Vehicle data is master data plus what the driver records |
+| **AI route optimisation** | Two decision providers ship: a **deterministic baseline** recommender and a **manual** provider that validates a person's own assignments. Neither is an AI optimiser |
+| **Accounting reconciliation** | Cost rates on vehicles are operational estimates for planning comparisons, explicitly not accounting figures. No reconciliation to the ledger |
+| **Historical backfill** | There is deliberately **no demand backfill**. SCOP starts at the pilot go-live cut-off. A reconstructed planning history would be fiction presented as evidence |
+| **Purchase-order consignment terms** | Not modelled. Consignment ownership comes from a flagged partner, not from order terms |
+
+:::info[Prediction and forecasting]
+
+The wider SCOP vision includes predicted travel times, arrival estimates and risk detection. Those belong to the AI Platform roadmap, not to Release 1. What ships today is service durations and travel estimates from master data, and a deterministic recommendation.
+
+:::
+
+## Prerequisites the system does not enforce
+
+| Requirement | Consequence if missed |
+| --- | --- |
+| Odoo **Inventory → User** on every operational SCOP user | The Demand form raises `Access Error` on `Stock Move` |
+| Odoo **Fleet → Officer** on planners | The planning wizard raises `Access Error` on `Vehicle` |
+| A pilot-scope record, applied | No demand is created at all — silently |
+| A SCOP planning node for every destination | Deliveries to that destination produce no demand — silently |
+| Coordinates, timezone and opening hours on each node | Demand becomes unplannable with *missing required data* |
+| An `https` deployment | Delivery coordinates record as null with a reason |
+
+## Open items verified during this walkthrough
+
+Each of these was reproduced on the running application. They do not stop you completing the cycle, but they change who performs some steps.
+
+### Authorisation
+
+| Item | Effect | Workaround |
+| --- | --- | --- |
+| **Create Shipment** is Administrator-only | A Planner is refused with *"You are not allowed to plan …"* although the role model expects them to do it | An Administrator creates the shipment |
+| **Plan approval** requires SCOP Administrator | The seeded approval authority names the **Operations Manager**, but that authority is not consulted when the action runs, so the Operations Manager is refused | Give the approver SCOP Administrator — they must still not be the plan's author, which `BR-PLN-001` continues to enforce correctly |
+| **Driver cannot depart their own trip** | `Access Error` on `SCOP Shipment`. The cascade that moves shipments into execution runs with the driver's rights, and drivers have no shipment access | A Planner, Operations Manager or Administrator departs the trip |
+
+### Screens and data
+
+| Item | Effect | Workaround |
+| --- | --- | --- |
+| **Loading Tasks are never created** | `SCOP → Operations → Loading Tasks` is always empty, so per-shipment actual loading duration is not captured and loading cannot be assigned to a named user | Record loading on the trip with **Start Loading** and **Loading Done** |
+| **The driver's trip form is served to every role** | Odoo resolves form views by priority then name, and `scop.trip.driver.form` sorts before `scop.trip.form`, so the dispatcher's full trip form — with Recommend, Submit, Approve, Release, Complete — is unreachable from `SCOP → Operations → Trips` | Advance the trip lifecycle from the plan, or from a view that targets the dispatcher form directly |
+| **Grouping a SCOP list by Status fails** | The state-grouping helper takes one argument fewer than Odoo 17 passes it, so grouping demands, shipments, trips or plans by state raises `TypeError`. The Demands kanban is grouped by state by default | Use the list view and group by another field |
+| **Plan Coverage percentage is scaled wrong** | Full coverage displays as `10000%` instead of `100%` | Read the underlying planned and unplanned counts, which are correct |
+
+### Lifecycle and measurement
+
+| Item | Effect |
+| --- | --- |
+| **Demand and shipment lifecycles do not advance during execution** | After a fully executed trip — both stops completed, transfer validated, quantities matched — the demand remains **Eligible for Planning** and the shipment remains **Ready**, instead of reaching **Completed**. Consequently **OTIF stays empty for a delivery that actually happened.** This is the most consequential open item for pilot measurement, because OTIF is the headline service KPI |
+
+:::warning[What this means for a pilot]
+
+The operational cycle can be completed end to end today, and the three governance rules work exactly as designed. What is not yet trustworthy is **automated service measurement**: OTIF will under-report until demand and shipment lifecycles advance on execution. Plan Coverage, Decision Quality and Operation Timeline are usable now.
+
+:::
+
+## What is solid today
+
+It is worth being equally precise about what was verified working:
+
+- **Demand is created automatically** from an in-scope Odoo transfer, with nobody typing anything.
+- **Ownership is never guessed.** `BR-INV-002` blocks planning and names the exact lines.
+- **Readiness is computed from evidence** and carries its reasoning in words, across all five states.
+- **Staging changes readiness** immediately and correctly.
+- **Planning runs are replayable** — request, response and timing are kept.
+- **Separation of duties works**, and outranks administrator rights.
+- **An approved plan is frozen**, and modification requires a recorded reason.
+- **Actual quantities flow back from the validated Odoo transfer** onto the stop and the demand, exactly as the design intends.
+- **`BR-EXE-001` holds**, including for partial deliveries, and asks for the reason at the moment the driver can answer.
+- **Proof of delivery** captures signature, photographs and coordinates.
+
+## Related Pages
+
+- [Overview](./overview.mdx)
+- [End-to-End Test Checklist](./end-to-end-test-checklist.mdx)
+- [Release Management](../release-notes/release-management.mdx)

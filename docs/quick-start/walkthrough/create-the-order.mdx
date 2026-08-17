@@ -1,0 +1,111 @@
+---
+id: create-the-order
+title: Step 1 — Create the Order
+description: Raise and confirm a customer order in Odoo, and see the SCOP Demand it produces.
+sidebar_label: Step 1 — Create the Order
+sidebar_position: 1
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+import Screenshot from '@site/src/components/Screenshot';
+
+# Step 1 — Create the Order
+
+<DocumentInfo
+  category="Quick Start"
+  audience={['Sales', 'Customer Service', 'UAT']}
+  status="Review"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="4 min"
+/>
+
+## The scenario
+
+Throughout this walkthrough we follow one delivery on a demonstration database:
+
+| | |
+| --- | --- |
+| Customer | **Wood Corner** — a demonstration customer |
+| Order | **S00025** |
+| Products | 12 × Corner Desk Right Sit, 8 × Large Cabinet, 20 × Storage Box |
+| Required | the next operating day |
+
+:::info
+
+Every screenshot in this guide comes from a demonstration database built from Odoo's own sample data. Your record references will differ; the screens and buttons will not.
+
+:::
+
+---
+
+## Step 1 — Confirm the customer order
+
+**Role**
+Sales / Customer Service
+
+**Navigate to**
+`Sales → Orders → Quotations`
+
+**What to do**
+
+1. Create a quotation.
+2. Select the customer. The customer's branch must exist as a SCOP planning node, otherwise no demand is created — see *If it does not work*.
+3. Add the products and quantities.
+4. Set the **Delivery Date** if the customer has committed to one. SCOP turns this into the Service Commitment used later by OTIF.
+5. Click **Confirm**.
+
+<Screenshot
+  src="quick-start/01-sales-order-quotation.png"
+  alt="Odoo quotation S00025 for Wood Corner with three order lines, before confirmation."
+  caption="The quotation before confirmation. Nothing exists in SCOP yet."
+/>
+
+**What Odoo does**
+
+- The quotation becomes a **Sales Order**.
+- A **Delivery Order** is created and reserved against available stock.
+
+**What SCOP does**
+
+- Creates a **Demand** for the delivery order, if that operation type is inside the pilot scope.
+- Records a **Service Commitment** from the order's delivery date. It is captured once, at this moment, and never re-read — so a later edit to the order cannot quietly rewrite what was promised.
+
+**Expected result**
+
+The order shows the **Sales Order** stage and a **Delivery** button appears in the button box.
+
+<Screenshot
+  src="quick-start/01-sales-order-confirmed.png"
+  alt="Odoo sales order S00025 confirmed, showing the Sales Order stage and a Delivery smart button."
+  caption="Confirmed. Odoo has created the delivery order — the Delivery button counts it."
+/>
+
+**Verify**
+
+Click **Delivery** to open the transfer Odoo created.
+
+<Screenshot
+  src="quick-start/02-odoo-delivery-order.png"
+  alt="Odoo delivery order WH/OUT/00012 for Wood Corner in the Ready state."
+  caption="Delivery order WH/OUT/00012, state Ready. This is the document SCOP watches — and the one that will later carry the actual quantities."
+/>
+
+**If it does not work**
+
+| Symptom | Likely cause |
+| --- | --- |
+| No Delivery Order | The products are not storable, or the order has no deliverable line |
+| Delivery Order is `Waiting` not `Ready` | No stock is available to reserve; readiness will reflect this later |
+| No SCOP Demand appears in Step 2 | The operation type is outside the pilot scope, or the customer has no SCOP planning node |
+
+:::note[Nobody typed anything into SCOP]
+
+This is the point of the design. The salesperson did their normal Odoo job. SCOP produced its own record of what needs to move, automatically, as a consequence.
+
+:::
+
+## Next
+
+[Step 2 — Demand and Ownership](./demand-and-ownership.mdx) — confirm the demand exists, and meet the first rule that can stop it.

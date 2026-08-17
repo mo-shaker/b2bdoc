@@ -1,0 +1,151 @@
+---
+id: shipment-and-readiness
+title: Step 3 — Shipment and Readiness
+description: Create the shipment from eligible demand, read warehouse readiness, and stage the goods so the shipment becomes plannable.
+sidebar_label: Step 3 — Shipment and Readiness
+sidebar_position: 3
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+import Screenshot from '@site/src/components/Screenshot';
+
+# Step 3 — Shipment and Readiness
+
+<DocumentInfo
+  category="Quick Start"
+  audience={['Warehouse', 'Planning', 'Operations', 'UAT']}
+  status="Review"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="5 min"
+/>
+
+## Step 3a — Create the shipment
+
+**Role**
+Administrator
+
+:::warning
+
+In this release the **Create Shipment** action is permitted only to a SCOP Administrator, even though the role model expects the Planner to perform it. Recorded in [Release 1 Boundaries](../release-1-boundaries.mdx).
+
+:::
+
+**Navigate to**
+`SCOP → Operations → Demands` → open the eligible demand
+
+**What to do**
+Click **Create Shipment**.
+
+**What SCOP does**
+Groups the eligible demand into a transport requirement — a **Shipment** — with a total weight, volume, origin node, and destination node. It also creates the shipment's **Warehouse Readiness** record.
+
+**Expected result**
+A shipment exists in state **Ready**, with a readiness of **Conditionally Ready**.
+
+**Verify**
+`SCOP → Operations → Shipments`
+
+<Screenshot
+  src="quick-start/08-shipment-list.png"
+  alt="SCOP Shipments list showing SHP-2026-000001 for Wood Corner with readiness Conditionally Ready."
+  caption="SHP-2026-000001 — 2.96 kg, 0.24 m³, 0% staged, readiness Conditionally Ready."
+/>
+
+---
+
+## Step 3b — Read the readiness
+
+**Role**
+Warehouse
+
+**Navigate to**
+`SCOP → Operations → Warehouse Readiness`
+
+Readiness answers one question — *can this shipment actually go, and why* — and it is **computed from evidence, never typed in**. It always carries its reasoning in words.
+
+<Screenshot
+  src="quick-start/11-warehouse-readiness-list.png"
+  alt="SCOP Warehouse Readiness list showing one shipment with readiness Ready."
+  caption="One row per shipment, with the readiness state and the node preparing the goods."
+/>
+
+<Screenshot
+  src="quick-start/12-warehouse-readiness-form.png"
+  alt="SCOP Warehouse Readiness form showing computed state, override state, evidence text, and the plannable flag."
+  caption="The readiness record. Evidence explains the computation in plain words, so a planner asking 'why is this not ready' has an answer without reading source code."
+/>
+
+### The five readiness states
+
+| Readiness | What it means | Plannable? |
+| --- | --- | --- |
+| **Ready** | Everything is staged | **Yes** |
+| **Conditionally Ready** | Stock is reserved for the whole shipment but not yet staged, so it is expected to be available before execution | **Yes** |
+| **Partially Ready** | Only part of the shipment can be covered | No |
+| **Not Ready** | The goods are not prepared, or the shipment has no lines | No |
+| **Blocked** | Something must be fixed first — unresolved ownership, or every transfer cancelled | No |
+
+Only **Ready** and **Conditionally Ready** are plannable. `Conditionally Ready` counts because that is what the value *means*; excluding it would make the classification decorative.
+
+`Blocked` is tested **first**, before any staged percentage. A shipment whose owner is unresolved is not "partially ready" — it is not plannable at all, and a well-prepared pallet must not be allowed to mask a legal problem.
+
+### The supervisor override
+
+A supervisor in the warehouse can see things the database cannot — a pallet already on the dock that Odoo has not caught up with. The **Override Readiness** field overrules the computation completely, and is recorded with who set it, when, and why. It is shown **beside** the computed value, never replacing it, so the computation stays auditable.
+
+---
+
+## Step 3c — Stage the goods
+
+**Role**
+Warehouse
+
+**Navigate to**
+`SCOP → Operations → Shipments` → open the shipment
+
+**What to do**
+Click **Stage Everything**.
+
+Use it when the goods for the whole shipment are physically picked and standing in the staging area ready to load. It is a shortcut for confirming line-by-line — so use it only when that is actually true.
+
+<Screenshot
+  src="quick-start/09-shipment-form.png"
+  alt="SCOP Shipment form showing the Refresh Readiness and Stage Everything buttons with readiness Conditionally Ready."
+  caption="Before staging: readiness is Conditionally Ready, staged 0%. The header offers Refresh Readiness and Stage Everything."
+/>
+
+**What SCOP does**
+Marks every shipment line staged, recomputes readiness, and moves the readiness state up.
+
+**Expected result**
+Readiness becomes **Ready**, with evidence reading *"Everything is staged."*
+
+<Screenshot
+  src="quick-start/10-shipment-staged.png"
+  alt="SCOP Shipment form after staging, showing readiness Ready."
+  caption="After Stage Everything: readiness Ready. The shipment is now firmly plannable."
+/>
+
+**Verify**
+`SCOP → Operations → Warehouse Readiness` shows **Ready** for this shipment.
+
+**If it does not work**
+
+| Symptom | Check |
+| --- | --- |
+| Readiness stays **Blocked** | Ownership is unresolved on one or more lines — return to [Step 2](./demand-and-ownership.mdx) |
+| Readiness stays **Not Ready** | The shipment has no lines, or nothing is reserved in Odoo |
+| **Stage Everything** does nothing visible | Click **Refresh Readiness**; readiness is recomputed from current evidence |
+| Staged quantity exceeds the shipment quantity | SCOP rejects it — you cannot stage more than the shipment asks for |
+
+:::note
+
+Staging is a **state**, not a separate document. You are recording that the goods are prepared, not creating a new record to track.
+
+:::
+
+## Next
+
+[Step 4 — Generate the Plan](./generate-the-plan.mdx) — turn plannable shipments into a recommended daily plan.

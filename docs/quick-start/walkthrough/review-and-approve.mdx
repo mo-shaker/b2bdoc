@@ -1,0 +1,169 @@
+---
+id: review-and-approve
+title: Step 5 — Review and Approve
+description: Review the recommended plan, record override reasons, and prove the separation-of-duties rule by testing both the refused and the permitted approval.
+sidebar_label: Step 5 — Review and Approve
+sidebar_position: 5
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+import Screenshot from '@site/src/components/Screenshot';
+
+# Step 5 — Review and Approve
+
+<DocumentInfo
+  category="Quick Start"
+  audience={['Planning', 'Operations', 'Management', 'UAT']}
+  status="Review"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="6 min"
+/>
+
+This is the governance step. It is the reason SCOP can explain a decision months later.
+
+## Step 5a — Review the plan
+
+**Role**
+Planner / Dispatcher
+
+**Navigate to**
+`SCOP → Planning → Daily Plans` → open the recommended plan
+
+**What to do**
+
+1. Open the plan.
+2. On the **Trips** tab, review each recommended trip: vehicle, driver, stop count, planned distance, and peak load against capacity.
+3. Check the demand assignment — is the right demand on the right trip?
+4. Check the stop sequence and the route.
+5. Open the **Unplanned Demand** tab. If it is not empty, read the reasons **before** approving anything.
+6. Modify a recommendation only where you know something the engine did not.
+
+### If you change a recommendation
+
+Click **Modify**. SCOP requires an **Override Reason** and refuses without one:
+
+> Modifying this plan requires an override reason: what did you know that the recommendation did not?
+
+The reasons are a fixed, governed list — for example *Local route knowledge*, *Customer instruction*, *Unexpected warehouse condition*, *Incorrect master data*, *Management instruction*.
+
+:::info[Why SCOP insists on the reason]
+
+A planner who overrides a recommendation knows something the system does not. Captured, that knowledge improves the engine. Uncaptured, it is lost and the same override happens again next week. The override count and reason feed the **Decision Quality** report.
+
+:::
+
+---
+
+## Step 5b — Submit the plan
+
+**What to do**
+Click **Submit**.
+
+**Expected result**
+The plan moves to **Under Review**, and its planning run moves to **Reviewed** alongside it.
+
+<Screenshot
+  src="quick-start/18-plan-under-review.png"
+  alt="SCOP Daily Plan form with the status bar highlighting Under Review, and Approve, Modify and Reject buttons in the header."
+  caption="Under Review. The header now offers Approve, Modify and Reject."
+/>
+
+---
+
+## Step 5c — Test the rule: the author cannot approve
+
+**Role**
+The same Planner who created the plan
+
+**What to do**
+While still signed in as the plan's author, click **Approve**.
+
+**Expected result: SCOP refuses.**
+
+<Screenshot
+  src="quick-start/19-self-approval-refused.png"
+  alt="Odoo warning dialog stating that the plan was created by this user so they may not approve it, because separation of duties is the point of the approval step."
+  caption="The refusal, verbatim: “PLN-2026-08-18-01 was created by you, so you may not approve it. Separation of duties is the point of the approval step.”"
+/>
+
+:::danger[BR-PLN-001 — separation of duties]
+
+The author of a plan may not **approve** it — and may not **release** it either.
+
+The check **outranks administrator rights**. Granting yourself more permissions does not get you past it, because the point of separation of duties is that no single person both creates and approves, and an administrator is a single person.
+
+It is enforced in three independent places: the authorisation gate, the business rule with its evidence rows, and the audit record. A business rule can be waived under an approved exemption; the authorisation check cannot.
+
+:::
+
+This is the test that most often surprises a first-time UAT tester working alone. It is not a bug. **You need a second account to finish the cycle.**
+
+---
+
+## Step 5d — Approve as a different user
+
+**Role**
+Operations Manager — a different, authorised user
+
+**What to do**
+
+1. Sign in as the second user.
+2. Open the same plan: `SCOP → Planning → Daily Plans`.
+3. Click **Approve**.
+
+**Expected result**
+The plan moves to **Approved**, and **Approved By** and **Approved At** are filled in.
+
+<Screenshot
+  src="quick-start/20-plan-approved.png"
+  alt="SCOP Daily Plan form with the status bar highlighting Approved."
+  caption="Approved by Omar Operations — a different user from the plan's author. An approval row is written to the Approvals tab at the same time."
+/>
+
+:::warning[Who can approve, in this release]
+
+The system seeds an approval authority naming the **Operations Manager** for plan approval and release, but that authority is not consulted when the action runs. In practice the approver must hold **SCOP Administrator** — and must still not be the plan's author. Recorded in [Release 1 Boundaries](../release-1-boundaries.mdx).
+
+:::
+
+**What SCOP does on approval**
+
+- Freezes the plan. An approved plan's date, objective profile, run and recommendation snapshot can no longer be changed — editing an approved commitment would erase the evidence that one was approved.
+- Writes an approval record: who decided, when, whether the plan had been modified, and how many times.
+
+---
+
+## Step 5e — Release the plan
+
+**What to do**
+Click **Release**.
+
+**What SCOP does**
+Authorises execution. The approved trips become real commitments and resources are held for them. The gate runs **before** anything moves, so a plan carrying a blocking finding never reaches the point where a vehicle is held for it.
+
+**Expected result**
+The plan reaches **Released** — its final state.
+
+<Screenshot
+  src="quick-start/21-plan-released.png"
+  alt="SCOP Daily Plan form with the status bar highlighting Released."
+  caption="Released. Execution is authorised."
+/>
+
+**Verify**
+`SCOP → Operations → Trips` shows the trip for this plan.
+
+**If it does not work**
+
+| Symptom | Check |
+| --- | --- |
+| **Approve** refused for the author | Correct behaviour — `BR-PLN-001`. Use a second user |
+| **Approve** refused for the second user too | That user lacks the rights the action requires; see the warning above |
+| Cannot edit an approved plan | Correct behaviour. Return it to review with **Modify**, which is recorded, reasoned and counted |
+| **Reject** refused | A rejection also needs a reason |
+
+## Next
+
+[Step 6 — Loading and Departure](./loading-and-departure.mdx) — the warehouse loads the vehicle and the trip is released to the driver.

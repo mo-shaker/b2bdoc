@@ -1,0 +1,32 @@
+.figure {
+  margin: 1.5rem 0 2rem;
+}
+
+.mobile {
+  max-width: 26rem;
+  /* Centred rather than start-aligned so the frame reads the same in LTR and RTL. */
+  margin-inline: auto;
+}
+
+.image {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: var(--ifm-global-radius);
+  background-color: var(--ifm-background-surface-color);
+  box-shadow: var(--ifm-global-shadow-lw);
+}
+
+.caption {
+  margin-top: 0.6rem;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--ifm-color-emphasis-700);
+  /* Captions follow the page direction, so Arabic pages read right-to-left. */
+  text-align: start;
+}
+
+.caption code {
+  font-size: 0.8rem;
+}

@@ -1,0 +1,89 @@
+---
+id: end-to-end-test-checklist
+title: End-to-End Test Checklist
+description: Test SCOP in 15 steps — a compact checklist with the expected result of each step, verified against the running system.
+sidebar_label: End-to-End Test Checklist
+sidebar_position: 7
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+
+# Test SCOP in 15 Steps
+
+<DocumentInfo
+  category="Quick Start"
+  audience={['UAT', 'Operations', 'Planning', 'Warehouse']}
+  status="Review"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="4 min"
+/>
+
+## Before you start
+
+| Requirement | Why |
+| --- | --- |
+| **Two user accounts** | The plan's author cannot approve it. A solo tester cannot finish the cycle |
+| A warehouse inside the pilot scope | SCOP only creates demand for operations a pilot-scope record has switched on |
+| Odoo **Inventory / User** on every tester, plus **Fleet / Officer** for the planner | SCOP screens read Odoo records |
+| Stock on hand for the test products | So the transfer can reserve, and readiness can become plannable |
+| A customer whose branch exists as a SCOP planning node | A destination without a node produces no demand, silently |
+
+## The checklist
+
+| Step | Tester action | Expected result |
+| --- | --- | --- |
+| 1 | Create a Sales Order for a customer with a SCOP node | Quotation created |
+| 2 | Confirm the Sales Order | Sales Order confirmed; Odoo Delivery Order created |
+| 3 | Open `SCOP → Operations → Demands` | A Demand exists in **Draft**, referencing the delivery order |
+| 4 | Submit the demand, then **Validate** it | **Refused** by `BR-INV-002` if ownership is unresolved — the rule and the products are named |
+| 5 | Record inventory ownership, then **Resolve Ownership** | Each line shows an owner and ownership source `stock_move_line` |
+| 6 | **Validate**, then **Mark Eligible** | Demand reaches **Eligible for Planning** |
+| 7 | Click **Create Shipment** | Shipment created; readiness **Conditionally Ready** |
+| 8 | Click **Stage Everything** on the shipment | Readiness becomes **Ready**; evidence reads *"Everything is staged."* |
+| 9 | `SCOP → Planning → Generate a Plan` — set the date, click **Generate** | Planning Run **Recommended**; Daily Plan **Generated** with a recommended trip |
+| 10 | Open the plan and click **Submit** | Plan moves to **Under Review** |
+| 11 | As the plan's **author**, click **Approve** | **Refused** by `BR-PLN-001` — *"was created by you, so you may not approve it"* |
+| 12 | As a **different authorised user**, click **Approve**, then **Release** | Plan reaches **Approved**, then **Released**; Approved By and Approved At are filled |
+| 13 | On the trip: **Start Loading**, then **Loading Done** | Trip reaches **Ready to Depart** |
+| 14 | Depart the trip; as driver, **I have arrived**, **Start unloading**; record proof of delivery | Stop reaches **Servicing** with arrival stamped; signature and photos attached |
+| 15 | Validate the Odoo transfer, then tap **Delivered**; review reporting | Actual quantities equal planned; stop **Completed** with outcome **Completed**; plan appears in **Plan Coverage** |
+
+## Negative tests worth running
+
+These prove the controls work. All three were verified on the running system.
+
+| Test | Expected refusal |
+| --- | --- |
+| Validate a demand whose ownership is unresolved | `BR-INV-002` — *required input is missing: ownership source on …* |
+| Approve your own plan | `BR-PLN-001` — *was created by you, so you may not approve it. Separation of duties is the point of the approval step.* |
+| Close a stop as **Could not deliver** with no reason | `BR-EXE-001` — *Record why stop N failed before closing it.* |
+| Press **Delivered** before validating the Odoo transfer | *Stop N did not deliver everything planned, so it needs a reason before it can be closed.* |
+| Edit an approved plan's date or objective profile | Refused — an approved plan is frozen |
+| Modify a plan without an override reason | Refused — *what did you know that the recommendation did not?* |
+
+## Known behaviour that is not a test failure
+
+Do not raise these as defects; they are recorded in [Release 1 Boundaries](./release-1-boundaries.mdx).
+
+| You will see | Status |
+| --- | --- |
+| `SCOP → Operations → Loading Tasks` is empty | No code path creates these in Release 1 |
+| The driver's **Depart** raises `Access Error` | Known issue — a Planner or Administrator must depart the trip |
+| **Create Shipment** is refused for a Planner | Currently Administrator-only |
+| **Approve** is refused for an Operations Manager | Currently requires SCOP Administrator |
+| The trip header shows no lifecycle buttons | The driver's simplified form is served to every role |
+| Plan Coverage shows `10000%` | Display scaling only; the counts are correct |
+| A completed delivery does not appear in OTIF | Demand and shipment lifecycles do not advance during execution |
+| Grouping a SCOP list by **Status** raises an error | Known issue in the state-grouping helper |
+
+## Recording your results
+
+For each step record the reference, the expected result, the actual result, and a screenshot where it differs. Use **Operation Timeline** (`SCOP → Reporting → Operation Timeline`) to attach a single reconstructed history of the operation to your test evidence — it is assembled from the records rather than from recollection, which makes it the strongest evidence available.
+
+## Related Pages
+
+- [Customer Delivery Walkthrough](./walkthrough/create-the-order.mdx)
+- [Reports You Should Know](./reports-you-should-know.mdx)
+- [Release 1 Boundaries](./release-1-boundaries.mdx)

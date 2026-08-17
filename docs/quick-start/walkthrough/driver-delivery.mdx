@@ -1,0 +1,234 @@
+---
+id: driver-delivery
+title: Step 7 — Driver Delivery
+description: The driver executes the trip, the warehouse validates the Odoo transfer, and the delivery is closed with proof of delivery.
+sidebar_label: Step 7 — Driver Delivery
+sidebar_position: 7
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+import Screenshot from '@site/src/components/Screenshot';
+
+# Step 7 — Driver Delivery
+
+<DocumentInfo
+  category="Quick Start"
+  audience={['Driver', 'Warehouse', 'Operations', 'UAT']}
+  status="Review"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="7 min"
+/>
+
+## The driver's sequence
+
+```text
+Trip → Depart → Stop → I have arrived → Start unloading → Delivered / Could not deliver
+```
+
+The driver's screens are a deliberately small surface: they see their own trips and their own stops, nothing else.
+
+---
+
+## Step 7a — Open the trip
+
+**Role**
+Driver
+
+**Navigate to**
+`SCOP → My Work → My Trips`
+
+<Screenshot
+  src="quick-start/25-driver-my-trips.png"
+  alt="SCOP My Trips on a phone-sized screen, showing one trip card with its state."
+  caption="My Trips on a phone. One card per trip, with its state and planned start."
+  device="mobile"
+/>
+
+**What to do**
+Tap the trip for today, then tap **Depart** when the vehicle leaves.
+
+<Screenshot
+  src="quick-start/26-driver-trip-ready.png"
+  alt="SCOP driver trip form on a phone showing vehicle, planned start, and the two stops."
+  caption="The driver's trip form — vehicle, planned start, and the stops in sequence. Deliberately minimal."
+  device="mobile"
+/>
+
+**What SCOP does**
+The trip moves to **In Progress**, and the shipments and demands it carries follow into execution. The driver performs one act; SCOP records its consequences.
+
+:::warning[The driver cannot depart in this release]
+
+Pressing **Depart** as a driver raises `Access Error` on `SCOP Shipment`. The cascade that moves shipments and demands into execution runs with the driver's own rights, and drivers have no access to shipments.
+
+Until this is fixed, a Planner, Operations Manager or Administrator must depart the trip. Recorded in [Release 1 Boundaries](../release-1-boundaries.mdx).
+
+:::
+
+---
+
+## Step 7b — Arrive at the stop
+
+**Navigate to**
+`SCOP → My Work → My Stops`
+
+<Screenshot
+  src="quick-start/28-driver-my-stops.png"
+  alt="SCOP My Stops on a phone showing the warehouse pickup stop and the Wood Corner delivery stop."
+  caption="My Stops, in trip and sequence order: stop 0 the warehouse pickup, stop 1 the Wood Corner delivery."
+  device="mobile"
+/>
+
+**What to do**
+Open the customer stop. Tap **I have arrived** on arrival.
+
+<Screenshot
+  src="quick-start/29-driver-stop-planned.png"
+  alt="SCOP driver stop form showing status Planned and the I have arrived button."
+  caption="Stop status Planned. The only action offered is I have arrived — the screen never shows a button the driver should not press yet."
+  device="mobile"
+/>
+
+**What SCOP does**
+Records the **Actual Arrival** timestamp and moves the stop to **Arrived**. The difference between planned and actual arrival becomes the arrival-accuracy measure.
+
+<Screenshot
+  src="quick-start/30-driver-stop-arrived.png"
+  alt="SCOP driver stop form with status Arrived and the actual arrival time recorded."
+  caption="Arrived, with the actual arrival time stamped by the system rather than typed by the driver."
+  device="mobile"
+/>
+
+**What to do next**
+Tap **Start unloading** when unloading begins. The stop moves to **Servicing** and the outcome buttons appear.
+
+<Screenshot
+  src="quick-start/31-driver-stop-unloading.png"
+  alt="SCOP driver stop form in Servicing status, offering Delivered and Could not deliver."
+  caption="Servicing. Now — and only now — the two outcome buttons appear: Delivered and Could not deliver."
+/>
+
+:::note[On a phone, the buttons collapse into one menu]
+
+At phone width the action buttons move into a single **Action** menu at the top of the form. The choices are the same.
+
+:::
+
+---
+
+## Step 7c — Record proof of delivery
+
+**Navigate to**
+the **Proof of delivery** tab on the stop
+
+<Screenshot
+  src="quick-start/32-driver-proof-of-delivery.png"
+  alt="SCOP driver stop Proof of delivery tab showing signed-by field, signature pad, photos and location."
+  caption="Proof of delivery: who signed, their signature, photographs, and the delivery location."
+/>
+
+| Field | What it captures |
+| --- | --- |
+| **Signed By** | The name of the person who received the goods |
+| **Signature** | Captured on the screen, tied to the name above |
+| **Photos** | Any number of attachments — condition of goods, the dock, a damaged pallet |
+| **Location** | The coordinates at the moment of delivery |
+
+:::info[About the delivery location]
+
+The coordinates are captured **once, at the point of delivery**. This is a proof-of-delivery stamp, not live vehicle tracking — SCOP does not follow the vehicle between stops in Release 1.
+
+Coordinate capture needs an `https` deployment. On plain `http` the browser refuses, and SCOP records a **null with a reason** rather than silently storing zero — a stop at latitude 0 is in the Atlantic, and a plausible wrong answer is worse than an honest missing one.
+
+:::
+
+---
+
+## Step 7d — Validate the Odoo transfer
+
+This is the step that surprises people, and it is the heart of *Odoo drives, SCOP listens*.
+
+**Role**
+Warehouse
+
+**Navigate to**
+`Inventory → Transfers` → the delivery order for this order
+
+<Screenshot
+  src="quick-start/37-odoo-transfer-before-validate.png"
+  alt="Odoo delivery order WH/OUT/00012 in the Ready state with quantities set, before validation."
+  caption="Before validation. The quantities are set but nothing is confirmed, so SCOP still reads the actual quantity as zero."
+/>
+
+**What to do**
+
+1. Set the delivered quantity on each line. **Record a short delivery here** if the customer accepted less than planned.
+2. Click **Validate**.
+
+**Expected result**
+The transfer reaches **Done**.
+
+<Screenshot
+  src="quick-start/38-odoo-transfer-validated.png"
+  alt="Odoo delivery order WH/OUT/00012 in the Done state after validation."
+  caption="Done. The quantities are now facts, and SCOP can read them."
+/>
+
+**What SCOP does**
+Reads the validated quantities back onto the stop's goods lines and onto the demand's fulfilled quantity. Verify it on the driver's **Goods** tab:
+
+<Screenshot
+  src="quick-start/33-driver-goods-quantities.png"
+  alt="SCOP driver stop Goods tab showing planned quantity 12, 8, 20 and actual quantity 12, 8, 20, with a note that quantities come from the warehouse transfer."
+  caption="Planned 12 / 8 / 20, actual 12 / 8 / 20 — read from the validated transfer. The note on the screen says it plainly: “Quantities come from the warehouse transfer. Record a short delivery there, not here.”"
+/>
+
+:::danger[Order matters]
+
+If you press **Delivered** before the Odoo transfer is validated, the actual quantities are still zero. SCOP concludes the stop did not deliver what was planned and refuses to close it as a clean delivery:
+
+> Stop 1 did not deliver everything planned, so it needs a reason before it can be closed.
+
+That is `BR-EXE-001` doing its job. **Validate the transfer first**, then close the stop.
+
+:::
+
+If a short delivery is validated in Odoo, Odoo may create a **backorder** for the remainder. Expect the original transfer to close at the delivered quantity and a new transfer to carry the rest. Because a backorder is another fulfilment of the *same* demand, SCOP does not create a second demand for it.
+
+---
+
+## Step 7e — Close the delivery
+
+**What to do**
+Back on the stop, tap **Delivered**.
+
+**Expected result**
+The stop reaches **Completed** with an **Outcome** of **Completed**, and no reason is required because nothing went wrong.
+
+<Screenshot
+  src="quick-start/36-driver-stop-delivered.png"
+  alt="SCOP driver stop form showing status Completed and outcome Completed, with matching planned and actual quantities."
+  caption="Completed. Outcome Completed, planned and actual quantities equal, proof of delivery attached."
+/>
+
+**Verify**
+
+- The stop status is **Completed**.
+- `SCOP → Operations → Trips` — the trip can be **Completed** once every stop is closed.
+- The delivery appears in the reports covered in [Reports You Should Know](../reports-you-should-know.mdx).
+
+**If it does not work**
+
+| Symptom | Check |
+| --- | --- |
+| **Delivered** asks for a reason | The Odoo transfer is not validated, or was validated short. Validate it, or supply the reason |
+| **Depart** raises `Access Error` | Known issue — a Planner or Administrator must depart the trip |
+| **Start unloading** is not offered | The stop is not **Arrived** yet |
+| Actual quantities stay at zero | The transfer is not **Done**, or the moves are not linked to this demand |
+| The driver sees no trips | The trip has no driver assigned, or the driver's user is not linked to their employee record |
+
+## Next
+
+[Reports You Should Know](../reports-you-should-know.mdx), or read what happens when things go wrong in [When Things Do Not Go to Plan](../exceptions/unplanned-demand.mdx).
