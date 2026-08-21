@@ -135,9 +135,23 @@ One line per product at this stop.
 | Column | Meaning | Source |
 | --- | --- | --- |
 | **Product** | What is being delivered or collected | The shipment line |
-| **Planned Quantity** | What should move | The shipment line |
-| **Actual Quantity** | What did move | **The validated Odoo transfer** |
-| **Demand** | Which demand this line serves | The traceability link |
+| **Planned Qty** | What should move | The shipment line |
+| **Actual Qty** | What did move | **The validated Odoo transfer** |
+| **Qty Variance** | Actual minus planned | Computed |
+| **Shipment Line** | The line this came from — **and through it, the demand** | The traceability link |
+| **Inventory Owner** | Who owns these goods | Copied from the shipment line |
+| **Ownership Source** | How that was established | Copied from the shipment line |
+
+:::note[The demand is reached through the shipment line, not directly]
+
+A stop line names its **shipment line**, and the shipment line names its **demand**. The
+chain is one hop longer than it looks, and it is what keeps a shared visit traceable:
+
+```text
+Stop line  →  Shipment line  →  Demand  →  Odoo transfer
+```
+
+:::
 
 :::warning[Actual quantity is never typed]
 

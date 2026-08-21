@@ -100,6 +100,19 @@ reason would put a plausible-looking coordinate into the evidence chain.
 **Has Location** and **Capture Failed Reason** together make the difference readable: a
 degradation nobody records is a silent gap.
 
+Verified on `b2b`, a stop closed where no coordinate could be taken:
+
+```text
+pod_latitude               0
+pod_longitude              0
+pod_captured_at            set
+pod_capture_failed_reason  "Geolocation unavailable: the site is served over plain HTTP."
+has_pod_location           false
+```
+
+The timestamp is still there — the attempt was made and dated — but **Has Location** is
+false, so nothing downstream mistakes the zeroes for a place.
+
 :::
 
 ## This is not vehicle tracking

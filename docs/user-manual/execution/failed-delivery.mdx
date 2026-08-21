@@ -41,6 +41,24 @@ different things.
 Getting this wrong is expensive: a failure recorded because the office had not caught up has
 to be unpicked from OTIF, from the demand chain, and from every service measure afterwards.
 
+### The two refusals, verbatim
+
+Both reproduced on `b2b` as the driver:
+
+```text
+Stop 1 has no delivered quantity recorded yet. The warehouse validates the
+transfer in Odoo, and SCOP reads the result — wait for that, then close the
+stop. If the delivery genuinely failed, use 'Could not deliver' and give the
+reason.
+```
+
+```text
+Record why stop 2 failed before closing it.
+```
+
+The first offers you both paths. The second is `BR-EXE-001` refusing a failure with no
+reason.
+
 ### How SCOP helps you tell them apart
 
 When you press **Delivered** on a stop with no recorded quantity, SCOP does not simply
@@ -90,6 +108,13 @@ door — not later, when the detail has gone.
 | **Ran out of time on the route** | The day ended first | Planning — the route was too long |
 | **Vehicle issue** | The vehicle stopped you | Fleet |
 | **Rescheduled at the customer's request** | They asked for another day | Customer Service |
+<Screenshot
+  src="user-manual/D05-driver-stop-failed.png"
+  alt="The driver's stop form after a failed delivery, showing status Failed and the recorded outcome reason."
+  caption="A failed stop on b2b, closed with the reason 'Customer location closed'. Without a reason it could not be closed at all."
+  device="mobile"
+/>
+
 
 :::note[Choose the reason that is true]
 

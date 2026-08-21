@@ -124,8 +124,22 @@ Both were reproduced on `b2b` and are recorded here rather than written around.
 | --- | --- | --- | --- | --- |
 | 1 | **Compute Capacity is offered to users who cannot use it** | Low | The button appears on the trip form for anyone who can open it, but creating a capacity snapshot is restricted to the SCOP Administrator group. An Operations Manager or Planner pressing it gets an `AccessError` naming `scop.trip.capacity.snapshot` | Have an Administrator compute the capacity, or ignore the button |
 | 2 | **Capacity Feasible reads `false` when capacity has merely never been computed** | Cosmetic | A trip with no materialised capacity curve displays **Capacity Feasible = false**, which reads as *infeasible*. `BR-RTE-001` evaluates the same trip and correctly passes | Read **First Breach Sequence** and the peak percentages beside it. A zero breach sequence with zero peaks means *not computed*, not *infeasible* |
+| 3 | **Every internal user, including a Driver, can read Odoo transfer headers** | **High** | The access rule `stock_return_approval.user`, from a third-party module, grants **every internal user** read, write, create and delete on `stock.picking`. On `b2b` a Driver can therefore list 21,181 transfers with their customer names and scheduled dates | Narrow that module's access rule to the Inventory groups. **The fix is outside SCOP** |
 
-Neither changes business logic, and neither has a workaround that distorts the operation.
+:::danger[Defect 3 is a real access-control gap, and it is not SCOP's]
+
+SCOP grants the Driver group nothing at all on `stock.picking`. The transfer **lines**
+(`stock.move`) remain protected by standard Odoo access rules, so products and quantities are
+not exposed — but the headers are.
+
+It is recorded here because the [Driver Security Model](../execution/driver-security-model.mdx)
+would otherwise claim a boundary this deployment does not actually hold. Until that module's
+access rule is narrowed, treat transfer headers as visible to every internal user.
+
+:::
+
+Defects 1 and 2 change no business logic. Defect 3 is a configuration fix in Odoo, not a
+change to SCOP.
 
 ## Records left mid-flight by an earlier release
 

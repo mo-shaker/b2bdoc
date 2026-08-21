@@ -7,6 +7,7 @@ sidebar_position: 6
 ---
 
 import DocumentInfo from '@site/src/components/DocumentInfo';
+import Screenshot from '@site/src/components/Screenshot';
 
 # Driver Security Model
 
@@ -66,7 +67,7 @@ That is the complete list.
 | **Warehouse Readiness** | Same |
 | **Loading Task** | Same |
 | **Exception** | Same |
-| **Odoo inventory transfers** | A driver must never be able to read every movement in the company |
+| **Odoo stock moves** — the transfer *lines* | Standard Odoo restricts these to the Inventory, Sales, Purchase and Accounting groups |
 | **Business rules, evaluations, authorities** | Same |
 | **Reports** | Same |
 | **Other drivers' trips and stops** | Narrowed to their own |
@@ -75,6 +76,53 @@ That is the complete list.
 
 These are not menus that were switched off. The Driver group carries **no access rights** to
 these models at all. Reaching one produces an access error, not an empty list.
+
+:::
+
+### Verified on `b2b`
+
+Signed in as the driver, every one of these was attempted and refused:
+
+```text
+scop.demand              AccessError
+scop.shipment            AccessError
+scop.plan                AccessError
+scop.plan.run            AccessError
+scop.warehouse.readiness AccessError
+scop.loading.task        AccessError
+scop.exception           AccessError
+scop.business.rule       AccessError
+sale.order               AccessError
+stock.move               AccessError
+```
+
+Reading **another driver's trip** by its identifier was refused too, which is the record
+rule rather than the access right doing the work.
+
+And the whole application, as the driver sees it:
+
+<Screenshot
+  src="user-manual/D06-driver-menu.png"
+  alt="The SCOP menu bar as seen by a Driver, showing only My Work, with the My Trips card view beneath it."
+  caption="The Driver's entire SCOP. One menu, two entries — and My Trips is already filtered to their own released trips."
+/>
+
+:::danger[One gap found, and it is not SCOP's]
+
+A driver **can** read Odoo **transfer headers** — `stock.picking` — including every
+customer's name and scheduled date across the company. On `b2b` that is 21,181 records.
+
+SCOP grants the Driver group nothing on `stock.picking`. The access comes from a
+third-party module, whose access rule `stock_return_approval.user` grants **every internal
+user** read, write, create and delete on `stock.picking`.
+
+The transfer **lines** (`stock.move`) are still protected, so products and quantities are
+not exposed this way. But the claim that a driver cannot see the company's transfers does
+**not** hold as this database is configured.
+
+Recorded as a defect — see [Release 1 Scope](../about/release-1-scope.mdx). It is an Odoo
+configuration matter rather than a SCOP one, and it is fixed by narrowing that module's
+access rule.
 
 :::
 
