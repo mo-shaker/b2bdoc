@@ -1,0 +1,180 @@
+---
+id: proof-of-delivery
+title: Proof of Delivery
+description: Signature, name, photographs and coordinates — what is captured, what happens when capture fails, and why this is not vehicle tracking.
+sidebar_label: Proof of Delivery
+sidebar_position: 7
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+import Screenshot from '@site/src/components/Screenshot';
+
+# Proof of Delivery
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Driver', 'Operations', 'Management', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="5 min"
+/>
+
+**Role**
+Driver captures it. Operations and Management read it.
+
+**Navigate to**
+`SCOP → My Work → My Stops` → open the stop → **Proof of delivery**
+
+## What is captured
+
+| Field | What it is | Who provides it |
+| --- | --- | --- |
+| **Signed By** | The name of the person who received the goods | Driver types it |
+| **Signature** | Captured on screen | The recipient signs |
+| **Photos** | Any number of attachments | Driver |
+| **Coordinates** | Latitude and longitude at the stop | **Automatic** |
+| **Captured At** | When the location was taken | **Automatic** |
+| **Capture Failed Reason** | Why no coordinate was taken, if none was | **Automatic** |
+| **Has Location** | Whether a real reading exists | Computed |
+
+<Screenshot
+  src="quick-start/32-driver-proof-of-delivery.png"
+  alt="The driver's Proof of delivery tab showing signed-by, signature capture and photo attachments."
+  caption="Signature, name and photographs. Coordinates are captured without the driver doing anything."
+  device="mobile"
+/>
+
+## Signature and name
+
+Type the recipient's name into **Signed By** and have them sign on screen.
+
+Both are worth capturing. A signature without a name is hard to follow up; a name without a
+signature is hard to rely on.
+
+## Photographs
+
+Attach as many as useful. Photographs are the evidence that resolves most delivery disputes,
+and they cost nothing but a moment.
+
+Worth photographing:
+
+| Situation | Photograph |
+| --- | --- |
+| Goods damaged | The damage, before handing over |
+| Customer closed | The closed premises |
+| Access blocked | What is blocking it |
+| Partial delivery | What was left, and what was taken |
+| Normal delivery | The goods at the door |
+
+## Coordinates
+
+Captured automatically when the stop is closed. The driver does nothing.
+
+:::warning[Coordinates need HTTPS]
+
+Browsers refuse to give a page a location on a plain `http` origin. On such a deployment,
+**no coordinate is captured**.
+
+Signature and photographs are unaffected and still work normally.
+
+:::
+
+### When capture fails
+
+SCOP records **why**, rather than pretending.
+
+| Field | Value when capture fails |
+| --- | --- |
+| **Capture Failed Reason** | The reason, usually that the browser refused geolocation |
+| **Captured At** | The moment of the attempt |
+| **Latitude / Longitude** | Zero |
+| **Has Location** | False |
+
+:::info[A missing reading is distinguishable from a reading of zero]
+
+Latitude zero, longitude zero is a real place in the Gulf of Guinea. Recording it without a
+reason would put a plausible-looking coordinate into the evidence chain.
+
+**Has Location** and **Capture Failed Reason** together make the difference readable: a
+degradation nobody records is a silent gap.
+
+:::
+
+## This is not vehicle tracking
+
+:::danger[POD location capture ≠ live vehicle tracking]
+
+Location is captured **once**, at the point of delivery, as part of proof of delivery.
+
+SCOP does **not** follow the vehicle between stops. There is no live tracking, no breadcrumb
+trail, no telematics feed, and no continuous location monitoring in Release 1.
+
+:::
+
+| What it is | What it is not |
+| --- | --- |
+| One reading, at one moment, tied to one delivery | A trail |
+| Evidence that a delivery happened where it should | A record of where the driver has been |
+| Captured when the stop closes | Captured continuously |
+
+This distinction matters for both expectation-setting and for the conversation with drivers
+about what is being recorded about them.
+
+## Reading proof of delivery afterwards
+
+`SCOP → Operations → Stops` → open the stop → **Proof of Delivery**
+
+| Question | Field |
+| --- | --- |
+| Who received the goods? | **Signed By** |
+| Did they sign? | **Signature** |
+| What did it look like? | **Photos** |
+| Was it delivered where it should have been? | **Coordinates**, if **Has Location** is true |
+| Why is there no location? | **Capture Failed Reason** |
+| When was it captured? | **Captured At** |
+
+## What proof of delivery does not do
+
+| It does not | Because |
+| --- | --- |
+| Record the delivered quantity | That comes from the validated Odoo transfer |
+| Decide the stop's outcome | The outcome is derived from the quantities |
+| Block completion if missing | A stop can be closed without a signature |
+
+:::note[POD is not enforced in Release 1]
+
+Nothing refuses to close a stop that has no signature. If proof of delivery is an operational
+requirement in your deployment, it is a supervision matter today, not a system-enforced one.
+
+:::
+
+## Verify
+
+| Check | Where | Expect |
+| --- | --- | --- |
+| Signature and name captured | The stop's **Proof of Delivery** tab | Both present |
+| Photographs attached | The same tab | As appropriate |
+| Location captured | **Has Location** | True on an `https` deployment |
+| Why not, if not | **Capture Failed Reason** | A stated reason |
+
+## If it does not work
+
+| Symptom | Cause | What to do |
+| --- | --- | --- |
+| No coordinates on any stop | The site is on plain `http` | Deploy on `https`. Nothing else is affected |
+| Coordinates read 0, 0 with a reason | Capture failed and was recorded honestly | Nothing |
+| The signature will not capture | A browser or device problem | Attach a photograph of a signed note instead |
+| Photographs will not attach | File size or connectivity | Retry on a better connection |
+| Proof was not captured at all | Nothing enforces it | Supervision, not configuration |
+
+## Related Pages
+
+- [Driver Delivery](./driver-delivery.mdx)
+- [Stops](./stops.mdx)
+- [Release 1 Scope](../about/release-1-scope.mdx)
+
+## Next
+
+[Odoo Delivery Validation](./odoo-delivery-validation.mdx).

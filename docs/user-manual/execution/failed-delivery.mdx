@@ -1,0 +1,213 @@
+---
+id: failed-delivery
+title: Failed Delivery
+description: Could Not Deliver, the seven outcome reasons, BR-EXE-001, and the crucial difference between a genuine failure and an unvalidated transfer.
+sidebar_label: Failed Delivery
+sidebar_position: 10
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+import Screenshot from '@site/src/components/Screenshot';
+
+# Failed Delivery
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Driver', 'Operations', 'Warehouse', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="6 min"
+/>
+
+**Role**
+Driver records it. Operations acts on it.
+
+## The distinction that matters most
+
+:::danger[An unvalidated transfer is not a failed delivery]
+
+These two look identical on screen — both show zero delivered — and they are completely
+different things.
+
+| Situation | What is true | What to do |
+| --- | --- | --- |
+| **The Odoo transfer has not been validated yet** | The goods may be at the customer. The paperwork is behind | **Wait.** Then press **Delivered** |
+| **The delivery genuinely failed** | The goods came back on the vehicle | **Could not deliver**, with a reason |
+
+:::
+
+Getting this wrong is expensive: a failure recorded because the office had not caught up has
+to be unpicked from OTIF, from the demand chain, and from every service measure afterwards.
+
+### How SCOP helps you tell them apart
+
+When you press **Delivered** on a stop with no recorded quantity, SCOP does not simply
+refuse. It says which case you are in:
+
+> Stop 2 has no delivered quantity recorded yet. The warehouse validates the transfer in
+> Odoo, and SCOP reads the result — wait for that, then close the stop. If the delivery
+> genuinely failed, use 'Could not deliver' and give the reason.
+
+<Screenshot
+  src="quick-start/39-awaiting-odoo-validation.png"
+  alt="A message explaining that no delivered quantity has been recorded yet and the stop cannot be closed."
+  caption="The message names the cause and offers both paths."
+  device="mobile"
+/>
+
+## Could not deliver
+
+**Navigate to** `SCOP → My Work → My Stops` → open the stop
+**Available in** **Arrived** or **Servicing**
+
+<Screenshot
+  src="quick-start/34-failed-delivery-needs-reason.png"
+  alt="A refusal stating that a failed stop needs an outcome reason before it can be closed."
+  caption="BR-EXE-001. A failure without a reason cannot be closed."
+  device="mobile"
+/>
+
+**A reason is required.** SCOP asks at the moment you can answer, standing at the customer's
+door — not later, when the detail has gone.
+
+<Screenshot
+  src="quick-start/35-failed-delivery-reasons.png"
+  alt="The list of stop outcome reasons available when a delivery fails."
+  caption="The seven stop-outcome reasons."
+  device="mobile"
+/>
+
+## The seven reasons
+
+| Reason | Use when | Who should follow up |
+| --- | --- | --- |
+| **Customer location closed** | Nobody was there | Customer Service |
+| **Customer refused the delivery** | They would not take it | Customer Service |
+| **Goods damaged in transit** | It arrived unusable | Warehouse and Operations |
+| **Access to the location blocked** | You could not reach the dock | Planning — the node may need constraints |
+| **Ran out of time on the route** | The day ended first | Planning — the route was too long |
+| **Vehicle issue** | The vehicle stopped you | Fleet |
+| **Rescheduled at the customer's request** | They asked for another day | Customer Service |
+
+:::note[Choose the reason that is true]
+
+These are grouped and counted in [Exception Ageing](../reporting/exception-ageing.mdx) and in
+operational review.
+
+*Ran out of time on the route* appearing repeatedly is a planning signal somebody can act
+on. Recording it as *Customer location closed* hides a fixable problem.
+
+:::
+
+## BR-EXE-001
+
+| | |
+| --- | --- |
+| **Code** | `BR-EXE-001` |
+| **Name** | A failed or partial stop must carry an outcome reason |
+| **Severity** | **Blocking** |
+| **Subject** | Trip |
+| **Fires at** | `trip_complete` |
+| **If it cannot be evaluated** | **Block** |
+
+It applies to **partial** deliveries as well as complete failures. Anything other than a
+clean delivery says why.
+
+:::info[Asked early, enforced late]
+
+The rule is formally evaluated when the **trip** completes. But the driver is asked for the
+reason when they close the **stop** — because that is the only moment somebody knows the
+answer.
+
+Waiting until trip completion to ask would mean a supervisor guessing on the driver's behalf
+hours later.
+
+:::
+
+## Skipping a stop
+
+Different from failing it.
+
+| | Failed | Skipped |
+| --- | --- | --- |
+| **Meaning** | The visit was attempted and achieved nothing | The visit was not attempted |
+| **Available from** | Arrived, Servicing | Planned, Arrived |
+| **Reason required** | Yes | Yes |
+
+Skip a stop when the route was changed and you never went. Fail it when you went and it did
+not work.
+
+## What happens afterwards
+
+| Effect | Detail |
+| --- | --- |
+| The stop status becomes **Failed** | Terminal |
+| The stop outcome becomes **Failed** | With the reason |
+| The trip closes as **Partially Completed** | Not as Completed |
+| The demand becomes **Failed** | If nothing at all was delivered |
+| **A follow-up demand is created** | The requirement is not lost |
+| Loads and resources close normally | |
+
+The follow-up demand goes into the eligible pool and must be planned like any other.
+
+→ [Partial Deliveries and Backorders](./partial-deliveries-and-backorders.mdx)
+
+## Raising an exception
+
+A failed delivery does not automatically create an
+[operational exception](../exceptions/exception-management.mdx). Exceptions are raised
+deliberately, from the trip, when a problem needs owning and resolving.
+
+| Failed delivery | Exception |
+| --- | --- |
+| A recorded outcome at one stop | A problem somebody must own |
+| Always has a reason | Has a category, severity, owner and SLA |
+| Closes with the stop | Has its own ten-state lifecycle |
+
+Raise an exception when the failure needs follow-up beyond replanning the demand — a
+customer dispute, damaged goods, a vehicle breakdown.
+
+## Verify
+
+| Check | Where | Expect |
+| --- | --- | --- |
+| The stop failed with a reason | The stop | Status **Failed**, an **Outcome Reason** |
+| The trip closed | The trip | **Partially Completed** |
+| The demand | `Operations → Demands` | **Failed** |
+| A follow-up exists | The demand's **Follow-Up and Returns** tab | A child demand |
+| Photographs were captured | The **Proof of Delivery** tab | Where relevant |
+
+## If it does not work
+
+| Symptom | Cause | Fix |
+| --- | --- | --- |
+| **Could not deliver** is refused | No reason chosen | Choose one |
+| **Delivered** is refused, quantities zero | The transfer is not validated | **Wait.** Do not record a failure |
+| The trip will not complete | A failed or partial stop has no reason — `BR-EXE-001` | Give it one |
+| No follow-up demand | Unusual — check the demand's chain | Raise it |
+| A failure was recorded by mistake | The stop is terminal and cannot be reopened | Handle the requirement through the follow-up demand |
+
+:::warning[A closed stop cannot be reopened]
+
+Failed, Skipped and Completed are all terminal. If a failure was recorded in error, the
+correction is made through the **follow-up demand**, not by rewriting history.
+
+That is deliberate: inventing transitions would put states in the audit trail that nobody
+performed.
+
+:::
+
+## Related Pages
+
+- [Driver Delivery](./driver-delivery.mdx)
+- [Odoo Delivery Validation](./odoo-delivery-validation.mdx)
+- [Partial Deliveries and Backorders](./partial-deliveries-and-backorders.mdx)
+- [Exception Management](../exceptions/exception-management.mdx)
+- [Business Rules](../reference/business-rules.mdx)
+- [Failed Delivery Scenario](../scenarios/failed-delivery-scenario.mdx)
+
+## Next
+
+[Exception Management](../exceptions/exception-management.mdx).

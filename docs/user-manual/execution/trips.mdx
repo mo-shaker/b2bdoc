@@ -1,0 +1,281 @@
+---
+id: trips
+title: Trips
+description: The trip list and form, capacity feasibility, cost estimates, resource assignments, and the two trip business rules.
+sidebar_label: Trips
+sidebar_position: 1
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+import Screenshot from '@site/src/components/Screenshot';
+
+# Trips
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Planning', 'Operations', 'Warehouse', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="8 min"
+/>
+
+**Role**
+Planner owns the full form. **A Driver never sees it** — they use
+[My Work](./driver-delivery.mdx).
+
+**Navigate to**
+`SCOP → Operations → Trips`
+
+## What a Trip is
+
+One **vehicle** and one **driver** executing a sequence of **stops** on one day.
+
+A trip is created by a planning run as part of a daily plan. You do not create one by hand
+in normal operation.
+
+## The views
+
+| View | Use it for |
+| --- | --- |
+| **List** | The day's trips with their state, vehicle, driver and stop count |
+| **Calendar** | Seeing the day laid out in time |
+| **Pivot** | [Trip Planned vs Actual](../reporting/trip-planned-vs-actual.mdx) |
+
+:::note[Trips is hidden from the Driver menu]
+
+`Operations → Trips` serves the dispatcher's full form. A driver reaches their trips through
+`My Work → My Trips`, which serves a simplified form built for a phone.
+
+Hiding the menu is a convenience. The security is the record rule underneath it —
+[Driver Security Model](./driver-security-model.mdx).
+
+:::
+
+## The trip form
+
+<Screenshot
+  src="quick-start/23-trip-released.png"
+  alt="SCOP Trip form in state Released showing the vehicle, driver, planned start and the Stops tab."
+  caption="The dispatcher's trip form. The status bar is the lifecycle; the buttons beside it are the only way along it."
+/>
+
+### The header
+
+| Field | Meaning |
+| --- | --- |
+| **Reference** | `TRP-2026-000005` |
+| **Vehicle** | Which vehicle |
+| **Driver** | Which driver. **Empty means nobody sees this trip** |
+| **Route** | The route master, if one applies |
+| **Planned Start / End** | The intended window |
+| **Actual Start / End** | What happened |
+| **Stop Count / Stops Completed** | Progress |
+| **Capacity Feasible** | Whether the load fits at **every** point |
+| **First Breach Sequence** | Where it first does not, if it does not |
+| **Peak Weight % / Peak Volume %** | The fullest the vehicle gets |
+| **Outcome** | Set when the trip closes |
+
+:::warning[A trip with no driver never appears in anyone's My Trips]
+
+The most common cause is that the planner lacks Odoo **Employees → Officer**, so the
+**Driver** field never finished loading its options.
+
+→ [Permissions Reference](../roles/permissions-reference.mdx)
+
+:::
+
+### The five tabs
+
+| Tab | Contains |
+| --- | --- |
+| **Stops** | The sequence, with planned and actual arrival, service and departure |
+| **Loads** | What is physically on the vehicle |
+| **Capacity** | The load at every point of the sequence |
+| **Planned vs Actual** | Duration, distance and cost, planned against actual |
+| **Resources Held** | The vehicle and driver assignments, and their state |
+| **Loading** | The loading tasks for this trip |
+
+## Capacity — checked at every point
+
+This is the part that surprises people.
+
+:::info[A trip that fits at departure can still be impossible]
+
+A mixed pickup-and-delivery trip **changes load after each stop**. A vehicle that leaves the
+depot within its limit can exceed it in the middle of the route, after a collection.
+
+So SCOP validates the load at **every point of the stop sequence**, not only at departure.
+
+:::
+
+The **Capacity** tab shows one row per point:
+
+| Column | Meaning |
+| --- | --- |
+| **Sequence** | Where on the route |
+| **Stop** | Which stop |
+| **Used Weight (kg)** / **Remaining Weight (kg)** / **Weight %** | The weight picture at that point |
+| **Used Volume (m³)** / **Remaining Volume (m³)** / **Volume %** | The volume picture |
+| **Feasible** | Whether the vehicle can carry it here |
+| **Limiting Dimension** | The fullest measured dimension at this point |
+| **Breached Dimensions** | What exceeded the vehicle, if anything |
+
+**Compute Capacity** on the header recalculates it. **First Breach Sequence** on the header
+tells you where to look first.
+
+An Administrator can read the same data across all trips at
+`SCOP → Technical → Capacity Snapshots`, and the aggregate at
+[Vehicle Utilization](../reporting/vehicle-utilization.mdx).
+
+## Cost estimates
+
+**Estimate Cost** computes a planned cost from the vehicle's cost rates, and records which
+**cost rate version** was used.
+
+| Field | Meaning |
+| --- | --- |
+| **Planned Cost Estimate** | Before the trip |
+| **Execution Cost Estimate** | Based on what actually happened |
+| **Cost Estimate Variance** | The difference |
+| **Cost Rate Version** | Which rates were applied |
+
+:::warning[Cost rates are operational estimates, not accounting figures]
+
+They exist so two plans can be compared. Nothing reconciles them to the ledger, and they
+must never be quoted as a cost of sale.
+
+→ [Release 1 Scope](../about/release-1-scope.mdx)
+
+:::
+
+## Resources held
+
+`SCOP → Operations → Resource Assignments`, or the trip's **Resources Held** tab.
+
+A resource assignment is a vehicle or driver held for a trip. It has three meaningful
+states:
+
+| State | Meaning |
+| --- | --- |
+| **Candidate** | Being considered. Two competing plans may both hold a candidate on the same vehicle |
+| **Reserved** | The plan was released. The resource is held |
+| **Committed** | The trip was released. This is an operational commitment |
+
+:::info[Only operational commitments are mutually exclusive]
+
+Two plans may evaluate the same vehicle at the same time — that is what planning *is*. They
+cannot both commit it.
+
+:::
+
+Assignments are created when the trip is released, not when it is drafted. An unreleased
+trip holds nothing, and rows for candidates that never fly would make the conflict view
+unreadable.
+
+A trip must have a **planned window** before its resources can be held. Releasing a trip
+with no planned start and end is refused.
+
+## The two trip business rules
+
+### BR-RTE-001 — Sequence must be feasible at every point
+
+| | |
+| --- | --- |
+| **Severity** | **Blocking** |
+| **Fires at** | `trip_approve`, `trip_release`, `load_confirm` |
+| **If it cannot be evaluated** | **Block** |
+
+The load must fit the vehicle at every point of the sequence. If it does not, the trip
+cannot be approved or released — and neither can the plan carrying it, under `BR-PLN-002`.
+
+| Fix | How |
+| --- | --- |
+| Reduce the load | Take a shipment off the trip |
+| Change the vehicle | Use one with more capacity |
+| Resequence the stops | Deliver before collecting |
+
+### BR-RTE-002 — Vehicle utilisation should not be wasteful
+
+| | |
+| --- | --- |
+| **Severity** | **Warning** |
+| **Fires at** | `trip_approve`, `trip_release` |
+| **If it cannot be evaluated** | Record and continue |
+
+It **warns**; it does not block. A half-empty vehicle is sometimes exactly right — customer
+commitments rank above utilisation in the objective profile.
+
+Persistent warnings across many trips are worth reading as a fleet-sizing signal, not as an
+error.
+
+→ [Vehicle Utilization](../reporting/vehicle-utilization.mdx)
+
+## The buttons
+
+| Button | Available when | Role |
+| --- | --- | --- |
+| **Recommend** | Draft | Planner |
+| **Submit** | Recommended or Modified | Planner |
+| **Modify** | Under Review | Planner |
+| **Approve** | Under Review or Modified | Ops Manager |
+| **Release** | Approved | Ops Manager |
+| **Estimate Cost** | Not Completed or Cancelled | Planner |
+| **Compute Capacity** | Always | Planner |
+| **Start Loading** | Released | Warehouse |
+| **Loading Done** | Loading | Warehouse |
+| **Depart** | Ready to Depart | **Driver** or dispatcher |
+| **Complete** | In Progress or Exception | Planner |
+| **Raise Exception** | Loading, Ready to Depart or In Progress | Planner |
+| **Resume** | Exception | Planner |
+| **Cancel** | Draft, Recommended, Approved, Released or Exception | Planner |
+
+Full transitions: [Trip Lifecycle](./trip-lifecycle.mdx).
+
+## Who may depart a trip
+
+Two paths, and both are legitimate:
+
+| Who | How |
+| --- | --- |
+| **The assigned driver** | A per-model right: departing your own trip is inside a driver's authority |
+| **A Planner / Dispatcher** | Through the seeded `depart` approval authority |
+
+Nobody else. A warehouse user who happens to hold write access on trips is **not** thereby
+entitled to depart a vehicle — reachability is not authorisation.
+
+## Verify
+
+| Check | Where |
+| --- | --- |
+| The trip has a vehicle and a driver | The trip header |
+| It is capacity-feasible | **Capacity Feasible** on the header |
+| Where it breaches, if it does | **First Breach Sequence**, then the **Capacity** tab |
+| Its resources are held | The **Resources Held** tab |
+| Loading tasks exist | The **Loading** tab |
+| The driver can see it | Ask them to open `My Work → My Trips` |
+
+## If it does not work
+
+| Symptom | Cause |
+| --- | --- |
+| **Capacity Feasible** is false | `BR-RTE-001` — read **First Breach Sequence** |
+| **Release** is refused | The trip is not feasible, or you are not an Operations Manager |
+| The plan will not release because of this trip | `BR-PLN-002` — fix or remove the trip |
+| The driver cannot see the trip | No driver assigned, or the trip is not released |
+| **Depart** is not offered | The trip is not **Ready to Depart** — a loading task is still open |
+| Resources are not held | The trip has no planned window |
+| A vehicle appears on two trips | Check assignment states — only **committed** is exclusive |
+
+## Related Pages
+
+- [Trip Lifecycle](./trip-lifecycle.mdx)
+- [Loading Operations](./loading-operations.mdx)
+- [Stops](./stops.mdx)
+- [Fleet and Vehicles](../configuration/fleet-and-vehicles.mdx)
+- [Plan Governance](../planning/plan-governance.mdx)
+
+## Next
+
+[Trip Lifecycle](./trip-lifecycle.mdx).
