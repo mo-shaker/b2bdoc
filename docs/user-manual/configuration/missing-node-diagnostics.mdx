@@ -59,7 +59,29 @@ But it is **not silent**. Every skip is recorded.
 | --- | --- |
 | **Subject** | Which transfer was skipped |
 | **Event Name** | `DemandGenerationSkipped` |
+| **Error Message** | The whole finding, in a sentence |
 | **Payload** | The unmapped stock location, the partner, and **which end** failed |
+
+Reproduced on `b2b` by delivering to a branch with no node:
+
+```text
+No SCOP planning node resolves the destination location 'Partners/Customers'
+for SCOP Manual Demo Customer, SCOP Manual Branch C, so no demand was created
+for QSD/OUT/00012. Map the location to a SCOP location, then re-save the transfer.
+```
+
+and the payload alongside it:
+
+```json
+{ "reason": "no_scop_planning_node",
+  "missing_endpoint": "destination",
+  "stock_location": "Partners/Customers",
+  "partner": "SCOP Manual Demo Customer, SCOP Manual Branch C",
+  "picking": "QSD/OUT/00012" }
+```
+
+`missing_endpoint` is the field to read first: it says whether the **origin** or the
+**destination** failed, so you are not checking the wrong end.
 | **State** | Processed — the skip itself was recorded successfully |
 
 The payload is the useful part. It names the exact location that could not be resolved, so

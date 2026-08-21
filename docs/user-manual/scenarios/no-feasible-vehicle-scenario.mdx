@@ -28,10 +28,14 @@ There are **two completely different causes**, and they need opposite responses.
 
 ## Telling them apart in one look
 
-| Signal | Cause | Response |
-| --- | --- | --- |
-| **Every** demand in the run | Configuration — no vehicle has a capacity profile | Fix the vehicle |
-| **Only the large** demands | Genuine — the load exceeds every vehicle | Split, or add capacity |
+They even come back under **different reason codes**, which is the fastest tell.
+
+| Reason code shown | Detail reads | Cause | Response |
+| --- | --- | --- | --- |
+| **No feasible vehicle** | *"No vehicle in this run declares a capacity profile."* | Configuration | Fix the vehicle |
+| **Capacity shortage** | *"Adding it to vehicle N exceeds capacity."* | Genuine | Split, or add capacity |
+
+Both were reproduced on `b2b` for this manual, on the same demand, an hour apart.
 
 ---
 
@@ -86,8 +90,15 @@ small.
 | 2 | Create a demand heavier than that capacity |
 | 3 | Generate a plan with only that vehicle available |
 
-**Result** That demand comes back **No feasible vehicle**. Smaller demands are planned
-normally.
+**Result** That demand comes back **Capacity shortage**, with the detail *"Adding it to
+vehicle 6 exceeds capacity."* Smaller demands are planned normally.
+
+:::warning[Note the reason code]
+
+This case does **not** produce *No feasible vehicle*. The vehicle was considered and
+rejected, which is a different finding from never having been considered at all.
+
+:::
 
 ### Fixing it
 
@@ -104,15 +115,17 @@ The suggested **Next Action** on the unplanned row names one of these.
 
 ## Case 3 — The one that looks the same and is not
 
-### Capacity shortage
+### The two side by side
 
 | | No feasible vehicle | Capacity shortage |
 | --- | --- | --- |
-| **Means** | No vehicle **can carry** this load | There is more work than **available fleet** |
-| **The vehicles are** | Unusable for this demand | Usable, just full |
-| **Fix** | Split, or a bigger vehicle | More vehicles, or replan low-priority work |
+| **Means** | No vehicle in the run declares a capacity profile | The vehicles were considered, and the load did not fit |
+| **The vehicles were** | Never considered at all | Considered and rejected |
+| **Affects** | **Every** demand in the run | Only the demands that do not fit |
+| **Fix** | Assign a capacity profile | Split, bigger vehicle, or more capacity |
 
-Reading the wrong one leads to buying a bigger lorry when you needed a second one.
+Reading the wrong one leads to buying a lorry when the answer was a missing master-data
+field.
 
 ### Route restriction
 
@@ -188,6 +201,7 @@ signal — read them with
 | Property | Demonstrated by |
 | --- | --- |
 | A missing capacity profile makes a vehicle invisible | Case 1 |
+| The two capacity reasons are distinct, and named differently | Cases 1 and 2 |
 | The provider classifies every rejection with a reason | All cases |
 | Similar-sounding reasons mean different things | Case 3 |
 | Capacity is checked at every point, not only at departure | `BR-RTE-001` |

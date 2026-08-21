@@ -130,12 +130,16 @@ cannot be counted, escalated, or fixed at source.
 
 :::
 
-:::danger[An exception with no SLA deadline was never classified]
+:::info[An exception in Detected still ages]
 
-An exception left in **Detected** has no deadline and **will never show as overdue**.
+The SLA clock starts at **Detected At**, not at classification — a category is required to
+create an exception at all, and the deadline is computed from it immediately.
 
-If the report looks thinner than the operation feels, check for unclassified exceptions on
-`Operations → Exceptions`.
+So an unclassified exception **does** appear here and **does** show as overdue once its
+deadline passes. It simply has nobody acknowledging it.
+
+An exception with **no deadline at all** means its category has no SLA hours configured,
+which is a configuration matter for the Administrator.
 
 :::
 

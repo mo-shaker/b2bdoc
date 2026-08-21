@@ -135,12 +135,20 @@ escalated or fixed at source.
 
 ---
 
-## An exception never shows as overdue
+## An exception has no SLA deadline
 
-**How to verify** The exception has no **SLA Deadline**.
-**Cause** It was never **classified**. Classification is what computes the deadline and starts
-the clock.
-**Correct action** Classify it. Then it ages properly.
+**How to verify** The **SLA Deadline** field is empty.
+**Cause** Its **category** has no SLA hours configured. The deadline is computed from
+**Detected At** plus the category's SLA the moment the exception is created, so an empty
+deadline points at the category, not at the exception.
+**Correct action** Set SLA hours on the category at `Governance → Exception Categories`.
+
+:::note[Being unclassified does not stop an exception ageing]
+
+A category is required to create an exception at all, so even one still sitting in
+**Detected** has a deadline and will show as overdue once it passes.
+
+:::
 
 ---
 

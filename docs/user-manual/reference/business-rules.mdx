@@ -85,6 +85,20 @@ When a planner presses **Validate** on a demand.
   caption="The refusal names the rule, the policy and the exact lines at fault."
 />
 
+### The message, verbatim
+
+Reproduced on `b2b` against an unreserved transfer:
+
+```text
+This action is blocked by 1 business rule(s):
+• BR-INV-002 v1.0: required input is missing:
+  scop.demand.line.ownership_source on
+  [QS-DEMO-01] QS Demo Chilled Box 10kg, [QS-DEMO-02] QS Demo Dry Goods Carton
+```
+
+Note that it names the **rule and its version**, the **field that is missing**, and **every
+product at fault**.
+
 ### How to resolve it
 
 | # | Try |
@@ -139,6 +153,15 @@ When somebody presses **Approve** or **Release** on a daily plan.
   alt="A refusal dialog stating that the plan's creator cannot approve it, naming BR-PLN-001."
   caption="Separation of duties, refusing the plan's own author."
 />
+
+### The message, verbatim
+
+Reproduced on `b2b` — **as the Administrator**, on a plan the Administrator had created:
+
+```text
+PLN-2026-09-01-01 was created by you, so you may not approve it.
+Separation of duties is the point of the approval step.
+```
 
 ### How to resolve it
 

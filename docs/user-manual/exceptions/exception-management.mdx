@@ -113,7 +113,7 @@ stateDiagram-v2
 
 | # | State | What it needs to leave |
 | --- | --- | --- |
-| 1 | **Detected** | A category and a severity |
+| 1 | **Detected** | Confirmation of the category and severity it was created with |
 | 2 | **Classified** | An owner |
 | 3 | **Assigned** | Somebody to start looking |
 | 4 | **Investigating** | At least one resolution action |
@@ -131,13 +131,20 @@ stateDiagram-v2
 | | |
 | --- | --- |
 | **Requires** | A **category** and a **severity** |
-| **Effect** | **The SLA deadline is computed from the category.** The clock starts here |
+| **Effect** | Moves the exception to **Classified** |
 
-:::warning[Classification starts the clock]
+:::info[The SLA clock starts at detection, not at classification]
 
-An exception left in **Detected** has no deadline and will never appear as overdue.
+A **category is required to create an exception at all**, and the SLA deadline is computed
+from **Detected At** plus that category's SLA hours the moment the record exists.
 
-Classify promptly, even if you do not yet know who will fix it.
+So an exception sitting in **Detected** already has a deadline and already ages. Verified on
+`b2b`: `EXC-2026-000006`, still in **Detected**, carries a deadline 24 hours after its
+detection time, because its category — *Supplier delay* — has a 24-hour SLA.
+
+Classify still matters: it is the acknowledgement that somebody has looked at the exception
+and agrees with how it is filed. Changing the **category** at that point recomputes the
+deadline.
 
 :::
 
@@ -166,7 +173,7 @@ A resolution action is a concrete step:
 | --- | --- |
 | **Name** | What will be done |
 | **Description** | The detail |
-| **Action Type** | What kind of step it is |
+| **Action Type** | Which of eleven operational steps this is — see below |
 | **Owner** | Who will do it |
 | **Status** | Planned · In Progress · Done · Abandoned |
 | **Done At** | When it was finished |
@@ -175,9 +182,31 @@ A resolution action is a concrete step:
 :::info[You cannot resolve an exception without a plan]
 
 Requiring at least one action is what stops an exception being closed with *"sorted"* and no
-record of what was actually done.
+record of what was actually done. Verified on `b2b`: **Define Resolution** refuses with
+*"…needs at least one resolution action before its resolution can be defined."*
 
 :::
+
+#### The eleven action types
+
+A resolution action is not free text — it names one of eleven concrete operational steps:
+
+| Action Type | Meaning |
+| --- | --- |
+| **Replace the vehicle** | Swap the vehicle on the trip |
+| **Replace the driver** | Swap the driver |
+| **Split the trip** | Break one trip into two |
+| **Reassign the shipment** | Move a shipment to a different trip |
+| **Change the stop sequence** | Reorder the route |
+| **Return products to a warehouse** | Bring the goods back |
+| **Transfer products to another vehicle** | Move the load across |
+| **Reschedule the stop** | Give the visit another slot |
+| **Create follow-up demand** | Raise the remaining requirement |
+| **Cancel part of the movement** | Drop part of the load |
+| **Escalate for management approval** | Hand the decision upward |
+
+Because the list is closed, *"what do we actually do about problems like this"* is a report
+rather than a reading exercise.
 
 ### Start Resolution
 
@@ -303,8 +332,8 @@ of free-text descriptions does not.
 | **Assign** is refused | No owner chosen |
 | **Define Resolution** is refused | No resolution action added |
 | **Resolve** is refused | A resolution action is still open |
-| No SLA deadline | The exception was never classified |
-| It never appears as overdue | Same cause |
+| No SLA deadline | Its category has no SLA hours configured |
+| It never appears as overdue | Its deadline is genuinely still in the future |
 | The trip will not **Resume** | Its originating exception is not resolved or closed |
 | The list looks empty | It opens filtered to open exceptions — clear the filter |
 

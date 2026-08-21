@@ -47,7 +47,10 @@ The dimensions a vehicle is measured in, and its limit in each.
 | --- | --- |
 | **Name** | What the profile is called |
 | **Code** | A short reference |
-| **Dimensions** | Which measures apply, and the limit in each |
+| **Dimensions** | One line per measure, each with a **maximum value** and whether it is **mandatory** |
+
+Verified on `b2b`: the demo truck profile declares `weight_kg` up to 4,500 and `volume_m3`
+up to 22, both mandatory.
 
 Typical dimensions are **weight** in kilograms and **volume** in cubic metres.
 
@@ -76,6 +79,11 @@ How a product must be handled: refrigerated, frozen, fragile, hazardous, upright
 | A **product** | These goods need this handling |
 | A **vehicle** or **compartment** | This can provide it |
 
+A handling profile carries the physical facts — **temperature control** with a minimum and
+maximum, a **hazard class**, whether the goods are **fragile** or **stackable**, the
+**maximum stack height**, and whether they must be kept **upright** — plus the
+**compatibility groups** it belongs to.
+
 Planning matches the two. A shipment needing refrigeration is not placed on a vehicle that
 cannot provide it.
 
@@ -98,8 +106,22 @@ What may **not** travel together.
 | --- | --- |
 | **Name** | The group |
 | **Code** | A short reference |
-| **Handling Profiles** | Which handling profiles belong to this group |
-| **Incompatible With** | Which other groups it may not share a vehicle with |
+| **Separation Level** | How far apart the goods must be kept — see below |
+| **Incompatible With** | Which other groups it may not share space with |
+
+Membership is declared from the **other** side: a **handling profile** names the
+compatibility groups it belongs to, not the reverse.
+
+### The three separation levels
+
+| Level | Means |
+| --- | --- |
+| **Separate vehicles** | The goods may not travel on the same vehicle at all |
+| **Separate compartments** | One vehicle is fine, provided each has its own compartment |
+| **Separate pallets** | One compartment is fine, provided they are not stacked together |
+
+Choosing the weakest level that is actually true matters: declaring *Separate vehicles*
+where *Separate pallets* would do turns one trip into two.
 
 A demand that cannot join a load because of an incompatibility comes back unplanned with
 *Product incompatibility*.
@@ -117,7 +139,11 @@ not need to declare it twice.
 
 Remaining-life rules for a product: how much life must remain at dispatch, or on arrival.
 
-Used where goods have an expiry date and a minimum acceptable remaining life.
+| Field | Meaning |
+| --- | --- |
+| **Total Days** | The product's full shelf life |
+| **Min Remaining Days on Delivery** | How much life must be left when it reaches the customer |
+| **Blocking** | Whether falling short stops the movement, or only records it |
 
 :::note[Shelf-life is not enforced as a planning refusal in Release 1]
 

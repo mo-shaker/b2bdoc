@@ -93,15 +93,19 @@ The single most common reason in a new deployment.
 
 | | |
 | --- | --- |
-| **Means** | No vehicle in this run can carry the load |
-| **Check** | Did the chosen vehicles declare a **capacity profile**? Is the shipment simply too heavy or too large? |
-| **Fix** | Add a vehicle with a capacity profile; split the shipment; use a larger vehicle |
-| **Escalate to** | Whoever owns the fleet |
+| **Means** | **No vehicle in the run declares a capacity profile at all** |
+| **Detail reads** | *"No vehicle in this run declares a capacity profile."* |
+| **Check** | The vehicles you selected — is **Planning Ready** true on each? |
+| **Fix** | Assign a capacity profile to at least one vehicle in the run |
+| **Escalate to** | Whoever owns the fleet master data |
 
-:::warning[The most common cause is a missing capacity profile]
+:::warning[This is a configuration reason, not a fleet-size reason]
 
-If **every** demand in a run comes back with this reason, the usual answer is not that the
-fleet is too small — it is that no vehicle you selected declares a capacity profile at all.
+The provider filters to vehicles that declare a capacity profile. If none does, it cannot
+consider any vehicle, so **every** demand in the run comes back with this reason.
+
+A load that is simply too big for the vehicles you do have produces **Capacity shortage**
+instead — see below. The two are easy to confuse and need opposite responses.
 
 → [Fleet and Vehicles](../configuration/fleet-and-vehicles.mdx)
 
@@ -119,12 +123,24 @@ fleet is too small — it is that no vehicle you selected declares a capacity pr
 
 | | |
 | --- | --- |
-| **Means** | There is more work than the available fleet can carry today |
-| **Check** | [Vehicle Utilization](../reporting/vehicle-utilization.mdx) for the day |
-| **Fix** | Add capacity, or replan the lower-priority work for another date |
+| **Means** | The vehicles are usable, but **this load will not fit** on any of them |
+| **Detail reads** | *"Adding it to vehicle N exceeds capacity."* — it names the vehicle |
+| **Check** | The shipment's weight and volume against the vehicle's capacity profile |
+| **Fix** | Split the shipment, use a larger vehicle, add capacity, or replan for another date |
+| **Escalate to** | Whoever owns the fleet |
 
-Different from *No feasible vehicle*: the vehicles are usable, there are just not enough
-of them.
+:::info[The difference from *No feasible vehicle*, in one line]
+
+| Reason | The vehicles… |
+| --- | --- |
+| **No feasible vehicle** | were never considered — none declares a capacity profile |
+| **Capacity shortage** | were considered, and the load did not fit |
+
+Verified on `b2b`: a 460 kg shipment against a 250 kg van produced **Capacity shortage**
+naming the vehicle. The same demands against a vehicle with no capacity profile produced
+**No feasible vehicle**.
+
+:::
 
 ### Time-window conflict
 
