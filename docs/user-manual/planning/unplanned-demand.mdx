@@ -1,0 +1,269 @@
+---
+id: unplanned-demand
+title: Unplanned Demand
+description: Every reason a demand can be left out of a plan, what each one actually means, and the correct response to each.
+sidebar_label: Unplanned Demand
+sidebar_position: 6
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+import Screenshot from '@site/src/components/Screenshot';
+
+# Unplanned Demand
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Planning', 'Operations', 'Management', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="8 min"
+/>
+
+**Role**
+Planner acts on it. Management reads the pattern.
+
+**Navigate to**
+`SCOP → Planning → Unplanned Demand`, or the plan's own **Unplanned Demand** tab
+
+## What it is
+
+Every demand a planning run **could not place**, with the reason and a suggested next action.
+
+:::info[This is the most useful screen in planning]
+
+A plan tells you what you are doing. This tells you what you are **not** doing, and why —
+which is the part that costs money and customers.
+
+Read it before reviewing the trips.
+
+:::
+
+## What you see
+
+<Screenshot
+  src="quick-start/17-unplanned-demand.png"
+  alt="SCOP Unplanned Demand list showing demands with their reason and suggested next action."
+  caption="One row per demand the run could not place."
+/>
+
+| Column | Meaning |
+| --- | --- |
+| **Plan** | The plan this came from |
+| **Plan Date** | The day it was being planned for |
+| **Demand** | The demand that did not fit |
+| **Customer** | Who is affected |
+| **Reason** | Why it did not fit |
+| **Next Action** | What the provider suggests |
+| **Detail** | The provider's own explanation, in words |
+
+The list opens **grouped by reason**, because the reason is the point.
+
+There is also a pivot and graph view — `SCOP → Reporting → Unplanned Demand` — for reading
+the pattern over time. See [Unplanned Demand Report](../reporting/unplanned-demand-report.mdx).
+
+## The twelve reasons
+
+Each one, what it actually means, and what to do.
+
+### No available inventory
+
+| | |
+| --- | --- |
+| **Means** | There is no stock to allocate against this demand |
+| **Check** | The demand's **Allocations** tab; the Odoo transfer's availability |
+| **Fix** | Replenish, or replan for a date when stock will exist |
+| **Escalate to** | Procurement, if it keeps happening for one product |
+
+### Warehouse not ready
+
+| | |
+| --- | --- |
+| **Means** | The shipment's readiness is not **Ready** or **Conditionally Ready** |
+| **Check** | `Operations → Warehouse Readiness` — read the **Evidence** |
+| **Fix** | Depends on the evidence. Stage the goods, reserve the stock, or resolve ownership |
+| **Escalate to** | Warehouse |
+
+The single most common reason in a new deployment.
+
+→ [Warehouse Readiness](../readiness/warehouse-readiness.mdx)
+
+### No feasible vehicle
+
+| | |
+| --- | --- |
+| **Means** | No vehicle in this run can carry the load |
+| **Check** | Did the chosen vehicles declare a **capacity profile**? Is the shipment simply too heavy or too large? |
+| **Fix** | Add a vehicle with a capacity profile; split the shipment; use a larger vehicle |
+| **Escalate to** | Whoever owns the fleet |
+
+:::warning[The most common cause is a missing capacity profile]
+
+If **every** demand in a run comes back with this reason, the usual answer is not that the
+fleet is too small — it is that no vehicle you selected declares a capacity profile at all.
+
+→ [Fleet and Vehicles](../configuration/fleet-and-vehicles.mdx)
+
+:::
+
+### No qualified driver
+
+| | |
+| --- | --- |
+| **Means** | No available driver holds the qualification this work requires |
+| **Check** | `Master Data → Driver Qualifications` and `→ Driver Availability` |
+| **Fix** | Assign a qualified driver, or record the qualification if it is held but not recorded |
+
+### Capacity shortage
+
+| | |
+| --- | --- |
+| **Means** | There is more work than the available fleet can carry today |
+| **Check** | [Vehicle Utilization](../reporting/vehicle-utilization.mdx) for the day |
+| **Fix** | Add capacity, or replan the lower-priority work for another date |
+
+Different from *No feasible vehicle*: the vehicles are usable, there are just not enough
+of them.
+
+### Time-window conflict
+
+| | |
+| --- | --- |
+| **Means** | The promised window and the node's opening hours cannot both be met, or two windows on one route conflict |
+| **Check** | The demand's **Service Commitment**; the node's opening hours |
+| **Fix** | Change the window with authorisation, or plan it as its own trip |
+| **Escalate to** | Customer Service, if the promise itself is the problem |
+
+### Product incompatibility
+
+| | |
+| --- | --- |
+| **Means** | Goods on this demand may not travel with goods already placed |
+| **Check** | `Master Data → Compatibility Groups` |
+| **Fix** | Plan them onto separate trips |
+
+### Route restriction
+
+| | |
+| --- | --- |
+| **Means** | A restriction prevents this route being used |
+| **Check** | Vehicle restrictions; the node's access constraints |
+| **Fix** | Use a different vehicle or a different route |
+
+### Missing required data
+
+| | |
+| --- | --- |
+| **Means** | Something the run needed was not there — usually node coordinates, timezone or opening hours |
+| **Check** | `Master Data → Locations` for both endpoints |
+| **Fix** | Complete the node. Then replan |
+| **Escalate to** | Administrator |
+
+→ [Planning Nodes](../configuration/planning-nodes.mdx)
+
+### Customer location unavailable
+
+| | |
+| --- | --- |
+| **Means** | The destination node is not open on the planned date |
+| **Check** | The node's opening windows |
+| **Fix** | Replan for a day it is open, or correct the opening hours |
+
+### Planning horizon exceeded
+
+| | |
+| --- | --- |
+| **Means** | The demand falls outside the window this run considered |
+| **Check** | The demand's required date against the plan date |
+| **Fix** | Plan it on its own date |
+
+Usually harmless — it means the demand belongs to a different day.
+
+### Lower priority than available capacity permits
+
+| | |
+| --- | --- |
+| **Means** | It lost to more important work. The capacity went elsewhere |
+| **Check** | The demand's **Priority**; what was planned instead |
+| **Fix** | Raise the priority if it was set wrongly, add capacity, or accept it |
+
+:::note[This is the healthiest reason to see]
+
+It means the system had a genuine choice and made it according to the objective ranking. The
+others mostly indicate something is missing or misconfigured.
+
+:::
+
+## The seven next actions
+
+| Next action | Meaning |
+| --- | --- |
+| **Replan for another date** | Move it to a day with capacity |
+| **Use another warehouse** | Source it elsewhere |
+| **Split the shipment** | Break it into loads that fit |
+| **Request additional capacity** | Get another vehicle |
+| **Resolve missing data** | Complete the configuration |
+| **Change the time window with authorization** | Renegotiate the promise |
+| **Perform an inter-warehouse transfer** | Move stock to where it can go out |
+
+## Working the list
+
+A practical order:
+
+| # | Do this | Because |
+| --- | --- | --- |
+| 1 | Group by **Reason** | One cause usually dominates |
+| 2 | Fix configuration reasons first — *Missing required data*, *No feasible vehicle* | They are one-off fixes that unblock many demands |
+| 3 | Then readiness reasons | The warehouse can act today |
+| 4 | Then capacity and priority | These are genuine business decisions |
+| 5 | Replan | `Planning → Generate a Plan` for the same date |
+
+:::info[Fixing configuration once beats fixing demands repeatedly]
+
+If forty demands come back with *Missing required data*, do not open forty demands. Open the
+node they share.
+
+:::
+
+## Unplanning also writes a row
+
+An unplanned-demand row is written in two situations:
+
+| Situation | Meaning |
+| --- | --- |
+| A run **could not place** the demand | The twelve reasons above |
+| A demand was **taken off** a plan, or its plan was cancelled | It returned to **Eligible for Planning** |
+
+The second is why you may see rows for demands that were planned earlier.
+
+## Verify
+
+| Check | Where |
+| --- | --- |
+| Which demands did not fit | `Planning → Unplanned Demand` |
+| Whether the fix worked | Replan, then check the count fell |
+| The pattern over time | `Reporting → Unplanned Demand`, as a pivot |
+| Whether coverage improved | [Plan Coverage](../reporting/plan-coverage.mdx) |
+
+## If the list is empty
+
+| Possible | Check |
+| --- | --- |
+| Everything was planned | Compare with the plan's trip count — genuinely good |
+| No run has been made yet | `Planning → Planning Runs` |
+| The list is filtered | Clear the search bar |
+| The run failed | A failed run creates no plan and no unplanned rows |
+
+## Related Pages
+
+- [Planning Overview](./planning-overview.mdx)
+- [Generate a Plan](./generate-a-plan.mdx)
+- [Unplanned Demand Report](../reporting/unplanned-demand-report.mdx)
+- [Plan Coverage](../reporting/plan-coverage.mdx)
+- [Reason Codes](../reference/reason-codes.mdx)
+- [No Feasible Vehicle](../scenarios/no-feasible-vehicle-scenario.mdx)
+
+## Next
+
+[Trips](../execution/trips.mdx).

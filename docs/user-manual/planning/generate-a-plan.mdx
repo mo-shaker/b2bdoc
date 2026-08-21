@@ -1,0 +1,214 @@
+---
+id: generate-a-plan
+title: Generate a Plan
+description: The planning wizard field by field, what happens when you press Generate, and what to check in the result.
+sidebar_label: Generate a Plan
+sidebar_position: 2
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+import Screenshot from '@site/src/components/Screenshot';
+
+# Generate a Plan
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Planning', 'Operations', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="6 min"
+/>
+
+**Role**
+Planner / Dispatcher
+
+**Navigate to**
+`SCOP → Planning → Generate a Plan`
+
+## Purpose
+
+One screen that asks what day you are planning, what you are planning with, and who should
+do the thinking. Everything else follows from the answers.
+
+## Before you start
+
+| Check | Where |
+| --- | --- |
+| Demands are **Eligible for Planning** | `Operations → Demands`, grouped by Status |
+| Their shipments are **plannable** | `Operations → Warehouse Readiness` |
+| Vehicles have a **capacity profile** | `Master Data → Capacity Profiles` and the vehicle |
+| You hold Odoo **Fleet → Administrator** | Otherwise `Access Error` on `Vehicle` |
+| You hold Odoo **Employees → Officer** | Otherwise no driver can be assigned |
+
+## What you see
+
+<Screenshot
+  src="quick-start/13-generate-plan-wizard.png"
+  alt="The SCOP Generate a Daily Plan wizard showing the plan date, objective profile, available vehicles and eligible demands."
+  caption="The planning wizard. Everything on it is either a scope choice or an input to the request."
+/>
+
+| Field | Meaning | Default |
+| --- | --- | --- |
+| **Plan Date** | The day being planned. **Required** | Today |
+| **Objective Profile** | The ranked objectives to plan against | SCOP Standard Objectives |
+| **Planned By** | Which decision provider to use | The configured default |
+| **Demands** | The eligible demands offered for this date | Prefilled |
+| **Available Vehicles** | The vehicles this run may use | Choose them |
+| **Assignments** | Demand-to-vehicle pairs, for **manual** planning only | Empty |
+| **Timeout (seconds)** | How long to wait for the provider | 60 |
+
+### Plan Date
+
+The date being planned for, not the date you are planning on. It becomes part of the plan's
+identifier — `PLN-2026-08-25-01` is the first plan built for 25 August.
+
+Only demands whose required date matches are offered.
+
+### Objective Profile
+
+The ranked list of objectives. Leave it at the standard profile unless you have a specific
+reason.
+
+→ [Planning Overview](./planning-overview.mdx)
+
+### Planned By
+
+| Option | Use when |
+| --- | --- |
+| **Baseline** | You want a recommendation to review |
+| **Manual** | You want to plan by hand and have it validated and scored |
+
+:::info[Manual is not a bypass]
+
+The manual provider takes the **Assignments** you enter, validates them against the same
+rules, and produces the same response shape. Your plan is then comparable with what a
+recommendation would have been.
+
+:::
+
+### Available Vehicles
+
+The vehicles this run may consider. A vehicle that is not here will not be used.
+
+:::warning[A vehicle with no capacity profile cannot be used]
+
+The provider filters to vehicles that declare a capacity profile. If none of the vehicles
+you chose has one, **every** demand comes back unplanned with *No feasible vehicle*.
+
+→ [Fleet and Vehicles](../configuration/fleet-and-vehicles.mdx)
+
+:::
+
+### Timeout
+
+How long to wait for the provider before recording a failure. Sixty seconds is ample for the
+deterministic baseline. Increase it only if runs are genuinely timing out.
+
+## What to do
+
+Set the date, confirm the demands and vehicles, then press **Generate**.
+
+## What SCOP does
+
+1. Builds a **request** — the demands, the vehicles, their capacities, the windows, the
+   distances and the rates, all resolved into values.
+2. Opens a **Planning Run** and records the request.
+3. Calls the chosen provider.
+4. Records the **response** and how long it took.
+5. Creates a **Daily Plan** in state **Generated**, with its **Trips** in **Recommended**.
+6. Writes one **Unplanned Demand** row per demand that did not fit, each with a reason.
+
+:::info[The request is value-carrying]
+
+Everything the provider needs is resolved into the request before it is called — capacities,
+windows, distances, rates. That is what makes a run **replayable**: re-running it later uses
+the inputs it actually had, not today's master data.
+
+→ [Planning Runs](./planning-runs.mdx)
+
+:::
+
+## Expected result
+
+| Object | State |
+| --- | --- |
+| Planning Run | **Recommended** |
+| Daily Plan | **Generated** |
+| Trips | **Recommended** |
+| Demands that were placed | **Planned** |
+| Demands that were not | Still **Eligible for Planning**, plus an unplanned row |
+
+<Screenshot
+  src="quick-start/15-daily-plan-list.png"
+  alt="SCOP Daily Plans list showing a generated plan with its date, trip count and unplanned count."
+  caption="The plan appears in Daily Plans with its trip count and unplanned count."
+/>
+
+## Verify
+
+| Check | Where |
+| --- | --- |
+| The plan exists | `Planning → Daily Plans` |
+| The run recorded its request and answer | `Planning → Planning Runs` |
+| The trips look sensible | The plan's **Trips** tab |
+| What did not fit, and why | The plan's **Unplanned Demand** tab |
+| Every trip is capacity-feasible | The trip's **Capacity** tab |
+
+<Screenshot
+  src="quick-start/14-planning-runs.png"
+  alt="SCOP Planning Runs list showing runs with their provider, state and timing."
+  caption="Each run keeps its request, its answer and its timing."
+/>
+
+## Read the unplanned demand before anything else
+
+<Screenshot
+  src="quick-start/17-unplanned-demand.png"
+  alt="SCOP Unplanned Demand list showing demands with their reason and suggested next action."
+  caption="Every demand the run could not place, with a reason and a suggested next action."
+/>
+
+A plan with a high trip count and a high unplanned count is not a good plan. Read the
+reasons before reviewing the trips.
+
+→ [Unplanned Demand](./unplanned-demand.mdx)
+
+## Business rules
+
+The generation itself carries no gate. Rules fire later, when the plan and its trips are
+approved and released:
+
+| Rule | Fires at |
+| --- | --- |
+| `BR-RTE-001` capacity feasible at every point | `trip_approve`, `trip_release` |
+| `BR-RTE-002` utilisation warning | `trip_approve`, `trip_release` |
+| `BR-PLN-001` separation of duties | `plan_approve`, `plan_release` |
+| `BR-PLN-002` no blocked trip released | `plan_release` |
+
+## If it does not work
+
+| Symptom | Cause | Fix |
+| --- | --- | --- |
+| `Access Error` on `Vehicle` | Missing Odoo **Fleet → Administrator** | Fleet → *Officer* is not enough |
+| No demands offered | None is **Eligible for Planning** for that date | [Planning Eligibility](../demand/planning-eligibility.mdx) |
+| Everything comes back **No feasible vehicle** | No chosen vehicle declares a capacity profile | [Fleet and Vehicles](../configuration/fleet-and-vehicles.mdx) |
+| Everything comes back **Warehouse not ready** | Shipments are not plannable | [Warehouse Readiness](../readiness/warehouse-readiness.mdx) |
+| Everything comes back **Missing required data** | Nodes lack coordinates, timezone or opening hours | [Planning Nodes](../configuration/planning-nodes.mdx) |
+| A demand with unresolved ownership was rejected | Correct. It is rejected before anything else | [Inventory Ownership](../ownership/inventory-ownership.mdx) |
+| The run is **Failed** | The provider raised or timed out | [Planning Runs](./planning-runs.mdx) |
+| The plan exists but has no trips | Nothing could be placed. Read the unplanned reasons | [Unplanned Demand](./unplanned-demand.mdx) |
+| Routes look nonsensical | A node is not geocoded, so its distances are unknown | [Planning Nodes](../configuration/planning-nodes.mdx) |
+
+## Related Pages
+
+- [Planning Overview](./planning-overview.mdx)
+- [Planning Runs](./planning-runs.mdx)
+- [The Daily Plan](./the-daily-plan.mdx)
+- [Unplanned Demand](./unplanned-demand.mdx)
+
+## Next
+
+[Planning Runs](./planning-runs.mdx).
