@@ -25,10 +25,10 @@ import DocumentInfo from '@site/src/components/DocumentInfo';
 | Role | Main responsibility |
 | --- | --- |
 | Sales / Customer Service | Creates the customer order and records what was committed |
-| Warehouse | Prepares and stages the goods, confirms readiness, loads the vehicle |
-| Planner / Dispatcher | Generates and reviews the daily plan, investigates unplanned demand |
+| Warehouse | Records inventory ownership, prepares and stages the goods, works the loading tasks, validates the Odoo delivery order |
+| Planner / Dispatcher | Walks demand to eligible, generates and reviews the daily plan, **assigns the driver**, submits it, investigates unplanned demand |
 | Operations Manager | Reviews, approves, and releases the plan |
-| Driver | Executes the trip and records the delivery outcome |
+| Driver | Departs, arrives, unloads and confirms the outcome — their own trips only |
 | Procurement | Manages inbound supplier commitments |
 | Management | Reviews KPIs and operational performance |
 
@@ -49,16 +49,19 @@ SCOP ships nine role groups. You will find them on a user record under the **SCO
 | Management | Management | Dashboard and reporting |
 | Administrator | System owners | Implies Operations Manager and Management |
 
-:::warning[A SCOP group does not grant the underlying Odoo rights]
+:::warning[Some SCOP screens still need the matching Odoo rights]
 
-SCOP screens read Odoo records, so operational users need the matching Odoo groups as well:
+SCOP is an overlay on Odoo, so a role that has to do Odoo's own work needs Odoo's own groups:
 
-| SCOP role | Also needs |
-| --- | --- |
-| Any operational SCOP role | **Inventory → User** |
-| Planner / Dispatcher, Operations Manager | **Inventory → User**, **Fleet → Officer** |
+| SCOP role | Also needs | Why |
+| --- | --- | --- |
+| Planner / Dispatcher, Operations Manager | **Fleet → Administrator** | The planning wizard reads vehicles. Odoo's *Fleet → Officer* is **not** enough — it carries a record rule narrowing the user to the vehicles they personally drive, so the wizard shows an empty list and the plan comes back with *no feasible vehicle* |
+| Planner / Dispatcher | **Employees → Officer** | Assigning a driver reads employee records. Without it the **Driver** field spins on *Loading…* and never offers anyone |
+| Planner / Dispatcher | **Sales → User: All Documents** | Currently needed to open a demand raised from a Sales Order — see [Release 1 Boundaries](./release-1-boundaries.mdx) |
+| Warehouse, and whoever validates transfers | **Inventory → User** | Validating a delivery order is Odoo's act, not SCOP's |
+| Driver | *nothing* | Deliberately. A driver with Odoo Inventory could read every transfer in the company |
 
-Without them the Demand form and the planning wizard raise `Access Error`. See [Release 1 Boundaries](./release-1-boundaries.mdx).
+Reading a SCOP screen no longer requires Inventory rights. Delivered quantities are Odoo's record and SCOP only mirrors them, so the Demand form and the driver's stop screen read them on the record's behalf.
 
 :::
 
@@ -77,8 +80,18 @@ The refusal outranks administrator rights. An administrator who creates a plan i
 Practically, this means:
 
 - A single tester **cannot** complete the cycle alone. You need two accounts.
-- The approver must be a different, authorised user.
+- The approver must be a different, authorised user — normally the **Operations Manager**, which is the role the seeded approval authority names.
+
+:::note[Departing is the driver's act]
+
+The warehouse settles the loading tasks, which is what makes the trip **Ready to Depart**. It does not depart the trip. The **driver** presses **Depart** from `My Work → My Trips`, and that is what moves the shipment and demand into execution.
+
+A planner or operations manager can depart a trip as a backup when the approved operating model allows it — for a driver without a device, for example — but that is a fallback, not the normal flow.
+
+:::
 - The refusal cannot be worked around by granting yourself more rights.
+
+Who may approve is configuration, at `SCOP → Governance → Approval Authorities`. Who may approve *their own plan* is not: `BR-PLN-001` is checked before the authority is read.
 
 ```mermaid
 flowchart LR

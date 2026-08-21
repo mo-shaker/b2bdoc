@@ -22,40 +22,51 @@ import DocumentInfo from '@site/src/components/DocumentInfo';
 
 ## الدورة
 
-تمر عملية تسليم واحدة لعميل بهذا التسلسل. الأخضر هو Odoo وهو ينفّذ المعاملة، والأزرق هو SCOP وهي تُخطِّط وتضبط وتقيس.
+تمر عملية تسليم واحدة لعميل بهذا التسلسل. وتفصل الألوان بين **ما يفعله الإنسان** و**ما يفعله النظام تلقائياً** — ومعظم هذه الدورة تلقائي.
 
 ```mermaid
 flowchart TD
-    SO[Sales Order] --> DO[Odoo Delivery Order]
-    DO --> DEM[SCOP Demand]
-    DEM --> OWN{Ownership resolved?}
+    SO([Sales: confirm the Sales Order]) --> DO[/Odoo creates the Delivery Order/]
+    DO --> DEM[/SCOP creates the Demand/]
+    DEM --> SUB([Planner: Submit])
+    SUB --> OWN{Ownership resolved?}
     OWN -- no --> BLOCK[Planning blocked<br/>BR-INV-002]
-    OWN -- yes --> SHP[Shipment]
+    BLOCK --> FIX([Warehouse: record<br/>inventory ownership])
+    FIX --> OWN
+    OWN -- yes --> VAL([Planner: Validate,<br/>then Mark Eligible])
+    VAL --> SHP[/SCOP forms the Shipment<br/>compatible demands consolidate/]
     SHP --> RDY{Warehouse readiness}
-    RDY -- not plannable --> WAIT[Prepare the goods]
-    WAIT --> RDY
-    RDY -- plannable --> RUN[Planning Run]
-    RUN --> PLAN[Daily Plan]
-    RUN --> UNP[Unplanned Demand<br/>with a reason]
-    PLAN --> REV[Plan Review]
-    REV --> APP[Approval by a<br/>different user<br/>BR-PLN-001]
-    APP --> REL[Plan Release]
-    REL --> LOAD[Loading]
-    LOAD --> TRIP[Trip]
-    TRIP --> DRV[Driver Execution]
-    DRV --> OUT{Outcome}
-    OUT -- delivered --> ACT[Odoo Actual Quantities]
-    OUT -- could not deliver --> RSN[Outcome reason required<br/>BR-EXE-001]
-    ACT --> REP[SCOP Reporting]
-    RSN --> REP
+    RDY -- not plannable --> STG([Warehouse: stage the goods])
+    STG --> RDY
+    RDY -- plannable --> GEN([Planner: Generate a Plan])
+    GEN --> RUN[/SCOP creates Planning Run,<br/>Daily Plan and Trips/]
+    RUN --> UNP[/Unplanned Demand<br/>recorded with a reason/]
+    RUN --> DRVA([Planner: assign the Driver,<br/>then Submit])
+    DRVA --> APP([Ops Manager: Approve<br/>a different user — BR-PLN-001])
+    APP --> REL([Ops Manager: Release])
+    REL --> LT[/SCOP creates Loading Tasks/]
+    LT --> LOAD([Warehouse: Start, then Done])
+    LOAD --> RTD[/Trip becomes Ready to Depart/]
+    RTD --> DEP([Driver: Depart, Arrive,<br/>Start unloading])
+    DEP --> VALO([Warehouse: validate the<br/>Delivery Order in Odoo])
+    VALO --> QTY[/SCOP reads the actual quantities/]
+    QTY --> CONF([Driver: confirm the stop])
+    CONF --> DONE[/SCOP completes Trip,<br/>Shipment and Demand/]
+    DONE --> REP[/Plan Coverage · OTIF ·<br/>Operation Timeline/]
 
-    classDef odoo fill:#dff5e1,stroke:#2e7d4f,color:#14361f
-    classDef scop fill:#dbeafe,stroke:#1878c0,color:#0d3a5c
+    classDef human fill:#dbeafe,stroke:#1878c0,color:#0d3a5c
+    classDef auto fill:#dff5e1,stroke:#2e7d4f,color:#14361f
     classDef stop fill:#fde8e8,stroke:#c0392b,color:#5c1a14
-    class SO,DO,ACT odoo
-    class DEM,SHP,RUN,PLAN,REV,APP,REL,LOAD,TRIP,DRV,REP scop
-    class BLOCK,UNP,RSN stop
+    class SO,SUB,FIX,VAL,STG,GEN,DRVA,APP,REL,LOAD,DEP,VALO,CONF human
+    class DO,DEM,SHP,RUN,LT,RTD,QTY,DONE,REP auto
+    class BLOCK,UNP stop
 ```
+
+**الصناديق المستديرة أشخاص.** يسجّل أحدهم الدخول ويضغط شيئاً.
+
+**الصناديق المائلة هي النظام.** تقوم بها SCOP أو Odoo كنتيجة، دون أن يكتب أحد شيئاً — إنشاء الطلب، وتكوين الشحنة، وإنشاء مهام التحميل، وقراءة الكميات، وإغلاق الرحلة والشحنة والطلب معاً.
+
+**الصناديق الحمراء هي مواضع إيقافك** مع بيان السبب.
 
 اقرأ المخطط في ثلاث حركات:
 
@@ -78,6 +89,16 @@ flowchart TD
 **الوحدة القابلة للتخطيط.**
 
 الطلب يقول ما يجب أن يتحرك، والشحنة تجمعه في شيء يمكن إسناد مركبة إليه: بوزن، وحجم، ونقطة انطلاق، ونقطة وصول.
+
+وتكوّنها SCOP **تلقائياً** عند تأهيل الطلب للتخطيط. فلا تضغط زراً لإنشائها.
+
+:::info[الطلب الواحد لا يساوي بالضرورة شحنة واحدة]
+
+تُجمَّع الطلبات المؤهلة المتوافقة — الوجهة نفسها واليوم المطلوب نفسه — في شحنة واحدة مفتوحة قبل التخطيط. فقد ينتقل أمرا بيع منفصلان كشحنة واحدة.
+
+تم التحقق على `b2b`: أنتج أمران للعميل نفسه وللتاريخ نفسه الطلبين `DMD-2026-000004` و`DMD-2026-000005`، وحملتهما شحنة واحدة هي `SHP-2026-000003`.
+
+:::
 
 ### جاهزية المستودع — Warehouse Readiness
 

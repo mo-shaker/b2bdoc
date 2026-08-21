@@ -59,11 +59,11 @@ Tap the trip for today, then tap **Depart** when the vehicle leaves.
 **What SCOP does**
 The trip moves to **In Progress**, and the shipments and demands it carries follow into execution. The driver performs one act; SCOP records its consequences.
 
-:::warning[The driver cannot depart in this release]
+:::info[The driver departs their own trip, and gains nothing else]
 
-Pressing **Depart** as a driver raises `Access Error` on `SCOP Shipment`. The cascade that moves shipments and demands into execution runs with the driver's own rights, and drivers have no access to shipments.
+Departure is inside a driver's authority, and it is the only trip-level act they perform. Moving the shipments and demands into execution is not a second act the driver carries out — it is the system recording what departure means — so it runs on the system's behalf.
 
-Until this is fixed, a Planner, Operations Manager or Administrator must depart the trip. Recorded in [Release 1 Boundaries](../release-1-boundaries.mdx).
+A driver still cannot open a demand, a shipment, a plan or the rule catalogue, and cannot see another driver's trip. That isolation is verified by automated tests, not by the absence of a button.
 
 :::
 
@@ -76,8 +76,8 @@ Until this is fixed, a Planner, Operations Manager or Administrator must depart 
 
 <Screenshot
   src="quick-start/28-driver-my-stops.png"
-  alt="SCOP My Stops on a phone showing the warehouse pickup stop and the Wood Corner delivery stop."
-  caption="My Stops, in trip and sequence order: stop 0 the warehouse pickup, stop 1 the Wood Corner delivery."
+  alt="SCOP My Stops on a phone showing the warehouse pickup stop and the SCOP Quick Start Demo Customer delivery stop."
+  caption="My Stops, in trip and sequence order: stop 0 the warehouse pickup, stop 1 the SCOP Quick Start Demo Customer delivery."
   device="mobile"
 />
 
@@ -158,7 +158,7 @@ Warehouse
 
 <Screenshot
   src="quick-start/37-odoo-transfer-before-validate.png"
-  alt="Odoo delivery order WH/OUT/00012 in the Ready state with quantities set, before validation."
+  alt="Odoo delivery order QSD/OUT/00001 in the Ready state with quantities set, before validation."
   caption="Before validation. The quantities are set but nothing is confirmed, so SCOP still reads the actual quantity as zero."
 />
 
@@ -172,7 +172,7 @@ The transfer reaches **Done**.
 
 <Screenshot
   src="quick-start/38-odoo-transfer-validated.png"
-  alt="Odoo delivery order WH/OUT/00012 in the Done state after validation."
+  alt="Odoo delivery order QSD/OUT/00001 in the Done state after validation."
   caption="Done. The quantities are now facts, and SCOP can read them."
 />
 
@@ -182,20 +182,32 @@ Reads the validated quantities back onto the stop's goods lines and onto the dem
 <Screenshot
   src="quick-start/33-driver-goods-quantities.png"
   alt="SCOP driver stop Goods tab showing planned quantity 12, 8, 20 and actual quantity 12, 8, 20, with a note that quantities come from the warehouse transfer."
-  caption="Planned 12 / 8 / 20, actual 12 / 8 / 20 — read from the validated transfer. The note on the screen says it plainly: “Quantities come from the warehouse transfer. Record a short delivery there, not here.”"
+  caption="Planned 24 / 15 / 30, actual 24 / 15 / 30 — read from the validated transfer. The note on the screen says it plainly: “Quantities come from the warehouse transfer. Record a short delivery there, not here.”"
 />
 
-:::danger[Order matters]
+:::danger[Order matters — and SCOP tells the two cases apart]
 
-If you press **Delivered** before the Odoo transfer is validated, the actual quantities are still zero. SCOP concludes the stop did not deliver what was planned and refuses to close it as a clean delivery:
+If you press **Delivered** before the office has validated the transfer, the actual quantities are still zero. SCOP does **not** conclude that the delivery failed. It says so plainly:
+
+> Stop 1 has no delivered quantity recorded yet. The warehouse validates the transfer in Odoo, and SCOP reads the result — wait for that, then close the stop. If the delivery genuinely failed, use 'Could not deliver' and give the reason.
+
+<Screenshot
+  src="quick-start/39-awaiting-odoo-validation.png"
+  alt="Odoo warning telling the driver that no delivered quantity is recorded yet and that the warehouse validates the transfer in Odoo first."
+  caption="Waiting on the office is not a failed delivery, and SCOP refuses to let it be recorded as one."
+/>
+
+This distinction matters. Asking a driver for a failure reason here would invite them to record a failure that never happened, and every service measure downstream would then have to be unpicked.
+
+Once the transfer **is** validated and the quantities are genuinely short, a different message appears and `BR-EXE-001` asks for the reason:
 
 > Stop 1 did not deliver everything planned, so it needs a reason before it can be closed.
 
-That is `BR-EXE-001` doing its job. **Validate the transfer first**, then close the stop.
-
 :::
 
-If a short delivery is validated in Odoo, Odoo may create a **backorder** for the remainder. Expect the original transfer to close at the delivered quantity and a new transfer to carry the rest. Because a backorder is another fulfilment of the *same* demand, SCOP does not create a second demand for it.
+If a short delivery is validated in Odoo, Odoo may create a **backorder** for the remainder. Expect the original transfer to close at the delivered quantity and a new transfer to carry the rest. Because a backorder is another fulfilment of the *same* demand, SCOP does not create a second demand for it — and the demand's fulfilled quantity accumulates across both.
+
+The demand rests at **Partially Completed** meanwhile. When the backorder is validated and the requirement is finally met, the same demand reaches **Completed**. A second short backorder leaves it exactly where it is, with the fulfilled quantity raised.
 
 ---
 
@@ -216,18 +228,29 @@ The stop reaches **Completed** with an **Outcome** of **Completed**, and no reas
 **Verify**
 
 - The stop status is **Completed**.
-- `SCOP → Operations → Trips` — the trip can be **Completed** once every stop is closed.
+- Once **every** stop on the trip has an outcome — including the warehouse pickup — the trip closes itself and reaches **Completed**. The driver has no Complete button, and does not need one.
+- The shipment reaches **Completed**, and so does the demand, with its fulfilled quantity equal to what was requested.
 - The delivery appears in the reports covered in [Reports You Should Know](../reports-you-should-know.mdx).
+
+:::info[Close every stop, not only the customer's]
+
+A trip refuses to complete while any stop has no outcome, and the warehouse pickup is a stop. If the trip is still **In Progress** after the customer has signed, the depot stop is the one still open.
+
+:::
 
 **If it does not work**
 
 | Symptom | Check |
 | --- | --- |
-| **Delivered** asks for a reason | The Odoo transfer is not validated, or was validated short. Validate it, or supply the reason |
-| **Depart** raises `Access Error` | Known issue — a Planner or Administrator must depart the trip |
+| **Delivered** says no quantity is recorded yet | The warehouse has not validated the Odoo transfer. Wait for it — do **not** record a failure that did not happen |
+| **Delivered** asks for a reason | The transfer was validated short. Supply the reason for the shortfall |
+| **Depart** is not offered | The trip is not **Ready to Depart**. Its loading tasks are still open — see [Step 6](./loading-and-departure.mdx) |
+| The trip does not appear under **My Trips** | The trip's driver must be the `hr.employee` record linked to your login, and the trip must be Released or beyond |
 | **Start unloading** is not offered | The stop is not **Arrived** yet |
 | Actual quantities stay at zero | The transfer is not **Done**, or the moves are not linked to this demand |
 | The driver sees no trips | The trip has no driver assigned, or the driver's user is not linked to their employee record |
+| The trip is still **In Progress** after the last delivery | A stop still has no outcome — usually the warehouse pickup |
+| The demand is still **In Execution** | The trip has not completed yet, or the transfer is short and a backorder is outstanding |
 
 ## Next
 

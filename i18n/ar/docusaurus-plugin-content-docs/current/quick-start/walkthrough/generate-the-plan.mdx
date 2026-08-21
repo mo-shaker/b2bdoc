@@ -92,8 +92,8 @@ import Screenshot from '@site/src/components/Screenshot';
 
 <Screenshot
   src="quick-start/14-planning-runs.png"
-  alt="قائمة دورات التخطيط في SCOP تُظهر RUN-2026-000001 بحالة Recommended مع المزوّد الأساسي."
-  caption="الدورة RUN-2026-000001 — طُلبت الساعة 13:34 لتاريخ خطة 18/08، بالمزوّد الأساسي، بطلب واحد داخل و0 غير مخطط ومهلة 1000 مللي ثانية. الحالة: Recommended."
+  alt="قائمة دورات التخطيط في SCOP تُظهر RUN-2026-000002 بحالة Recommended مع المزوّد الأساسي."
+  caption="الدورة RUN-2026-000002 — لتاريخ خطة 22/08، بالمزوّد الأساسي، بطلب واحد داخل ولا شيء غير مخطط. الحالة: Recommended."
 />
 
 تُنشأ الدورة **قبل** استدعاء المزوّد، حتى إذا تعطّل المزوّد أو توقّف يبقى صف يوضّح ما جرت محاولته. وتحتفظ كل دورة بطلبها وجوابها، فتبقى الخطة التاريخية قابلة لإعادة التشغيل والتفسير.
@@ -102,8 +102,8 @@ import Screenshot from '@site/src/components/Screenshot';
 
 <Screenshot
   src="quick-start/15-daily-plan-list.png"
-  alt="قائمة الخطط اليومية في SCOP تُظهر PLN-2026-08-18-01 أنشأتها Paula Planner بحالة Generated."
-  caption="الخطة PLN-2026-08-18-01 — رحلة واحدة، بلا طلب غير مخطط، أنشأتها Paula Planner. الحالة: Generated."
+  alt="قائمة الخطط اليومية في SCOP تُظهر PLN-2026-08-22-02 أنشأتها QS Demo — Planner بحالة Generated."
+  caption="الخطة PLN-2026-08-22-02 — رحلة واحدة، بلا طلب غير مخطط، أنشأتها QS Demo — Planner. الحالة: Generated."
 />
 
 **النتيجة المتوقعة**
@@ -138,7 +138,7 @@ Generated → Under Review → Approved → Released
 | --- | --- |
 | **Eligible Demand** فارغ | لا يوجد طلب بحالة **Eligible for Planning** لذلك التاريخ، أو تاريخه المطلوب لاحق لتاريخ الخطة |
 | **Available Vehicles** فارغ | لا مركبة لها ملف طاقة استيعابية، أو لا توجد مركبة متاحة في ذلك التاريخ — `SCOP → Master Data → Vehicle Availability` |
-| خطأ `Access Error` على `Vehicle` | يحتاج مستخدمك إلى مجموعة Odoo **Fleet → Officer** إضافة إلى دوره في SCOP |
+| خطأ `Access Error` على `Vehicle` | يحتاج مستخدمك إلى Odoo **Fleet → Administrator**. ولا تكفي *Fleet → Officer* — فهي تحصر المستخدم في المركبات التي يقودها بنفسه |
 | الدورة بحالة **Failed** | افتح الدورة؛ فهي تسجّل ما سُئل عنه المزوّد وما أجاب به |
 | ظهر الطلب تحت Unplanned | سلوك متوقع — راجع [الطلب غير المخطط](../exceptions/unplanned-demand.mdx) |
 

@@ -22,40 +22,51 @@ import DocumentInfo from '@site/src/components/DocumentInfo';
 
 ## The cycle
 
-One customer delivery passes through this sequence. Green is Odoo doing the transaction; blue is SCOP planning, controlling, and measuring it.
+One customer delivery passes through this sequence. The colours separate **what a person does** from **what the system does on its own** — most of this cycle is automatic.
 
 ```mermaid
 flowchart TD
-    SO[Sales Order] --> DO[Odoo Delivery Order]
-    DO --> DEM[SCOP Demand]
-    DEM --> OWN{Ownership resolved?}
+    SO([Sales: confirm the Sales Order]) --> DO[/Odoo creates the Delivery Order/]
+    DO --> DEM[/SCOP creates the Demand/]
+    DEM --> SUB([Planner: Submit])
+    SUB --> OWN{Ownership resolved?}
     OWN -- no --> BLOCK[Planning blocked<br/>BR-INV-002]
-    OWN -- yes --> SHP[Shipment]
+    BLOCK --> FIX([Warehouse: record<br/>inventory ownership])
+    FIX --> OWN
+    OWN -- yes --> VAL([Planner: Validate,<br/>then Mark Eligible])
+    VAL --> SHP[/SCOP forms the Shipment<br/>compatible demands consolidate/]
     SHP --> RDY{Warehouse readiness}
-    RDY -- not plannable --> WAIT[Prepare the goods]
-    WAIT --> RDY
-    RDY -- plannable --> RUN[Planning Run]
-    RUN --> PLAN[Daily Plan]
-    RUN --> UNP[Unplanned Demand<br/>with a reason]
-    PLAN --> REV[Plan Review]
-    REV --> APP[Approval by a<br/>different user<br/>BR-PLN-001]
-    APP --> REL[Plan Release]
-    REL --> LOAD[Loading]
-    LOAD --> TRIP[Trip]
-    TRIP --> DRV[Driver Execution]
-    DRV --> OUT{Outcome}
-    OUT -- delivered --> ACT[Odoo Actual Quantities]
-    OUT -- could not deliver --> RSN[Outcome reason required<br/>BR-EXE-001]
-    ACT --> REP[SCOP Reporting]
-    RSN --> REP
+    RDY -- not plannable --> STG([Warehouse: stage the goods])
+    STG --> RDY
+    RDY -- plannable --> GEN([Planner: Generate a Plan])
+    GEN --> RUN[/SCOP creates Planning Run,<br/>Daily Plan and Trips/]
+    RUN --> UNP[/Unplanned Demand<br/>recorded with a reason/]
+    RUN --> DRVA([Planner: assign the Driver,<br/>then Submit])
+    DRVA --> APP([Ops Manager: Approve<br/>a different user — BR-PLN-001])
+    APP --> REL([Ops Manager: Release])
+    REL --> LT[/SCOP creates Loading Tasks/]
+    LT --> LOAD([Warehouse: Start, then Done])
+    LOAD --> RTD[/Trip becomes Ready to Depart/]
+    RTD --> DEP([Driver: Depart, Arrive,<br/>Start unloading])
+    DEP --> VALO([Warehouse: validate the<br/>Delivery Order in Odoo])
+    VALO --> QTY[/SCOP reads the actual quantities/]
+    QTY --> CONF([Driver: confirm the stop])
+    CONF --> DONE[/SCOP completes Trip,<br/>Shipment and Demand/]
+    DONE --> REP[/Plan Coverage · OTIF ·<br/>Operation Timeline/]
 
-    classDef odoo fill:#dff5e1,stroke:#2e7d4f,color:#14361f
-    classDef scop fill:#dbeafe,stroke:#1878c0,color:#0d3a5c
+    classDef human fill:#dbeafe,stroke:#1878c0,color:#0d3a5c
+    classDef auto fill:#dff5e1,stroke:#2e7d4f,color:#14361f
     classDef stop fill:#fde8e8,stroke:#c0392b,color:#5c1a14
-    class SO,DO,ACT odoo
-    class DEM,SHP,RUN,PLAN,REV,APP,REL,LOAD,TRIP,DRV,REP scop
-    class BLOCK,UNP,RSN stop
+    class SO,SUB,FIX,VAL,STG,GEN,DRVA,APP,REL,LOAD,DEP,VALO,CONF human
+    class DO,DEM,SHP,RUN,LT,RTD,QTY,DONE,REP auto
+    class BLOCK,UNP stop
 ```
+
+**Rounded boxes are people.** Someone signs in and presses something.
+
+**Slanted boxes are the system.** SCOP or Odoo does it as a consequence, with nobody typing anything — creating the demand, forming the shipment, cutting the loading tasks, reading the quantities back, and closing the trip, shipment and demand together.
+
+**Red boxes are where SCOP stops you** and says why.
 
 Read it as three movements:
 
@@ -78,6 +89,16 @@ That separation is what lets SCOP answer "did the customer get what we promised?
 **The unit that can be planned.**
 
 Demand says what must move. A Shipment groups it into something a vehicle can be assigned to — with a weight, a volume, an origin, and a destination.
+
+SCOP forms it **automatically** when a demand is marked eligible. You do not press a button to create one.
+
+:::info[One demand does not necessarily equal one shipment]
+
+Compatible eligible demands — same destination, same required day — are consolidated into a single open shipment before planning. Two separate customer orders can therefore travel as one shipment.
+
+Verified on `b2b`: two orders for the same customer and date produced `DMD-2026-000004` and `DMD-2026-000005`, and both were carried by one shipment, `SHP-2026-000003`.
+
+:::
 
 ### Warehouse Readiness
 

@@ -21,22 +21,26 @@ import Screenshot from '@site/src/components/Screenshot';
   readingTime="5 min"
 />
 
-## Step 3a — Create the shipment
+## Step 3a — The shipment forms itself
 
 **Role**
-Administrator
+Nobody. SCOP does this.
 
-:::warning
+:::info[Shipment formation is automatic]
 
-In this release the **Create Shipment** action is permitted only to a SCOP Administrator, even though the role model expects the Planner to perform it. Recorded in [Release 1 Boundaries](../release-1-boundaries.mdx).
+When a demand reaches **Eligible for Planning**, SCOP forms its shipment immediately — that is the blueprint's own formation flow, *Validated Demand → Allocate Inventory → Create Shipment*, and allocation is exactly what marking a demand eligible refreshes.
+
+A second requirement on the **same route and the same required date** joins the shipment that is already open rather than forming another, which is how consolidation happens without anybody having to notice the opportunity. A shipment that has already been **planned** onto a trip is never joined: its capacity was sized when the plan was approved.
+
+**Create Shipment** is still on the demand form as a re-run, for a demand made eligible before this release or one whose shipment was cancelled. Pressing it on a normal demand returns the shipment that already exists.
 
 :::
 
 **Navigate to**
-`SCOP → Operations → Demands` → open the eligible demand
+`SCOP → Operations → Shipments`, or open the eligible demand and use its **Shipments** link.
 
 **What to do**
-Click **Create Shipment**.
+Nothing. Check that the shipment is there, and go on to readiness.
 
 **What SCOP does**
 Groups the eligible demand into a transport requirement — a **Shipment** — with a total weight, volume, origin node, and destination node. It also creates the shipment's **Warehouse Readiness** record.
@@ -49,7 +53,7 @@ A shipment exists in state **Ready**, with a readiness of **Conditionally Ready*
 
 <Screenshot
   src="quick-start/08-shipment-list.png"
-  alt="SCOP Shipments list showing SHP-2026-000001 for Wood Corner with readiness Conditionally Ready."
+  alt="SCOP Shipments list showing SHP-2026-000001 for SCOP Quick Start Demo Customer with readiness Conditionally Ready."
   caption="SHP-2026-000001 — 2.96 kg, 0.24 m³, 0% staged, readiness Conditionally Ready."
 />
 

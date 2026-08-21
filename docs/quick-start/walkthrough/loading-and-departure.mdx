@@ -33,13 +33,9 @@ Released → Loading → Ready to Depart → In Progress → Completed
 Warehouse
 
 **Navigate to**
-`SCOP → Operations → Trips` → open the released trip
+`SCOP → Operations → Loading Tasks` — the warehouse's own work list, described below. The trip follows it.
 
-**What to do**
-
-1. Click **Start Loading** when the crew begins loading the vehicle. The trip moves to **Loading**.
-2. Load the vehicle.
-3. Click **Loading Done** when finished. The trip moves to **Ready to Depart**.
+A **dispatcher** can also drive the same transitions from the trip itself (`SCOP → Operations → Trips` → open the released trip → **Start Loading**, **Loading Done**), which is what they do for a trip that carries no shipments. A warehouse user cannot: they hold no write access to the trip, deliberately, and work entirely from their own task list. The trip follows.
 
 **What SCOP does**
 Records the transition times, so the elapsed loading duration becomes a measurable figure rather than an impression. Warehouse-caused delay is one of the Warehouse Productivity measures.
@@ -50,7 +46,7 @@ The trip reaches **Ready to Depart**, and the driver's **Depart** button becomes
 <Screenshot
   src="quick-start/23-trip-released.png"
   alt="SCOP Trip form for TRP-2026-000001 showing vehicle, planned start and two stops, with the status bar on Released."
-  caption="TRP-2026-000001 — vehicle Opel/Astra, two stops: the warehouse pickup and the Wood Corner delivery. State: Released."
+  caption="TRP-2026-000001 — vehicle the demo vehicle, two stops: the warehouse pickup and the SCOP Quick Start Demo Customer delivery. State: Released."
 />
 
 **Verify**
@@ -59,36 +55,54 @@ The trip's status bar shows **Ready to Depart**.
 <Screenshot
   src="quick-start/24-trip-ready-to-depart.png"
   alt="SCOP Trip form with the status bar advanced past Loading."
-  caption="After Start Loading and Loading Done: the trip is ready for the driver."
+  caption="Once the last loading task is settled the trip advances on its own: ready for the driver."
 />
 
 ---
 
 ## The Loading Tasks screen
 
+**Role**
+Warehouse
+
 **Navigate to**
 `SCOP → Operations → Loading Tasks`
 
-The screen exists and is designed to hold one task per shipment, with a planned duration, an actual duration recorded by SCOP, an assigned warehouse user, and **Start** / **Done** buttons.
+Releasing a trip creates **one loading task per shipment on board**, in **Pending**.
 
 <Screenshot
-  src="quick-start/22-loading-tasks-empty.png"
-  alt="SCOP Loading Tasks list, empty."
-  caption="Loading Tasks is empty. In this release no code path creates these records — loading is recorded on the trip instead."
+  src="quick-start/22-loading-tasks.png"
+  alt="SCOP Loading Tasks list showing one Pending task, Load SHP-2026-000001, with its shipment, trip, vehicle, planned duration and Start button."
+  caption="Released the plan, and the work list filled itself: one task per shipment on the trip, Pending, with a Start button. Nobody created these by hand."
 />
 
-:::warning[Loading Tasks are not created in this release]
+Each carries the shipment, the trip, the vehicle, a planned duration taken from the origin node's service-duration model, and an **Assigned To** field so the work can be given to a named person.
 
-Nothing in Release 1 creates a Loading Task, so this list stays empty. Record loading on the **trip** as described above.
+**What to do**
 
-Two consequences to be aware of:
+1. Press **Start** on the task when the crew begins loading that shipment. SCOP stamps the start time, and the **trip** moves to **Loading**.
+2. Load the shipment.
+3. Press **Done**. SCOP stamps the completion time and computes the **actual loading duration**, then refreshes the shipment's readiness.
 
-- The per-shipment **actual loading duration** field is not populated. Loading time is only measurable from the trip's transitions.
-- Assigning loading work to a named warehouse user is not available yet.
+<Screenshot
+  src="quick-start/27-loading-task-in-progress.png"
+  alt="SCOP Loading Tasks list with the task In Progress and a Done button offered."
+  caption="After Start: the task is In Progress and the trip has moved to Loading. Done is the only remaining action."
+/>
 
-Recorded in [Release 1 Boundaries](../release-1-boundaries.mdx).
+When the last task on a trip is settled, the trip moves to **Ready to Depart** on its own. You do not need to go back to the trip form.
+
+:::info[An open loading task keeps the vehicle at the gate]
+
+**Loading Done** on the trip is refused while any task is still Pending or In Progress, naming the tasks that are outstanding. A vehicle that leaves before its loading is recorded makes every actual loading duration meaningless, and there is no honest way to reconstruct one afterwards.
+
+A task nobody will do can be **Cancelled**, which counts as settled.
 
 :::
+
+**Why this matters for measurement**
+
+The per-shipment actual duration is what makes warehouse-caused delay measurable at the grain it actually occurs. The trip's own transitions only tell you how long the whole vehicle took.
 
 ---
 
@@ -107,9 +121,9 @@ Do not attempt to record delivered quantities while loading, and do not expect t
 | Symptom | Check |
 | --- | --- |
 | **Start Loading** is not offered | The trip is not **Released**. A trip only reaches Released when its plan is released |
-| The trip is still **Draft** after the plan was released | Plan release only releases trips that are already **Approved**. The trip has its own Recommend → Submit → Approve → Release lifecycle |
-| The trip header shows no action buttons at all | Known issue: the driver's simplified trip form is served to every role. See [Release 1 Boundaries](../release-1-boundaries.mdx) |
-| Loading Tasks is empty | Expected in this release — see the warning above |
+| The trip is still **Draft** after the plan was released | The plan carries its trips with it — generation makes them **Recommended**, submission **Under Review**, approval **Approved**, release **Released**. A trip left in Draft was not part of that plan |
+| **Loading Done** is refused | A loading task is still open. The message names them. Finish or cancel them first |
+| Loading Tasks is empty for a released trip | The trip carries no shipments. Loading tasks are created per shipment on board |
 
 ## Next
 

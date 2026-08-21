@@ -91,8 +91,8 @@ One click produces four things:
 
 <Screenshot
   src="quick-start/14-planning-runs.png"
-  alt="SCOP Planning Runs list showing RUN-2026-000001 in state Recommended with the baseline provider."
-  caption="RUN-2026-000001 — requested at 13:34, for plan date 18/08, provider baseline, 1 demand in, 0 unplanned, 1 000 ms timeout. State: Recommended."
+  alt="SCOP Planning Runs list showing RUN-2026-000002 in state Recommended with the baseline provider."
+  caption="RUN-2026-000002 — requested for plan date 22/08, provider baseline, one demand in, none unplanned. State: Recommended."
 />
 
 The run is created **before** the provider is called, so a provider that hangs or dies still leaves a row explaining what was attempted. Every run keeps its request and its response, so a historical plan stays replayable.
@@ -101,8 +101,8 @@ The run is created **before** the provider is called, so a provider that hangs o
 
 <Screenshot
   src="quick-start/15-daily-plan-list.png"
-  alt="SCOP Daily Plans list showing PLN-2026-08-18-01 created by Paula Planner in state Generated."
-  caption="PLN-2026-08-18-01 — one trip, no unplanned demand, created by Paula Planner. State: Generated."
+  alt="SCOP Daily Plans list showing PLN-2026-08-22-02 created by QS Demo — Planner in state Generated."
+  caption="PLN-2026-08-22-02 — one trip, no unplanned demand, created by QS Demo — Planner. State: Generated."
 />
 
 **Expected result**
@@ -137,7 +137,7 @@ It holds the provider's answer **before** any human edit, written once at genera
 | --- | --- |
 | **Eligible Demand** is empty | No demand is at **Eligible for Planning** for that date, or the required date is after the plan date |
 | **Available Vehicles** is empty | No vehicle has a capacity profile, or none is available on that date — `SCOP → Master Data → Vehicle Availability` |
-| `Access Error` on `Vehicle` | Your user needs the Odoo **Fleet → Officer** group as well as its SCOP role |
+| `Access Error` on `Vehicle` | Your user needs Odoo **Fleet → Administrator**. *Fleet → Officer* is not enough — it carries a rule limiting the user to vehicles they drive themselves |
 | The run is **Failed** | Open the run; it records what the provider was asked and what came back |
 | Demand appears under Unplanned | Expected behaviour — see [Unplanned Demand](../exceptions/unplanned-demand.mdx) |
 

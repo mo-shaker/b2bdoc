@@ -95,9 +95,11 @@ You will need:
 - **A second user account** to approve the plan. The person who creates a plan cannot approve it, so a solo tester cannot complete the cycle.
 - A warehouse inside the pilot scope. SCOP only creates records for operations a pilot-scope record has switched on.
 
-:::warning[SCOP roles also need Odoo rights]
+:::warning[Some SCOP roles also need Odoo rights]
 
-A SCOP role on its own is not enough. SCOP screens read Odoo records — transfers, vehicles, employees — so operational users also need the matching Odoo groups (**Inventory / User**, and **Fleet / Officer** for planners). Without them, screens such as the Demand form and the planning wizard raise an access error. This is recorded in [Release 1 Boundaries](./release-1-boundaries.mdx).
+SCOP is an overlay on Odoo, so a role that does Odoo's own work needs Odoo's own groups: **Fleet / Administrator** and **Employees / Officer** for planners, because the planning wizard reads vehicles and assigning a driver reads employees, and **Inventory / User** for whoever validates transfers. See [Roles and Responsibilities](./roles-and-responsibilities.mdx).
+
+Simply *reading* a SCOP screen does not require them.
 
 :::
 

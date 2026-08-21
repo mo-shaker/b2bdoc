@@ -34,11 +34,22 @@ Planner / Dispatcher
 **What to do**
 
 1. Open the plan.
-2. On the **Trips** tab, review each recommended trip: vehicle, driver, stop count, planned distance, and peak load against capacity.
-3. Check the demand assignment — is the right demand on the right trip?
-4. Check the stop sequence and the route.
-5. Open the **Unplanned Demand** tab. If it is not empty, read the reasons **before** approving anything.
-6. Modify a recommendation only where you know something the engine did not.
+2. On the **Trips** tab, review each recommended trip: vehicle, stop count, planned distance, and peak load against capacity.
+3. **Set the Driver on every trip.** The recommendation assigns a vehicle but never a driver — see the note below.
+4. Check the demand assignment — is the right demand on the right trip?
+5. Check the stop sequence and the route.
+6. Open the **Unplanned Demand** tab. If it is not empty, read the reasons **before** approving anything.
+7. Modify a recommendation only where you know something the engine did not.
+
+:::warning[The recommendation does not choose a driver]
+
+The baseline provider assigns vehicles, not people. A trip left without a driver is released quite happily and then **never appears in anyone's My Trips**, so the delivery silently has nobody to run it.
+
+Assign the driver during review, before you submit. Open the trip from the plan's **Trips** tab and set the **Driver** field.
+
+If the field spins on *Loading…* and offers nobody, your user is missing Odoo's **Employees → Officer** group.
+
+:::
 
 ### If you change a recommendation
 
@@ -85,7 +96,7 @@ While still signed in as the plan's author, click **Approve**.
 <Screenshot
   src="quick-start/19-self-approval-refused.png"
   alt="Odoo warning dialog stating that the plan was created by this user so they may not approve it, because separation of duties is the point of the approval step."
-  caption="The refusal, verbatim: “PLN-2026-08-18-01 was created by you, so you may not approve it. Separation of duties is the point of the approval step.”"
+  caption="The refusal, verbatim: “PLN-2026-08-22-02 was created by you, so you may not approve it. Separation of duties is the point of the approval step.”"
 />
 
 :::danger[BR-PLN-001 — separation of duties]
@@ -119,12 +130,14 @@ The plan moves to **Approved**, and **Approved By** and **Approved At** are fill
 <Screenshot
   src="quick-start/20-plan-approved.png"
   alt="SCOP Daily Plan form with the status bar highlighting Approved."
-  caption="Approved by Omar Operations — a different user from the plan's author. An approval row is written to the Approvals tab at the same time."
+  caption="Approved by QS Demo — Operations Manager — a different user from the plan's author. An approval row is written to the Approvals tab at the same time."
 />
 
-:::warning[Who can approve, in this release]
+:::info[Who can approve]
 
-The system seeds an approval authority naming the **Operations Manager** for plan approval and release, but that authority is not consulted when the action runs. In practice the approver must hold **SCOP Administrator** — and must still not be the plan's author. Recorded in [Release 1 Boundaries](../release-1-boundaries.mdx).
+Approval and release are governed by a seeded **approval authority**, which names the **Operations Manager** — visible and editable at `SCOP → Governance → Approval Authorities`. The authority is what the system consults when the button is pressed, so changing the row changes who may approve.
+
+What it cannot do is let somebody approve their own plan. `BR-PLN-001` is checked before the authority is ever read, and it refuses the plan's author whatever role or rights they hold.
 
 :::
 
