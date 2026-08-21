@@ -1,0 +1,398 @@
+---
+id: business-rules
+title: Business Rules
+description: All six user-facing Release 1 business rules — what each means, when it fires, who meets it, and how to resolve it.
+sidebar_label: Business Rules
+sidebar_position: 1
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+import Screenshot from '@site/src/components/Screenshot';
+
+# Business Rules
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Operations', 'Planning', 'Warehouse', 'Driver', 'Management', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="8 min"
+/>
+
+:::info[This is the canonical list of the six enforced rules]
+
+How the rule machinery works — gates, severities, evaluations, exemptions — is at
+[The Governance Model](../concepts/the-governance-model.mdx).
+
+:::
+
+**Navigate to**
+`SCOP → Governance → Business Rules`
+
+## The six rules at a glance
+
+| Code | Name | Severity | Subject | Fires at |
+| --- | --- | --- | --- | --- |
+| [`BR-INV-002`](#br-inv-002--ownership-must-be-resolved-and-consistent) | Ownership must be resolved and consistent | **Blocking** | Demand | `demand_validate` |
+| [`BR-PLN-001`](#br-pln-001--approval-must-be-separated-from-creation) | Approval must be separated from creation | **Blocking** | Daily Plan | `plan_approve`, `plan_release` |
+| [`BR-PLN-002`](#br-pln-002--a-blocked-trip-must-not-be-released-with-its-plan) | A blocked trip must not be released with its plan | **Blocking** | Daily Plan | `plan_release` |
+| [`BR-RTE-001`](#br-rte-001--sequence-must-be-feasible-at-every-point) | Sequence must be feasible at every point | **Blocking** | Trip | `trip_approve`, `trip_release`, `load_confirm` |
+| [`BR-RTE-002`](#br-rte-002--vehicle-utilisation-should-not-be-wasteful) | Vehicle utilisation should not be wasteful | **Warning** | Trip | `trip_approve`, `trip_release` |
+| [`BR-EXE-001`](#br-exe-001--a-failed-or-partial-stop-must-carry-an-outcome-reason) | A failed or partial stop must carry an outcome reason | **Blocking** | Trip | `trip_complete` |
+
+Five block. One warns.
+
+:::note[Five of the six block if they cannot even be evaluated]
+
+Only `BR-RTE-002` records and continues when the check itself cannot run. The rest treat
+"unable to evaluate" exactly as they treat a failure — because not knowing is not a reason
+to proceed.
+
+:::
+
+---
+
+## `BR-INV-002` — Ownership must be resolved and consistent
+
+| | |
+| --- | --- |
+| **Severity** | **Blocking** |
+| **Type** | Ownership |
+| **Subject** | Demand |
+| **Fires at** | `demand_validate` |
+| **If unable to evaluate** | **Block** |
+
+### Meaning
+
+Every demand line must have a **resolved owner** with a recorded **ownership source**, and
+that owner must not disagree with what Odoo has recorded on the reserved stock.
+
+### When it fires
+
+When a planner presses **Validate** on a demand.
+
+### Who sees it
+
+**Planner.** It is by far the most commonly encountered rule.
+
+### What you see
+
+<Screenshot
+  src="quick-start/05-ownership-block-validate.png"
+  alt="A refusal dialog on the SCOP demand form stating that ownership must be resolved before validation, naming the affected lines."
+  caption="The refusal names the rule, the policy and the exact lines at fault."
+/>
+
+### How to resolve it
+
+| # | Try |
+| --- | --- |
+| 1 | Press **Resolve Ownership**. It re-derives from the five approved sources |
+| 2 | If the transfer is not reserved, reserve it in Odoo, then re-derive |
+| 3 | If Odoo records several different owners on one move, split it so each part has one |
+| 4 | If it is consignment stock, flag the partner, then re-derive |
+| 5 | If it is a delivery with no recorded owner, establish who owns it and record it in Odoo |
+
+→ [Correcting Ownership](../ownership/correcting-ownership.mdx)
+
+### Why it is blocking
+
+Ownership is **never defaulted to the company**. In this deployment an absent owner asserts
+nothing at all, so reading it as company ownership would assign the company as owner of every
+customer-owned carton in the building — and the rule would then confirm the chain as
+internally consistent, because it would be.
+
+Consistently wrong is the failure this rule exists to prevent.
+
+→ [Inventory Ownership](../ownership/inventory-ownership.mdx)
+
+---
+
+## `BR-PLN-001` — Approval must be separated from creation
+
+| | |
+| --- | --- |
+| **Severity** | **Blocking** |
+| **Type** | Approval |
+| **Subject** | Daily Plan |
+| **Fires at** | `plan_approve`, `plan_release` |
+| **If unable to evaluate** | **Block** |
+
+### Meaning
+
+The person who **created** a plan cannot **approve** or **release** it.
+
+### When it fires
+
+When somebody presses **Approve** or **Release** on a daily plan.
+
+### Who sees it
+
+**Operations Manager**, and **Administrator**.
+
+### What you see
+
+<Screenshot
+  src="quick-start/19-self-approval-refused.png"
+  alt="A refusal dialog stating that the plan's creator cannot approve it, naming BR-PLN-001."
+  caption="Separation of duties, refusing the plan's own author."
+/>
+
+### How to resolve it
+
+**A different Operations Manager approves it.** There is no other resolution, and there
+should not be.
+
+:::danger[This outranks administrative rights]
+
+An Administrator holds every group, including Operations Manager, and can approve plans in
+general. They still cannot approve **a plan they created**.
+
+Separation of duties is not a permission that can be granted to yourself.
+
+:::
+
+:::warning[A team of one cannot complete a SCOP cycle]
+
+Intentional, not an oversight. A pilot needs at least two people who can approve.
+
+:::
+
+→ [Plan Governance](../planning/plan-governance.mdx)
+
+---
+
+## `BR-PLN-002` — A blocked trip must not be released with its plan
+
+| | |
+| --- | --- |
+| **Severity** | **Blocking** |
+| **Type** | Validation |
+| **Subject** | Daily Plan |
+| **Fires at** | `plan_release` |
+| **If unable to evaluate** | **Block** |
+
+### Meaning
+
+If any trip on the plan carries a **blocking finding**, the plan cannot be released.
+
+### When it fires
+
+When an Operations Manager presses **Release** on an approved plan.
+
+### Who sees it
+
+**Operations Manager.**
+
+### How to resolve it
+
+The refusal **names the offending trip**.
+
+| Option | How |
+| --- | --- |
+| Repair the trip | Reduce its load, change the vehicle, or resequence the stops |
+| Remove it from the plan | Its demands return to **Eligible for Planning** |
+
+Then release again. The rest of the day proceeds normally.
+
+### Why it exists
+
+A plan is released as a whole. Without this rule, one infeasible trip would go into operation
+alongside the good ones, and the failure would surface at the loading dock instead of on
+screen.
+
+The usual underlying cause is `BR-RTE-001`.
+
+---
+
+## `BR-RTE-001` — Sequence must be feasible at every point
+
+| | |
+| --- | --- |
+| **Severity** | **Blocking** |
+| **Type** | Capacity |
+| **Subject** | Trip |
+| **Fires at** | `trip_approve`, `trip_release`, `load_confirm` |
+| **If unable to evaluate** | **Block** |
+
+### Meaning
+
+The load must fit the vehicle at **every point of the stop sequence** — not only at
+departure.
+
+### Why "at every point"
+
+:::info[A mixed trip changes load after each stop]
+
+A vehicle that leaves the depot within its limit can **exceed** it in the middle of the
+route, after a collection.
+
+Checking only departure would pass a trip that is physically impossible.
+
+:::
+
+### When it fires
+
+When a trip is approved or released, and when a load is confirmed.
+
+### Who sees it
+
+**Planner** and **Operations Manager**.
+
+### How to resolve it
+
+| # | Step |
+| --- | --- |
+| 1 | Read **First Breach Sequence** on the trip header — it names where |
+| 2 | Open the trip's **Capacity** tab and read **Breached Dimensions** |
+| 3 | Reduce the load, change the vehicle, or resequence the stops |
+| 4 | Press **Compute Capacity**, then retry |
+
+→ [Trips](../execution/trips.mdx)
+
+---
+
+## `BR-RTE-002` — Vehicle utilisation should not be wasteful
+
+| | |
+| --- | --- |
+| **Severity** | **Warning** |
+| **Type** | Capacity |
+| **Subject** | Trip |
+| **Fires at** | `trip_approve`, `trip_release` |
+| **If unable to evaluate** | Record and continue |
+
+### Meaning
+
+A vehicle should not go out substantially empty.
+
+### It warns. It does not block.
+
+:::info[A half-empty vehicle is sometimes exactly right]
+
+Utilisation is **rank 7** in the objective profile. Customer commitments are **rank 3**.
+
+SCOP will send a half-empty vehicle rather than break a promise, and this rule tells you it
+happened without stopping you.
+
+→ [Planning Overview](../planning/planning-overview.mdx)
+
+:::
+
+### Who sees it
+
+**Planner** and **Operations Manager**.
+
+### How to respond
+
+A single warning needs no action. **Persistent** warnings across many trips are a
+fleet-sizing signal.
+
+→ [Vehicle Utilization](../reporting/vehicle-utilization.mdx)
+
+---
+
+## `BR-EXE-001` — A failed or partial stop must carry an outcome reason
+
+| | |
+| --- | --- |
+| **Severity** | **Blocking** |
+| **Type** | Validation |
+| **Subject** | Trip |
+| **Fires at** | `trip_complete` |
+| **If unable to evaluate** | **Block** |
+
+### Meaning
+
+Any stop whose outcome is not a clean delivery must say **why**.
+
+It applies to **partial** deliveries as well as complete failures.
+
+### When it fires
+
+Formally, when the **trip** completes. In practice the driver is asked when they close the
+**stop**, because that is the only moment somebody knows the answer.
+
+### Who sees it
+
+**Driver**, at the customer's door.
+
+### What you see
+
+<Screenshot
+  src="quick-start/34-failed-delivery-needs-reason.png"
+  alt="A refusal stating that a failed stop needs an outcome reason before it can be closed."
+  caption="Asked at the moment the driver can actually answer."
+  device="mobile"
+/>
+
+### How to resolve it
+
+Choose one of the seven stop-outcome reasons:
+
+| Reason |
+| --- |
+| Customer location closed |
+| Customer refused the delivery |
+| Goods damaged in transit |
+| Access to the location blocked |
+| Ran out of time on the route |
+| Vehicle issue |
+| Rescheduled at the customer's request |
+
+:::warning[Do not use this for an unvalidated transfer]
+
+If the Odoo transfer has not been validated yet, quantities show zero — but nothing has
+failed. SCOP says so in its own message and offers both paths.
+
+→ [Failed Delivery](../execution/failed-delivery.mdx)
+
+:::
+
+---
+
+## What to do when a rule refuses you
+
+| Do | Do not |
+| --- | --- |
+| Read which record the dialog names | Retry the same button |
+| Fix that record | Ask for the rule to be switched off |
+| Check `Governance → Rule Evaluations` for the stored message | Assume it is a bug |
+| Where the rule genuinely should not apply, request an **exemption** | Suspend the rule |
+
+An exemption is authorised, time-boxed, and requires a stated reason, risk, mitigation and
+approver. The evaluation then records **Exception Applied** rather than pretending the rule
+passed.
+
+:::danger[BR-PLN-001 is not a candidate for exemption]
+
+It exists precisely so that no single person can authorise their own work. Waiving it for
+convenience defeats the only control it provides.
+
+If nobody is available to approve, the answer is a second approver.
+
+:::
+
+→ [The Governance Model](../concepts/the-governance-model.mdx)
+
+## Rules are versioned
+
+Each rule has a stable **code** and a changing **version**. That is how you can answer *"what
+was the policy in March"* without guessing — and why a planning run keeps a **Rules In
+Force** record of what was active when it ran.
+
+→ [Planning Runs](../planning/planning-runs.mdx)
+
+## Related Pages
+
+- [The Governance Model](../concepts/the-governance-model.mdx)
+- [Lifecycle Reference](./lifecycle-reference.mdx)
+- [Inventory Ownership](../ownership/inventory-ownership.mdx)
+- [Plan Governance](../planning/plan-governance.mdx)
+- [Troubleshooting Index](../troubleshooting/troubleshooting-index.mdx)
+
+## Next
+
+[Lifecycle Reference](./lifecycle-reference.mdx).

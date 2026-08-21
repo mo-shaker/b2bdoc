@@ -1,0 +1,222 @@
+---
+id: readiness-and-shipment-problems
+title: Readiness and Shipment Problems
+description: Readiness stuck, no shipment formed, unexpected consolidation, staging that does nothing — cause, verification and correct action.
+sidebar_label: Readiness and Shipment Problems
+sidebar_position: 3
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+
+# Readiness and Shipment Problems
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Warehouse', 'Planning', 'Operations', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="6 min"
+/>
+
+:::info[Start with the Evidence field]
+
+Readiness always states its reasoning in words. `Operations → Warehouse Readiness` → the
+**Evidence** field answers most of this chapter before you read it.
+
+:::
+
+---
+
+## Readiness stays Blocked
+
+### 1 · Ownership is unresolved
+
+**How to verify** Evidence reads *"Ownership is unresolved on N line(s): …"* and names the
+products.
+**Correct action** Resolve the ownership on the underlying demand.
+
+→ [Correcting Ownership](../ownership/correcting-ownership.mdx)
+
+### 2 · Every transfer behind the shipment is cancelled
+
+**How to verify** Evidence reads *"Every transfer behind this shipment is cancelled."*
+**Correct action** The movement is not happening. Cancel the shipment.
+
+:::note[Blocked is tested before any quantity]
+
+A shipment whose owner is unresolved is not "partially ready" — it is not plannable at all.
+Testing ownership first stops a well-prepared pallet masking a legal problem.
+
+:::
+
+:::warning[An override does not resolve ownership]
+
+Overriding readiness to **Ready** makes the shipment plannable. It does **not** resolve
+ownership, and `BR-INV-002` will still refuse to validate the demand.
+
+:::
+
+---
+
+## Readiness stays Not Ready
+
+### 1 · Nothing is reserved in Odoo
+
+**How to verify** Evidence reads *"Nothing is reserved or staged yet."*
+**Correct action** Check availability and reserve the stock on the Odoo transfer, then press
+**Refresh Readiness**.
+
+### 2 · The shipment has no lines
+
+**How to verify** Evidence reads *"The shipment has no lines."*
+**Correct action** Investigate. A shipment with no lines usually means the demand it formed
+from had none.
+
+---
+
+## Readiness stays Partially Ready
+
+**How to verify** Evidence reads *"N of M units are reserved or staged."*
+
+**Correct action** Reserve or stage the remainder.
+
+:::warning[This is the state that quietly stalls a demand]
+
+**Partially Ready** lets a demand become **Eligible for Planning** but does **not** make its
+shipment plannable.
+
+The visible symptom is a demand sitting at eligible forever while nobody notices why.
+
+:::
+
+---
+
+## Readiness went backwards
+
+**How to verify** The state moved from **Ready** to **Conditionally Ready**, or from
+**Ready** to **Created** on the shipment.
+**Cause** A reservation was removed, staging was reversed, or a transfer was cancelled.
+**Correct action** **None — this is correct.** Readiness is computed from current evidence,
+and evidence changes.
+
+---
+
+## Stage Everything does nothing visible
+
+| Cause | Verify | Action |
+| --- | --- | --- |
+| Readiness was not recomputed on screen | — | Press **Refresh Readiness** |
+| The lines were already staged | The **Lines** tab | None |
+| Readiness is **Blocked** | The **Evidence** field | Ownership is blocking. Fix that first |
+| You are not a Warehouse user | The button is absent | Ask a Warehouse user |
+| The shipment is past **Ready** | The button is absent | Expected |
+
+---
+
+## Staging is rejected
+
+**Cause** You cannot stage more than the shipment asks for.
+**Correct action** Stage the shipment quantity. If more physically exists, that is an Odoo
+quantity question.
+
+---
+
+## Staged % shows an absurd number
+
+**How to verify** The column shows `10000%` where it means `100%`.
+**Cause** A known display defect. The **stored** value is correct; only the column is scaled
+twice.
+**Correct action** Read it as a hundredth, or use **Readiness**, which is computed from the
+same evidence and is unaffected. Plan Coverage is unaffected.
+
+→ [Release 1 Scope](../about/release-1-scope.mdx)
+
+---
+
+## No shipment formed after Mark Eligible
+
+This is rare, because formation and eligibility succeed or fail together.
+
+| Cause | Verify | Action |
+| --- | --- | --- |
+| The demand has no lines | The **Lines** tab | A demand with no lines forms no shipment |
+| The demand is not actually eligible | The status bar | Press **Mark Eligible** |
+| Formation failed | The chatter on the demand | If formation cannot succeed, eligibility does not either. Read the message |
+
+:::note[Formation is not allowed to fail quietly]
+
+A demand at **Eligible for Planning** with no shipment is a state the warehouse cannot stage
+against and the planner cannot plan. So if formation fails, the demand does not become
+eligible either.
+
+:::
+
+---
+
+## Two shipments where one was expected
+
+Consolidation requires **all five** of these to match:
+
+| # | Must match |
+| --- | --- |
+| 1 | Origin node |
+| 2 | Destination node |
+| 3 | Shipment type |
+| 4 | Company |
+| 5 | **Required date** |
+
+**How to verify** Compare the two demands across all five.
+**Correct action** Usually none — a difference is a legitimate reason not to consolidate. If
+the dates differ by mistake, correct the date on the transfer and regenerate.
+
+### The sixth reason
+
+The first shipment was already **planned** onto a trip, so it could not be joined.
+
+:::info[A planned shipment is never joined]
+
+Its capacity was sized when the plan was approved. Adding a pallet afterwards would break the
+figure the plan was approved on.
+
+:::
+
+---
+
+## One shipment where two were expected
+
+That is consolidation working. Check the **Lines** tab — both demands are named, and each
+line traces to its own demand and transfer.
+
+If they genuinely must move separately, give them different required dates.
+
+→ [Formation and Consolidation](../shipments/formation-and-consolidation.mdx)
+
+---
+
+## Two stops where one was expected
+
+Requirements share a physical visit only when **all four** match:
+
+| # | Must match |
+| --- | --- |
+| 1 | The planning node |
+| 2 | The activity — a pickup is not a delivery |
+| 3 | The required date |
+| 4 | The effective time window — a commitment outranks opening hours |
+
+Any difference correctly keeps them apart.
+
+→ [The Physical Visit](../shipments/the-physical-visit.mdx)
+
+## Related Pages
+
+- [Warehouse Readiness](../readiness/warehouse-readiness.mdx)
+- [Shipment Management](../shipments/shipment-management.mdx)
+- [Formation and Consolidation](../shipments/formation-and-consolidation.mdx)
+- [Correcting Ownership](../ownership/correcting-ownership.mdx)
+
+## Next
+
+[Planning Problems](./planning-problems.mdx).

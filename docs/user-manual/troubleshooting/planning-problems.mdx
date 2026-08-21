@@ -1,0 +1,274 @@
+---
+id: planning-problems
+title: Planning Problems
+description: Access errors, no feasible vehicle, failed runs, plans that will not submit, approve or release — cause, verification and correct action.
+sidebar_label: Planning Problems
+sidebar_position: 4
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+
+# Planning Problems
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Planning', 'Operations', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="7 min"
+/>
+
+---
+
+## Access Error on Vehicle when generating a plan
+
+**How to verify** The error names `Vehicle` or `fleet.vehicle`.
+**Cause** The planner does not hold Odoo **Fleet → Administrator**.
+
+:::warning[Fleet → Officer is not enough]
+
+Odoo's *Fleet → Officer* carries a record rule narrowing the user to the vehicles they
+personally drive. A planner holding it sees an empty vehicle list.
+
+:::
+
+**Correct action** Grant **Fleet → Administrator**.
+
+---
+
+## The Driver field never finishes loading
+
+**Cause** The planner does not hold Odoo **Employees → Officer**.
+**Correct action** Grant it.
+
+:::danger[A trip with no driver never appears in anyone's My Trips]
+
+The symptom surfaces later, when a driver reports an empty **My Trips**. Check the **Driver**
+column on the trip list before releasing a plan.
+
+:::
+
+---
+
+## Everything comes back No feasible vehicle
+
+### 1 · No selected vehicle has a capacity profile
+
+**How to verify** The vehicle's SCOP fields — **Planning Ready** is false.
+**Distinguishing signal** **Every** demand in the run, not some.
+**Correct action** Assign a capacity profile.
+
+This is the cause almost every time it affects the whole run.
+
+### 2 · The shipment genuinely exceeds every vehicle
+
+**How to verify** Compare the shipment's weight and volume with the vehicles' capacities.
+**Distinguishing signal** Only the large shipments.
+**Correct action** Split the shipment, or use a larger vehicle.
+
+### 3 · No vehicle is available for that window
+
+**How to verify** `Master Data → Vehicle Availability`.
+**Correct action** Record availability, or plan on a day with capacity.
+
+---
+
+## Everything comes back Warehouse not ready
+
+**How to verify** `Operations → Warehouse Readiness` — read the **Evidence**.
+**Correct action** Depends on the evidence. See
+[Readiness and Shipment Problems](./readiness-and-shipment-problems.mdx).
+
+---
+
+## Everything comes back Missing required data
+
+**How to verify** `Master Data → Locations` — check both endpoints for coordinates, timezone
+and at least one opening window.
+**Correct action** Complete the node, then replan.
+
+→ [Planning Nodes](../configuration/planning-nodes.mdx)
+
+---
+
+## Demands come back Customer location unavailable
+
+**Cause** No opening window on the destination node covers the planned date.
+**Correct action** Add a window, or plan for a day the node is open.
+
+---
+
+## Demands come back Time-window conflict
+
+**Cause** A mandatory commitment and the node's opening hours cannot both be met, or two
+windows on one route conflict.
+**Correct action** Change the window with authorisation, or plan the demand as its own trip.
+
+→ [Service Commitments](../configuration/service-commitments.mdx)
+
+---
+
+## Routes make no sense
+
+**How to verify** `Master Data → Locations` — **Is Geocoded** is false on a node in the route.
+**Cause** With no distance for a pair of nodes, the planner treats it as **very large** rather
+than zero, so an ungeocoded node sorts strangely.
+
+:::info[Why not default to zero]
+
+A default of zero would make two nodes look adjacent and sort first into every route — a
+plausible-looking wrong answer. A large value produces an obviously odd one, which is
+recoverable.
+
+:::
+
+**Correct action** Set coordinates on the node.
+
+---
+
+## The planning run is Failed
+
+**How to verify** `Planning → Planning Runs` — read **Error Class** and **Error Message**.
+
+| Error kind | Cause | Action |
+| --- | --- | --- |
+| Access error | Missing Fleet or Employees group | Grant it |
+| Timeout | The timeout was too short, or the run is very large | Raise the timeout, or plan fewer demands |
+| Data error | A node or vehicle is missing required data | Complete it |
+
+**Correct action** Fix the cause, then press **Retry**. Retrying an unchanged run reproduces
+the same failure.
+
+:::note[A failed run creates no plan]
+
+Nothing was decided. The demands stay **Eligible for Planning** and can be included in the
+next attempt.
+
+:::
+
+---
+
+## The plan exists but has no trips
+
+**Cause** Nothing could be placed.
+**How to verify** The plan's **Unplanned Demand** tab.
+**Correct action** Fix what the reasons name, then replan.
+
+---
+
+## Plan cannot submit
+
+| Cause | Verify | Action |
+| --- | --- | --- |
+| It is not in **Generated** or **Modified** | The status bar | — |
+| You are not a Planner | The button is absent | Ask a Planner |
+
+---
+
+## Plan cannot be approved
+
+### 1 · You created it — `BR-PLN-001`
+
+**How to verify** The refusal names separation of duties; **Created By** is you.
+**Correct action** **A different Operations Manager approves it.** There is no other
+resolution.
+
+:::danger[This includes Administrators]
+
+Administrative rights do not confer approval authority. Separation of duties is not a
+permission you can grant yourself.
+
+:::
+
+### 2 · You are not an Operations Manager
+
+**How to verify** The refusal names authorisation rather than separation of duties.
+**Correct action** `Governance → Approval Authorities` shows who is entitled.
+
+### 3 · The plan is not Under Review
+
+**How to verify** The status bar.
+**Correct action** The planner must **Submit** it first.
+
+---
+
+## Plan cannot be released
+
+### 1 · A trip carries a blocking finding — `BR-PLN-002`
+
+**How to verify** The refusal **names the trip**.
+**Correct action**
+
+| Option | How |
+| --- | --- |
+| Repair the trip | Reduce the load, change the vehicle, or resequence the stops |
+| Remove it from the plan | Its demands return to **Eligible for Planning** |
+
+Then release again.
+
+### 2 · The underlying cause is usually `BR-RTE-001`
+
+**How to verify** The trip's **Capacity Feasible** is false.
+**Correct action** Read **First Breach Sequence**, then the **Capacity** tab.
+
+---
+
+## A trip is not capacity-feasible
+
+**How to verify** **Capacity Feasible** false; **First Breach Sequence** names the point.
+
+:::info[A trip that fits at departure can still be impossible]
+
+A mixed pickup-and-delivery trip changes load after each stop. Capacity is validated at every
+point of the sequence.
+
+:::
+
+**Correct action**
+
+| # | Step |
+| --- | --- |
+| 1 | Open the **Capacity** tab and read **Breached Dimensions** |
+| 2 | Reduce the load, change the vehicle, or resequence the stops |
+| 3 | Press **Compute Capacity**, then retry |
+
+---
+
+## A utilisation warning on every trip
+
+**Cause** `BR-RTE-002`, which is a **warning** by design.
+**Correct action** None for a single trip. Persistent warnings across many trips are a
+fleet-sizing signal.
+
+→ [Vehicle Utilization](../reporting/vehicle-utilization.mdx)
+
+---
+
+## Modify is refused
+
+**Cause** No **override reason** was chosen. A modification must say why.
+**Correct action** Choose the reason that is **true**, not the convenient one.
+
+→ [Decision Quality](../reporting/decision-quality.mdx)
+
+---
+
+## Resources are not held after release
+
+**Cause** The trip has no **planned start and end**.
+**Correct action** Set the planned window. A trip with no window cannot hold its vehicle and
+driver, and release is refused.
+
+## Related Pages
+
+- [Generate a Plan](../planning/generate-a-plan.mdx)
+- [Planning Runs](../planning/planning-runs.mdx)
+- [Plan Governance](../planning/plan-governance.mdx)
+- [Unplanned Demand](../planning/unplanned-demand.mdx)
+- [Permissions Reference](../roles/permissions-reference.mdx)
+
+## Next
+
+[Execution Problems](./execution-problems.mdx).

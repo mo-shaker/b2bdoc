@@ -1,0 +1,305 @@
+---
+id: status-glossary
+title: Status Glossary
+description: Every status label in SCOP, in one line each, with the object it belongs to and where it is explained.
+sidebar_label: Status Glossary
+sidebar_position: 4
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+
+# Status Glossary
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Operations', 'Planning', 'Warehouse', 'Driver', 'Management', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="7 min"
+/>
+
+## How to use this page
+
+You are looking at a record and do not know what its status means. Find the object, find the
+label, read the line.
+
+For how the states connect, see [Lifecycle Reference](./lifecycle-reference.mdx).
+
+:::note[Terminal means nothing leaves it]
+
+A **terminal** status is the end of that record's life. Where a requirement still needs
+fulfilling, it continues in a **follow-up demand** rather than by reopening the closed one.
+
+:::
+
+
+## Demand
+
+| Status | Meaning | Terminal |
+| --- | --- | --- |
+| **Draft** | Just created from the Odoo transfer. Still editable. | No |
+| **Submitted** | Put forward as a requirement, awaiting a planner. | No |
+| **Validated** | Checked. Ownership is resolved on every line. | No |
+| **Eligible for Planning** | Available and ready enough to plan. Its shipment now exists. | No |
+| **Planned** | Placed on a daily plan that is not yet released. | No |
+| **Released** | On an authorised plan. Committed to today. | No |
+| **In Execution** | On a vehicle that has departed. | No |
+| **Partially Completed** | Some delivered, some remaining. A follow-up exists. | No |
+| **Completed** | Everything requested was delivered. | **Yes** |
+| **Failed** | Nothing was delivered. A follow-up exists. | **Yes** |
+| **Rejected** | Refused as a requirement, with a reason. | **Yes** |
+| **Cancelled** | Withdrawn. | **Yes** |
+
+→ [In full](../demand/demand-lifecycle.mdx)
+
+## Demand — Return
+
+| Status | Meaning | Terminal |
+| --- | --- | --- |
+| **Created** | The return demand exists. | No |
+| **Collected** | The collection stop was completed. | No |
+| **Received** | The return transfer was validated in Odoo. | No |
+| **Dispositioned** | A disposition was chosen for the goods. | No |
+| **Closed** | The resulting stock move is done. | **Yes** |
+
+→ [In full](../demand/demand-completion.mdx)
+
+## Shipment
+
+| Status | Meaning | Terminal |
+| --- | --- | --- |
+| **Created** | Formed, but not yet ready enough to plan. | No |
+| **Ready** | Readiness is Ready or Conditionally Ready. It can be planned. | No |
+| **Planned** | Assigned to a trip. | No |
+| **In Execution** | Its trip has departed. | No |
+| **Completed** | Every line has an outcome. | **Yes** |
+| **Cancelled** | Withdrawn. | **Yes** |
+
+→ [In full](../shipments/shipment-management.mdx)
+
+## Daily Plan
+
+| Status | Meaning | Terminal |
+| --- | --- | --- |
+| **Generated** | A planning run produced it. Nobody has reviewed it yet. | No |
+| **Under Review** | Submitted, awaiting an Operations Manager. | No |
+| **Modified** | A planner changed the recommendation, with a recorded reason. | No |
+| **Approved** | Authorised and frozen. Records who approved it and when. | No |
+| **Rejected** | Refused, with a reason. Can be replanned. | No |
+| **Released** | Real work. Trips are visible to drivers and loading tasks exist. | **Yes** |
+
+→ [In full](../planning/the-daily-plan.mdx)
+
+## Planning Run
+
+| Status | Meaning | Terminal |
+| --- | --- | --- |
+| **Requested** | The run exists; the provider has not been called yet. | No |
+| **Evaluating** | The provider is working. The request is recorded. | No |
+| **Recommended** | An answer came back and a plan was created. | No |
+| **Reviewed** | The resulting plan has entered Under Review. | No |
+| **Failed** | The provider raised an error or timed out. Retry is available. | No |
+| **Closed** | The resulting plan was released or rejected. | **Yes** |
+| **Cancelled** | Withdrawn before an answer. | **Yes** |
+
+→ [In full](../planning/planning-runs.mdx)
+
+## Trip
+
+| Status | Meaning | Terminal |
+| --- | --- | --- |
+| **Draft** | Created but not yet part of a recommendation. | No |
+| **Recommended** | A planning run proposed it. | No |
+| **Under Review** | Submitted for authorisation. | No |
+| **Modified** | Changed after review began. | No |
+| **Approved** | Authorised. | No |
+| **Released** | Visible to its driver. Loading tasks exist. | No |
+| **Loading** | Loading has started. The vehicle is held at the gate. | No |
+| **Ready to Depart** | Loading is finished. The driver may go. | No |
+| **In Progress** | The vehicle has departed. | No |
+| **Exception** | A problem has interrupted it. | No |
+| **Completed** | Every stop completed. | **Yes** |
+| **Partially Completed** | Every stop has an outcome; not all completed. | **Yes** |
+| **Cancelled** | Withdrawn. | **Yes** |
+
+→ [In full](../execution/trip-lifecycle.mdx)
+
+## Stop — Status
+
+| Status | Meaning | Terminal |
+| --- | --- | --- |
+| **Planned** | Not yet visited. | No |
+| **Arrived** | The vehicle is there. Arrival time recorded. | No |
+| **Servicing** | Unloading or loading has begun. | No |
+| **Completed** | The visit finished. Departure and outcome recorded. | **Yes** |
+| **Failed** | The visit achieved nothing. A reason was required. | **Yes** |
+| **Skipped** | The visit was not attempted. A reason was required. | **Yes** |
+
+→ [In full](../execution/stops.mdx)
+
+## Stop — Outcome
+
+| Status | Meaning | Terminal |
+| --- | --- | --- |
+| **Completed** | Everything planned was delivered. | **Yes** |
+| **Partially Completed** | Some of it was. | **Yes** |
+| **Failed** | None of it was. | **Yes** |
+| **Skipped** | The visit was not attempted. | **Yes** |
+| **Rescheduled** | Moved to another occasion. | **Yes** |
+
+→ [In full](../execution/stops.mdx)
+
+## Load
+
+| Status | Meaning | Terminal |
+| --- | --- | --- |
+| **Proposed** | The plan proposes this load. | No |
+| **Confirmed** | Capacity is feasible at every point of the sequence. | No |
+| **Staged** | Every shipment line on the load is staged. | No |
+| **Loaded** | Actual loaded quantities are recorded. | No |
+| **In Transit** | The trip has departed. | No |
+| **Unloaded** | The last delivery stop was completed. | No |
+| **Closed** | The trip completed. | **Yes** |
+| **Cancelled** | Withdrawn. | **Yes** |
+
+→ [In full](../execution/loading-operations.mdx)
+
+## Exception
+
+| Status | Meaning | Terminal |
+| --- | --- | --- |
+| **Detected** | Raised. No category, severity or deadline yet. | No |
+| **Classified** | Category and severity set. The SLA clock has started. | No |
+| **Assigned** | An owner holds it, and has an activity for it. | No |
+| **Investigating** | Somebody is looking at it. | No |
+| **Resolution Defined** | At least one resolution action has been planned. | No |
+| **In Resolution** | The plan is being carried out. | No |
+| **Escalated** | The SLA was breached, or somebody escalated it. | No |
+| **Resolved** | Every resolution action is done. | No |
+| **Closed** | Confirmed finished. | **Yes** |
+| **Cancelled** | Withdrawn. | **Yes** |
+
+→ [In full](../exceptions/exception-management.mdx)
+
+## Business Rule
+
+| Status | Meaning | Terminal |
+| --- | --- | --- |
+| **Proposed** | Suggested, not yet drafted. | No |
+| **Draft** | Being written. | No |
+| **Under Review** | Submitted for approval. | No |
+| **Approved** | Agreed, not yet scheduled. | No |
+| **Rework Required** | Sent back with a reason. | No |
+| **Scheduled** | Approved with an effective date. | No |
+| **Active** | **Enforced.** Only active rules fire. | No |
+| **Change Proposed** | A new version is being written. | No |
+| **Suspended** | Switched off. Evaluations record Suspended without running the check. | No |
+| **Retired** | Superseded or withdrawn. | **Yes** |
+| **Cancelled** | Abandoned. | **Yes** |
+
+→ [In full](./business-rules.mdx)
+
+## Execution Event
+
+| Status | Meaning | Terminal |
+| --- | --- | --- |
+| **Recorded** | The event was captured. | No |
+| **Validated** | It is well-formed and its subject exists. | No |
+| **Reconciled** | Matched against what the Odoo transfer recorded. | **Yes** |
+
+→ [In full](../concepts/identity-and-traceability.mdx)
+
+
+## Loading Task — Status
+
+Not a governed lifecycle. A plain status field.
+
+| Status | Meaning | Terminal |
+| --- | --- | --- |
+| **Pending** | Created when the trip was released. Not started. | No |
+| **In Progress** | Loading has begun. The trip is held at **Loading**. | No |
+| **Done** | Loading is finished. Actual duration recorded. | No |
+| **Cancelled** | Not going to happen. | No |
+
+→ [In full](../execution/loading-operations.mdx)
+
+## Warehouse Readiness
+
+Not a lifecycle at all. **Computed from evidence**, and it can move in either direction.
+
+| Readiness | Meaning | Plannable |
+| --- | --- | --- |
+| **Ready** | Everything is staged. | **Yes** |
+| **Conditionally Ready** | Reserved for the whole shipment, not yet staged. | **Yes** |
+| **Partially Ready** | Only part can be covered. | No |
+| **Not Ready** | Nothing prepared, or the shipment has no lines. | No |
+| **Blocked** | Ownership unresolved, or every transfer cancelled. | No |
+
+→ [In full](../readiness/warehouse-readiness.mdx)
+
+## Resource Assignment
+
+| State | Meaning |
+| --- | --- |
+| **Candidate** | Being considered. Two plans may both hold a candidate on one vehicle. |
+| **Reserved** | The plan was released. The resource is held. |
+| **Committed** | The trip was released. An operational commitment — mutually exclusive. |
+| **Closed** | The trip finished. |
+| **Cancelled** | The trip was cancelled. |
+
+→ [In full](../configuration/fleet-and-vehicles.mdx)
+
+## Rule Evaluation — Result
+
+| Result | Meaning |
+| --- | --- |
+| **Not Applicable** | The rule did not apply to this record. |
+| **Passed** | The check succeeded. |
+| **Failed — Warning** | Failed, but not blocking. |
+| **Failed — Approval Required** | Needs an authorised approval to proceed. |
+| **Failed — Blocking** | Refused. |
+| **Exception Applied** | An approved exemption was in force. |
+| **Unable to Evaluate** | The check could not run; the rule's own setting decided what happened. |
+| **Suspended** | The rule was suspended, so the check was not run. |
+
+→ [In full](../concepts/the-governance-model.mdx)
+
+## Domain Event — State
+
+| State | Meaning |
+| --- | --- |
+| **Pending** | Recorded, not yet processed. |
+| **Processed** | Handled successfully. |
+| **Failed** | Something went wrong. Visible at `Reporting → Failed Projections`. |
+
+→ [In full](../concepts/identity-and-traceability.mdx)
+
+## Pilot Scope
+
+| State | Meaning |
+| --- | --- |
+| **Draft** | Being configured. **SCOP is not reacting yet.** |
+| **Applied** | Live. SCOP reacts to the configured operations. |
+| **Closed** | The pilot has ended. |
+
+→ [In full](../configuration/pilot-scope.mdx)
+
+## Rule Exemption
+
+| State | Meaning |
+| --- | --- |
+| **Draft** | Requested, not yet approved. Has no effect. |
+| **Approved** | In force, within its dates. |
+| **Expired** | Its end date has passed. |
+| **Revoked** | Withdrawn before expiry. |
+
+→ [In full](../concepts/the-governance-model.mdx)
+
+## Related Pages
+
+- [Lifecycle Reference](./lifecycle-reference.mdx)
+- [Business Rules](./business-rules.mdx)
+- [Reason Codes](./reason-codes.mdx)
+- [Terminology](../about/terminology.mdx)

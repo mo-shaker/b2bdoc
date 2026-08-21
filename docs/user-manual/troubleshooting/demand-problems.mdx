@@ -1,0 +1,232 @@
+---
+id: demand-problems
+title: Demand Problems
+description: No demand created, cannot validate, cannot become eligible, does not complete — cause, verification and correct action for each.
+sidebar_label: Demand Problems
+sidebar_position: 2
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+
+# Demand Problems
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Planning', 'Operations', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="7 min"
+/>
+
+---
+
+## No demand created
+
+### Possible causes, in order of likelihood
+
+#### 1 · The list is filtered
+
+**How to verify** Clear the search bar completely.
+**Correct action** None. The demand exists.
+
+#### 2 · The operation type is not in pilot scope
+
+**How to verify** `SCOP → Technical → Pilot Scope` — is the transfer's operation type listed?
+**Distinguishing signal** **No domain event at all** for that transfer.
+**Correct action** Add the operation type and press **Apply**. Then re-save the transfer.
+
+#### 3 · The pilot scope record is still in Draft
+
+**How to verify** Same screen — the status must be **Applied**.
+**Distinguishing signal** No demands at all, for anything.
+**Correct action** Press **Apply**.
+
+#### 4 · The transfer predates go-live
+
+**How to verify** Compare the transfer's creation date with **Go-Live** on the scope record.
+**Distinguishing signal** No event; older transfers only.
+**Correct action** **None.** There is deliberately no historical backfill.
+
+#### 5 · A planning node is missing
+
+**How to verify** `SCOP → Technical → Domain Events`, filter `DemandGenerationSkipped`. The
+payload names the unmapped location and which end failed.
+**Distinguishing signal** A skip event exists.
+**Correct action** Create or link the node, complete it, then **re-save the transfer**.
+
+→ [Missing Node Diagnostics](../configuration/missing-node-diagnostics.mdx)
+
+#### 6 · Generation failed
+
+**How to verify** `SCOP → Reporting → Failed Projections`.
+**Distinguishing signal** A failed event with an error class and message.
+**Correct action** Fix the cause named in the message, then re-save the transfer.
+
+:::info[The distinguishing signal is whether an event exists]
+
+**No event** — SCOP never considered the transfer.
+**A skip event** — SCOP considered it and deliberately declined.
+**A failed event** — SCOP tried and something went wrong.
+
+:::
+
+---
+
+## Demand cannot validate
+
+### 1 · Ownership is unresolved — `BR-INV-002`
+
+**How to verify** The banner at the top of the demand form; the empty **Ownership Source**
+column on the **Lines** tab; the refusal dialog names the lines.
+
+**Correct action**
+
+| # | Try |
+| --- | --- |
+| 1 | Press **Resolve Ownership** — it re-derives from current evidence |
+| 2 | If the transfer is unreserved, reserve it in Odoo, then re-derive |
+| 3 | If Odoo records several owners on one move, split it so each part has one |
+| 4 | If it is consignment stock, flag the partner, then re-derive |
+| 5 | If it is a delivery with no recorded owner, establish who owns it and record it in Odoo |
+
+→ [Correcting Ownership](../ownership/correcting-ownership.mdx)
+
+### 2 · An access error rather than a rule refusal
+
+**How to verify** The message names an access problem, not a rule.
+**Correct action** The planner needs Odoo **Inventory → User**. Ownership derivation reads
+Odoo's reservations.
+
+### 3 · The demand is not in Submitted
+
+**How to verify** The status bar.
+**Correct action** Press **Submit** first.
+
+---
+
+## Demand cannot become eligible
+
+### 1 · Readiness is Not Ready or Blocked
+
+**How to verify** `SCOP → Operations → Warehouse Readiness` — read the **Evidence** field.
+
+| Evidence | Correct action |
+| --- | --- |
+| *"Ownership is unresolved on N line(s)…"* | Resolve the ownership |
+| *"Every transfer behind this shipment is cancelled."* | The movement is not happening. Cancel the shipment |
+| *"The shipment has no lines."* | Investigate why the shipment is empty |
+| *"Nothing is reserved or staged yet."* | Reserve the stock in Odoo |
+
+### 2 · The demand is not in Validated
+
+**How to verify** The status bar.
+**Correct action** Press **Validate** first.
+
+---
+
+## Demand is eligible but never gets planned
+
+:::warning[This is almost always Partially Ready]
+
+**Partially Ready** lets a demand become **Eligible for Planning** but does **not** make its
+shipment plannable.
+
+Check the **shipment's** readiness, not the demand's state.
+
+:::
+
+### 1 · Readiness is Partially Ready
+
+**How to verify** `Operations → Warehouse Readiness` — evidence reads *"N of M units are
+reserved or staged."*
+**Correct action** Reserve or stage the rest, then replan.
+
+### 2 · The run rejected it for another reason
+
+**How to verify** `SCOP → Planning → Unplanned Demand`, or the plan's own tab.
+**Correct action** Depends on the reason — all twelve are covered at
+[Unplanned Demand](../planning/unplanned-demand.mdx).
+
+### 3 · Its required date does not match the plan date
+
+**How to verify** Compare the demand's **Required Date** with the plan's date.
+**Correct action** Plan it on its own date.
+
+---
+
+## Demand does not complete
+
+### 1 · The Odoo transfer has not been validated
+
+**How to verify** The demand's **Transfers** stat button — is the transfer **Done**? Are
+**Fulfilled** quantities zero on the **Lines** tab?
+**Distinguishing signal** Everything else looks finished; only the quantities are missing.
+**Correct action** Validate the transfer in Odoo with **the quantity that actually moved**.
+
+This is the cause by a wide margin.
+
+→ [Odoo Delivery Validation](../execution/odoo-delivery-validation.mdx)
+
+### 2 · The stop was never completed
+
+**How to verify** `SCOP → Operations → Stops` — the stop's status.
+**Correct action** Complete the stop, once the transfer is validated.
+
+### 3 · The trip did not close
+
+**How to verify** The trip's status.
+**Correct action** Every stop needs an outcome. Then **Complete** the trip.
+
+### 4 · It is Partially Completed and the follow-up has not been delivered
+
+**How to verify** The **Follow-Up and Returns** tab — open the follow-up demand.
+**Correct action** Plan and deliver the follow-up. The original then completes.
+
+:::warning[A follow-up demand does not plan itself]
+
+It joins the eligible pool like any other demand. If nobody plans it, the original sits at
+**Partially Completed** indefinitely.
+
+:::
+
+### 5 · It is an old record from an earlier release
+
+**How to verify** The demand predates the current release, and its trip has already run.
+**Correct action** **None.** Records left mid-flight by an earlier release are not rewritten.
+Inventing transitions would put states in the audit trail that nobody performed.
+
+→ [Release 1 Scope](../about/release-1-scope.mdx)
+
+---
+
+## Demand shows the wrong destination
+
+**How to verify** The demand's **Destination** against the transfer's delivery address.
+**Cause** The address resolves to a different planning node, or to a node linked to the wrong
+partner.
+**Correct action** Correct the node's links. Existing demands are not re-resolved — cancel and
+recreate the transfer if it matters.
+
+---
+
+## Quantities on the demand look wrong
+
+| Symptom | Cause | Action |
+| --- | --- | --- |
+| **Fulfilled** is zero | The transfer is not validated | Validate it |
+| **Fulfilled** exceeds requested | Odoo recorded more than ordered | Correct it in Odoo |
+| The demand shows several transfers | Backorders. **Normal** | None |
+| **Completed** but the customer got less | The transfer was validated with the **ordered** quantity | Correct it in Odoo |
+
+## Related Pages
+
+- [Demand Diagnostics](../demand/demand-diagnostics.mdx)
+- [Demand Lifecycle](../demand/demand-lifecycle.mdx)
+- [Correcting Ownership](../ownership/correcting-ownership.mdx)
+- [Missing Node Diagnostics](../configuration/missing-node-diagnostics.mdx)
+
+## Next
+
+[Readiness and Shipment Problems](./readiness-and-shipment-problems.mdx).
