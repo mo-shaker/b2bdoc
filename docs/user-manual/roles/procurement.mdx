@@ -1,0 +1,92 @@
+---
+id: procurement
+title: Procurement
+description: What the Procurement role does in SCOP — supplier commitments, inbound demand, and what is deliberately out of scope in Release 1.
+sidebar_label: Procurement
+sidebar_position: 7
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+
+# Procurement
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Procurement', 'Operations', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="3 min"
+/>
+
+## Your responsibility
+
+You own **what a supplier promised us**, and you watch the inbound movements that promise
+produces.
+
+Procurement is a light role in Release 1. Most of your work stays in Odoo Purchase; SCOP
+adds the commitment record and inbound visibility.
+
+## Your menus
+
+| Menu | What you use it for |
+| --- | --- |
+| `Master Data → Supplier Commitments` | What a supplier promised, and by when |
+| `Operations → Demands` | Inbound demands generated from receipts |
+| `Reporting → Operation Timeline` | Reconstruct one inbound operation |
+
+Everything a SCOP User can read, you can read.
+
+## Supplier commitments
+
+A supplier commitment records what a supplier undertook to deliver, and when.
+
+| Field | Meaning |
+| --- | --- |
+| Partner | The supplier |
+| Committed date or window | What they promised |
+| Related requirement | What it covers |
+
+It is the supplier-facing counterpart of a
+[Service Commitment](../configuration/service-commitments.mdx), which records what *we*
+promised a customer.
+
+## Inbound demand
+
+When Odoo creates a **receipt** whose operation type is inside pilot scope, SCOP generates
+a demand with:
+
+| Field | Value |
+| --- | --- |
+| **Demand Type** | **Inbound** |
+| **Origin Type** | **Procurement Requirement** if a purchase order is behind it, otherwise **Supplier Collection** |
+
+The demand then follows the same lifecycle as any other — see
+[Demand Lifecycle](../demand/demand-lifecycle.mdx).
+
+## What is not in Release 1
+
+:::note[Procurement scope is deliberately narrow]
+
+| Not available | Note |
+| --- | --- |
+| Purchase-order consignment terms | Consignment ownership comes from a **flagged partner**, not from order terms — see [Inventory Ownership](../ownership/inventory-ownership.mdx) |
+| Supplier performance reporting | No supplier OTIF equivalent ships in Release 1 |
+| Automated supplier alerts | None |
+
+:::
+
+## What you may not do
+
+| Not permitted | Who does it |
+| --- | --- |
+| Validate or plan demands | Planner |
+| Approve plans | Operations Manager |
+| Flag a partner as a consignment owner | Administrator, via Onboarding |
+
+## Related Pages
+
+- [Service Commitments](../configuration/service-commitments.mdx)
+- [Demand Management](../demand/demand-management.mdx)
+- [Inventory Ownership](../ownership/inventory-ownership.mdx)

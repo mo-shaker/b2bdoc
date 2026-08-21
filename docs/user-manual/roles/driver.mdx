@@ -1,0 +1,140 @@
+---
+id: driver
+title: Driver
+description: What a Driver does in SCOP — My Work, departing, arriving, delivering, proof of delivery, and what a driver deliberately cannot see.
+sidebar_label: Driver
+sidebar_position: 6
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+
+# Driver
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Driver', 'Operations', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="4 min"
+/>
+
+## Your responsibility
+
+Take the vehicle out, visit the stops in order, and **record what happened at each one**.
+
+Your screen is deliberately simple. You see your own work and nothing else.
+
+## Your menus
+
+There are two, and no others.
+
+| Menu | What it shows |
+| --- | --- |
+| `SCOP → My Work → My Trips` | Your trips, as cards |
+| `SCOP → My Work → My Stops` | The stops on those trips, as cards |
+
+Both show only trips that have been **released** — a plan still being argued over is not
+your concern.
+
+## Your day
+
+```text
+My Trips
+   ↓  Depart
+My Stops  (in sequence)
+   ↓  I have arrived
+   ↓  Start unloading
+   ↓  Delivered      or      Could not deliver
+```
+
+| Button | When | What it records |
+| --- | --- | --- |
+| **Depart** | The trip is **Ready to Depart** | Departure time. The trip goes **In Progress** |
+| **I have arrived** | At the stop | Arrival time |
+| **Start unloading** | Once you begin | Service start time |
+| **Delivered** | The goods are handed over | The outcome, plus proof of delivery |
+| **Could not deliver** | It did not happen | The outcome **and a reason** |
+
+Full walkthrough with screens: [Driver Delivery](../execution/driver-delivery.mdx).
+
+## The Goods tab
+
+Your stop shows what should be delivered, and what actually was.
+
+:::warning[You never type the delivered quantity]
+
+The quantity comes from the **Odoo transfer the warehouse validates**. Your job is to report
+what happened; the warehouse records it.
+
+If quantities show zero, the transfer has not been validated yet. That is not a failed
+delivery. See [Failed Delivery](../execution/failed-delivery.mdx).
+
+:::
+
+## Proof of delivery
+
+On the **Proof of delivery** tab:
+
+| Field | Notes |
+| --- | --- |
+| **Signed by** | The name of the person who received the goods |
+| **Signature** | Captured on screen |
+| **Photographs** | Attach as many as needed |
+| **Coordinates** | Captured automatically where the site is on `https` |
+
+If coordinates cannot be captured, SCOP records **why** rather than pretending. That is
+normal on a plain `http` deployment and is not your problem to fix.
+
+:::info[This is not vehicle tracking]
+
+Location is captured **once**, at the point of delivery. SCOP does not follow you between
+stops, and there is no live tracking in Release 1.
+
+:::
+
+## Could not deliver
+
+If a delivery fails, **a reason is required** — `BR-EXE-001` will not let the stop close
+without one. You are asked at the moment you can actually answer.
+
+| Reason | Use when |
+| --- | --- |
+| **Customer location closed** | Nobody there |
+| **Customer refused the delivery** | They would not take it |
+| **Goods damaged in transit** | It arrived unusable |
+| **Access to the location blocked** | You could not reach the dock |
+| **Ran out of time on the route** | The day ended first |
+| **Vehicle issue** | The vehicle stopped you |
+| **Rescheduled at the customer's request** | They asked for another day |
+
+## What you cannot see, and why
+
+| You cannot reach | Reason |
+| --- | --- |
+| Other drivers' trips | You see only trips assigned to you |
+| Demands, shipments, plans | Not part of your work |
+| Warehouse readiness, loading tasks | Not part of your work |
+| Inventory transfers | You would be able to read every movement in the company |
+| Governance and reports | Not part of your work |
+
+This is enforced by record rules on your account, not by hiding a menu. Full explanation:
+[Driver Security Model](../execution/driver-security-model.mdx).
+
+## If something is wrong
+
+| Symptom | Check |
+| --- | --- |
+| **My Trips** is empty | No trip is assigned to you, or your trips are not released yet. Ask dispatch |
+| **Depart** is not offered | Loading is not finished — a loading task is still open |
+| **Delivered** is refused | The Odoo transfer has not been validated yet |
+| Coordinates were not captured | The site is on plain `http`. Signature and photographs still work |
+| A stop shows zero quantities | The transfer has not been validated. Do **not** record a failure for this reason |
+
+## Related Pages
+
+- [Driver Delivery](../execution/driver-delivery.mdx)
+- [Proof of Delivery](../execution/proof-of-delivery.mdx)
+- [Failed Delivery](../execution/failed-delivery.mdx)
+- [Driver Security Model](../execution/driver-security-model.mdx)

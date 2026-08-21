@@ -1,0 +1,110 @@
+---
+id: accessing-scop
+title: Accessing SCOP
+description: Signing in, finding the SCOP application, and understanding why two users see different menus.
+sidebar_label: Accessing SCOP
+sidebar_position: 1
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+import Screenshot from '@site/src/components/Screenshot';
+
+# Accessing SCOP
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Operations', 'Warehouse', 'Planning', 'Management', 'Driver', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="4 min"
+/>
+
+**Role**
+Everyone.
+
+## Purpose
+
+SCOP is not a separate application with its own login. It is an application **inside your
+existing Odoo**, reached from the same address and the same account you already use.
+
+## Before you start
+
+You need three things, and your administrator provides all of them:
+
+| You need | Why |
+| --- | --- |
+| An Odoo user account on the correct database | SCOP records live in that database |
+| At least one **SCOP role** | Without a SCOP group, the `SCOP` menu does not appear at all |
+| Any **Odoo groups** your role also needs | See [Permissions Reference](../roles/permissions-reference.mdx) |
+
+## What to do
+
+1. Open your Odoo address in a browser.
+2. Sign in with your normal Odoo username and password.
+3. Open the applications menu and choose **SCOP**.
+
+:::note[If you are asked to choose a database]
+
+Some deployments host more than one database. Choose the one your administrator named. The
+records in one database are invisible from another, so choosing the wrong one shows you an
+empty or unfamiliar SCOP.
+
+:::
+
+## What you see
+
+The `SCOP` application menu, containing the sections your role is entitled to. **The menu
+is not the same for everyone** — SCOP shows each role only what it needs.
+
+| If you are | You see |
+| --- | --- |
+| A **Driver** | Only **My Work**, with **My Trips** and **My Stops** |
+| A **Warehouse** user | Operations, Master Data, Governance, Reporting |
+| A **Planner** | The above plus **Planning** and the **Dashboard** |
+| An **Operations Manager** | Planner plus Warehouse |
+| An **Administrator** | Everything, including **Technical** |
+
+The complete map is at [Navigating SCOP](./navigating-scop.mdx).
+
+## Expected result
+
+The `SCOP` menu is present and opens. If your role includes it, the
+[Dashboard](../reporting/the-dashboard.mdx) is the first entry.
+
+## Verify
+
+Open `SCOP → Operations → Demands`. A SCOP user with any operational role can read this
+list, even if it is empty.
+
+A Driver cannot, and that is correct — see
+[Driver Security Model](../execution/driver-security-model.mdx).
+
+## If it does not work
+
+| Symptom | Cause | What to do |
+| --- | --- | --- |
+| No `SCOP` application in the menu | No SCOP group assigned | Ask your administrator to assign a role from [Roles Overview](../roles/roles-overview.mdx) |
+| `SCOP` appears but is empty | You hold only the **Finance User** group, which has no menu in Release 1 | Ask for the role that matches your work. See [Release 1 Scope](../about/release-1-scope.mdx) |
+| **Planning** is missing | You are not a Planner or Operations Manager | Expected. Planning is restricted |
+| **Technical** is missing | You are not an Administrator | Expected |
+| `Access Error` on **Vehicle** when generating a plan | Missing Odoo **Fleet → Administrator** | See [Permissions Reference](../roles/permissions-reference.mdx) |
+| The **Driver** field on a trip never loads its options | Missing Odoo **Employees → Officer** | See [Permissions Reference](../roles/permissions-reference.mdx) |
+| A driver signs in and **My Trips** is empty | No trip is assigned to them, or their trips are not yet released | See [Troubleshooting — Driver sees no trips](../troubleshooting/execution-problems.mdx) |
+
+## A note on signing in as a driver
+
+A driver is a normal internal user with a heavily restricted role, not a portal user. They
+sign in exactly as everyone else does — and then see only their own work, enforced by
+record rules rather than by the menu alone.
+
+## Related Pages
+
+- [Navigating SCOP](./navigating-scop.mdx)
+- [Roles Overview](../roles/roles-overview.mdx)
+- [Permissions Reference](../roles/permissions-reference.mdx)
+
+## Next
+
+[Navigating SCOP](./navigating-scop.mdx) — the complete menu map.

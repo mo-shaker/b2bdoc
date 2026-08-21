@@ -1,0 +1,145 @@
+---
+id: working-with-lists-and-forms
+title: Working with Lists and Forms
+description: The screen patterns SCOP uses — status bars, lifecycle kanban boards, colour coding, the chatter, and pivot reports.
+sidebar_label: Working with Lists and Forms
+sidebar_position: 3
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+
+# Working with Lists and Forms
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Operations', 'Warehouse', 'Planning', 'Management', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="6 min"
+/>
+
+**Role**
+Everyone.
+
+## Purpose
+
+SCOP uses standard Odoo screens. This page covers only the patterns that **change how you
+read a SCOP record** — it is not a general Odoo tutorial.
+
+## The status bar is the lifecycle
+
+Every operational SCOP record shows its lifecycle across the top of the form. The stage you
+are in is highlighted; the stages before and after it are shown so you can see where the
+record is going.
+
+```text
+Draft → Submitted → Validated → Eligible for Planning → Planned → Released → In Execution → Completed
+```
+
+Two things about it are worth knowing.
+
+**The status bar hides the unhappy paths.** A demand can also be **Rejected**, **Cancelled**
+or **Failed**, but those are not on the bar because they are not steps on the way anywhere.
+The record still shows them once it reaches them.
+
+**You cannot click the status bar to change state.** SCOP lifecycles move only through the
+buttons in the header, because each button runs the checks that belong to that transition.
+
+:::info[Why a state cannot be set directly]
+
+Writing a state by hand would skip the rule evaluation that goes with it — a plan could be
+approved without checking who approved it, or a demand validated without checking who owns
+the goods. SCOP refuses a direct write to a governed state and tells you to use the
+record's own button.
+
+:::
+
+## Buttons appear and disappear
+
+The header only offers the actions that are legal **right now**. A demand in **Submitted**
+offers **Validate** and **Reject**; the same demand in **Validated** offers **Mark
+Eligible** instead.
+
+If a button you expect is not there, the usual reason is that the record is not in the state
+that offers it. The second most common reason is that your role is not entitled to it — for
+example **Stage Everything** appears only for Warehouse users.
+
+## Colour and badges in lists
+
+SCOP colours list rows to surface problems without opening anything.
+
+| What you see | Meaning | Where |
+| --- | --- | --- |
+| **Red row** | Ownership is unresolved and the demand is past Draft | Demands list |
+| **Grey row** | Cancelled or rejected | Demands list |
+| **Green badge** | Completed | Demands, shipments |
+| **Amber badge** | Partially completed | Demands |
+| **Red badge** | Failed | Demands |
+
+An **Ownership** column is shown in the demands list on purpose: it tells a planner that a
+demand will refuse to validate *before* they press the button and find out. See
+[Inventory Ownership](../ownership/inventory-ownership.mdx).
+
+## Kanban boards show the whole lifecycle
+
+Demands, trips and stops offer a card view grouped by status.
+
+SCOP deliberately shows **every lifecycle column, including the empty ones**, in lifecycle
+order rather than alphabetical order. An operator reading the board needs to see that
+nothing is in **Exception** just as much as they need to see what is.
+
+## The chatter records who did what
+
+At the foot of every operational form is the message and activity panel.
+
+State changes are **tracked**: each transition writes a line saying who moved the record,
+when, and from what to what. That log is part of the audit trail and is not editable.
+
+Use it when you need to answer *"who approved this, and when?"* without leaving the record.
+For a wider reconstruction across several records, use
+[Operation Timeline](../reporting/operation-timeline.mdx) instead.
+
+## Reports are pivot tables
+
+Most SCOP reports open as a list, with a pivot view available. The pivot is where the
+report earns its value: drag a dimension onto rows, a second onto columns, and choose a
+measure.
+
+Three conventions apply across every SCOP report:
+
+| Convention | Consequence |
+| --- | --- |
+| Reports are **read-only** | You cannot fix data from a report. Open the underlying record |
+| Some reports open with a **default filter** | For example OTIF opens filtered to records that carry a commitment. Clear it deliberately, not accidentally |
+| A percentage measure is **averaged**, not summed | Summing coverage percentages across five days produces a meaningless number |
+
+Each report's own page under [Reporting](../reporting/reporting-overview.mdx) names its
+dimensions and measures explicitly.
+
+## Stat buttons open the related work
+
+Several forms carry buttons in the top-right that show a count and open the records behind
+it — for example **Transfers** on a demand, which opens the Odoo transfers fulfilling it.
+
+These are the fastest way to cross from SCOP into Odoo and back.
+
+## What you cannot edit
+
+A large part of a SCOP record is **computed**, not typed. Readiness, staged percentage,
+fulfilled quantity, capacity feasibility, planned versus actual variance — all are derived
+from evidence elsewhere.
+
+If a computed field looks wrong, the fix is never to change the field. It is to correct the
+evidence and let SCOP recompute. Each chapter names the evidence for the values it covers.
+
+## Related Pages
+
+- [Searching, Filtering and Grouping](./searching-filtering-grouping.mdx)
+- [Status Glossary](../reference/status-glossary.mdx)
+- [Lifecycle Reference](../reference/lifecycle-reference.mdx)
+
+## Next
+
+[Searching, Filtering and Grouping](./searching-filtering-grouping.mdx).

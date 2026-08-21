@@ -1,0 +1,136 @@
+---
+id: terminology
+title: Terminology
+description: Every SCOP term used in this manual, in one line each, with the agreed Arabic equivalent.
+sidebar_label: Terminology
+sidebar_position: 5
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+
+# Terminology
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Operations', 'Warehouse', 'Planning', 'Management', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="6 min"
+/>
+
+One term per concept, used consistently throughout the manual. The Arabic edition uses the
+agreed Arabic term in the same table, and keeps the English label in brackets so a reader
+can still match it against the English interface.
+
+## The operating objects
+
+| Term | Meaning in one line | Explained in |
+| --- | --- | --- |
+| **Demand** | What must move | [Demand Management](../demand/demand-management.mdx) |
+| **Demand Line** | One product and quantity within a demand, carrying its own owner | [Demand Management](../demand/demand-management.mdx) |
+| **Allocation** | The specific stock reserved against a demand line | [Planning Eligibility](../demand/planning-eligibility.mdx) |
+| **Shipment** | The unit that can be planned — one or more demands moving together | [Shipment Management](../shipments/shipment-management.mdx) |
+| **Shipment Line** | One product and quantity within a shipment, traceable to its demand | [Shipment Management](../shipments/shipment-management.mdx) |
+| **Warehouse Readiness** | Whether the goods can actually go, and why | [Warehouse Readiness](../readiness/warehouse-readiness.mdx) |
+| **Planning Run** | One attempt to build a plan, with its inputs and its answer kept | [Planning Runs](../planning/planning-runs.mdx) |
+| **Daily Plan** | The proposed operating plan for one day | [The Daily Plan](../planning/the-daily-plan.mdx) |
+| **Trip** | One vehicle and driver executing a sequence of stops | [Trips](../execution/trips.mdx) |
+| **Stop** | One physical visit made during a trip | [Stops](../execution/stops.mdx) |
+| **Stop Line** | One product delivered or collected at a stop | [Stops](../execution/stops.mdx) |
+| **Load** | What is physically on the vehicle, tracked from proposal to close | [Loading Operations](../execution/loading-operations.mdx) |
+| **Loading Task** | Warehouse work to load one shipment onto a vehicle | [Loading Operations](../execution/loading-operations.mdx) |
+| **Unplanned Demand** | Demand the run could not place, with the reason | [Unplanned Demand](../planning/unplanned-demand.mdx) |
+| **Exception** | A recorded operational problem needing resolution | [Exception Management](../exceptions/exception-management.mdx) |
+| **Proof of Delivery** | Signature, photographs and coordinates captured at the stop | [Proof of Delivery](../execution/proof-of-delivery.mdx) |
+
+## Master data and configuration
+
+| Term | Meaning in one line | Explained in |
+| --- | --- | --- |
+| **Planning Node** | A physical place SCOP can route to, with coordinates, timezone and opening hours | [Planning Nodes](../configuration/planning-nodes.mdx) |
+| **Service Commitment** | What was promised to the customer — a date, or a window | [Service Commitments](../configuration/service-commitments.mdx) |
+| **Supplier Commitment** | What a supplier promised us | [Service Commitments](../configuration/service-commitments.mdx) |
+| **Stop Activity** | The kind of work done at a stop — delivery, pickup, and so on | [Routes and Stop Activities](../configuration/routes-and-stop-activities.mdx) |
+| **Route** | A named, repeatable sequence of nodes | [Routes and Stop Activities](../configuration/routes-and-stop-activities.mdx) |
+| **Travel Matrix** | Stored distances and durations between nodes | [Planning Nodes](../configuration/planning-nodes.mdx) |
+| **Capacity Profile** | The dimensions a vehicle is measured in — weight, volume | [Catalogues](../configuration/catalogues.mdx) |
+| **Handling Profile** | How a product must be handled |[Catalogues](../configuration/catalogues.mdx) |
+| **Compatibility Group** | Which goods may not travel together | [Catalogues](../configuration/catalogues.mdx) |
+| **Shelf-Life Profile** | Remaining-life rules for a product | [Catalogues](../configuration/catalogues.mdx) |
+| **Resource Assignment** | A vehicle or driver held for a trip — candidate, reserved or committed | [Fleet and Vehicles](../configuration/fleet-and-vehicles.mdx) |
+| **Pilot Scope** | Which Odoo operation types SCOP reacts to, and from when | [Pilot Scope](../configuration/pilot-scope.mdx) |
+
+## Governance
+
+| Term | Meaning in one line | Explained in |
+| --- | --- | --- |
+| **Business Rule** | A named, versioned policy SCOP enforces at a specific moment | [Business Rules](../reference/business-rules.mdx) |
+| **Gate** | The moment a rule is evaluated — for example `plan_approve` | [The Governance Model](../concepts/the-governance-model.mdx) |
+| **Rule Evaluation** | The stored record of one rule being checked, and its answer | [The Governance Model](../concepts/the-governance-model.mdx) |
+| **Rule Exemption** | An authorised, time-boxed waiver of a rule | [The Governance Model](../concepts/the-governance-model.mdx) |
+| **Approval Authority** | Which group may perform which action on which object | [The Governance Model](../concepts/the-governance-model.mdx) |
+| **Reason Code** | A controlled vocabulary entry explaining why something happened | [Reason Codes](../reference/reason-codes.mdx) |
+| **Override Reason** | The recorded justification for departing from a recommendation | [The Daily Plan](../planning/the-daily-plan.mdx) |
+| **Objective Profile** | The ranked objectives planning optimises against | [Planning Overview](../planning/planning-overview.mdx) |
+| **Ownership** | Who owns the goods being moved | [Inventory Ownership](../ownership/inventory-ownership.mdx) |
+
+## Traceability
+
+| Term | Meaning in one line | Explained in |
+| --- | --- | --- |
+| **Business ID** | The human-readable reference SCOP prints — `DMD-`, `SHP-`, `PLN-`, `TRP-` | [Identity and Traceability](../concepts/identity-and-traceability.mdx) |
+| **Correlation Reference** | The identifier shared by everything that happened in one operation | [Identity and Traceability](../concepts/identity-and-traceability.mdx) |
+| **Domain Event** | A recorded fact about something SCOP did or declined to do | [Identity and Traceability](../concepts/identity-and-traceability.mdx) |
+| **Execution Event** | A recorded fact about what physically happened during a trip | [Identity and Traceability](../concepts/identity-and-traceability.mdx) |
+| **Operation Timeline** | The reconstruction of one operation from its correlation reference | [Operation Timeline](../reporting/operation-timeline.mdx) |
+
+## Measurement
+
+| Term | Meaning in one line | Explained in |
+| --- | --- | --- |
+| **Plan Coverage** | Did we plan what could be planned? | [Plan Coverage](../reporting/plan-coverage.mdx) |
+| **OTIF** | On Time, In Full | [OTIF](../reporting/otif.mdx) |
+| **Decision Quality** | How often the recommendation was accepted or overridden | [Decision Quality](../reporting/decision-quality.mdx) |
+| **Vehicle Utilization** | How full the vehicle actually was, at every point of the route | [Vehicle Utilization](../reporting/vehicle-utilization.mdx) |
+| **Exception Ageing** | How long open problems have been open, against their SLA | [Exception Ageing](../reporting/exception-ageing.mdx) |
+| **Orphan Move** | A stock move on a demand-generating transfer that no demand line covers | [Data Quality Reports](../reporting/data-quality-reports.mdx) |
+
+## Demand types and origins
+
+SCOP classifies every demand twice: by **what kind of movement it is**, and by **where the
+requirement came from**. Both are set automatically from Odoo's own evidence.
+
+### Demand Type — the kind of movement
+
+| Value | Meaning |
+| --- | --- |
+| **Delivery** | Goods going out to a customer or branch |
+| **Collection** | Goods being picked up |
+| **Transfer** | An internal movement |
+| **Return** | Goods coming back |
+| **Inbound** | Goods arriving from a supplier |
+
+### Origin Type — where the requirement came from
+
+| Value | Set when |
+| --- | --- |
+| **Customer Order** | The transfer has a sales order behind it |
+| **Procurement Requirement** | The transfer has a purchase order behind it |
+| **Return** | The transfer's moves link back to an earlier move |
+| **Inter-Warehouse Movement** | An internal transfer between two different warehouses |
+| **Internal Replenishment** | An internal transfer within one warehouse |
+| **Supplier Collection** | An incoming transfer with no purchase order |
+| **Branch Request** | An outgoing transfer with no sales order |
+| **Customer-Owned Movement** | Set by hand where goods being moved belong to the customer |
+| **Urgent Request** | Set by hand |
+| **Corrective Follow-Up** | Set by hand |
+
+The last three are never inferred. They stay editable while the demand is in **Draft**.
+
+## Related Pages
+
+- [The Object Model](../concepts/the-object-model.mdx) — how these objects relate
+- [Status Glossary](../reference/status-glossary.mdx) — every state label
+- [Reason Codes](../reference/reason-codes.mdx) — all 51 reason codes

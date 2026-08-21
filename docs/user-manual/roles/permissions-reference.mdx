@@ -1,0 +1,190 @@
+---
+id: permissions-reference
+title: Permissions Reference
+description: The complete permission picture — SCOP groups, the Odoo groups each role also needs, the object access matrix, and the record rules that narrow it.
+sidebar_label: Permissions Reference
+sidebar_position: 10
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+
+# Permissions Reference
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Operations', 'Management', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="8 min"
+/>
+
+:::info[This is the canonical permissions page]
+
+Other chapters mention permissions in passing and link here. If two pages disagree, this
+one is right.
+
+:::
+
+## The three layers
+
+Whether a user can do something in SCOP is decided by three independent layers. All three
+must permit it.
+
+| Layer | Question it answers | Where it lives |
+| --- | --- | --- |
+| **1 · Menu visibility** | Can they see the entry? | The menu's group |
+| **2 · Object access** | Can they read or change this kind of record? | Access rights per model |
+| **3 · Record rules** | Can they touch *this particular* record? | Record rules — the driver's own trips |
+| **4 · Approval authority** | Are they entitled to perform *this action*? | `SCOP → Governance → Approval Authorities` |
+
+Hiding a menu is a convenience. Access rights and record rules are the security.
+
+## SCOP groups
+
+Assigned in Odoo under the user's **SCOP** application category.
+
+| Group | Inherits | Grants |
+| --- | --- | --- |
+| **SCOP User** | Odoo internal user | Read access to the operation, Operations / Master Data / Governance / Reporting menus |
+| **Warehouse User** | SCOP User | Warehouse Readiness, Loading Tasks, staging, loads |
+| **Customer Service User** | SCOP User | Nothing additional in Release 1 beyond SCOP User |
+| **Procurement User** | SCOP User | Supplier Commitments |
+| **Finance User** | SCOP User | *Nothing in Release 1 — no menu* |
+| **Planner / Dispatcher** | SCOP User | Planning menu, demand and shipment changes, routes, availability, exemptions |
+| **Management** | SCOP User | Dashboard, Pilot Readiness |
+| **Operations Manager** | Planner **and** Warehouse | Plan approval and release, trip approval and release, exception ownership |
+| **Administrator** | Operations Manager **and** Management | Technical menu, approval authorities, feature flags, onboarding, deletion |
+| **Driver** | Odoo internal user **only** | My Work — their own trips and stops, and nothing else |
+
+## Odoo groups SCOP does not grant
+
+SCOP is an overlay. Where a role performs Odoo's own work, it needs Odoo's own groups.
+
+| Role | Odoo group needed | Why | Symptom if missing |
+| --- | --- | --- | --- |
+| **Planner / Dispatcher** | **Fleet → Administrator** | The planning wizard reads every vehicle | `Access Error` on `Vehicle` when generating a plan |
+| **Planner / Dispatcher** | **Employees → Officer** | Assigning a driver reads the employee register | The **Driver** field on a trip never finishes loading its options |
+| **Planner / Dispatcher** | **Inventory → User** | Resolving ownership and marking a demand eligible refresh allocation against Odoo's reservations | **Validate** or **Mark Eligible** raises an access error |
+| **Warehouse User** | **Inventory → User** | Validating transfers is Odoo's own work | Cannot validate the delivery order |
+| **Operations Manager** | All of the above | Inherits both Planner and Warehouse work | As above |
+| **Driver** | **None** | Reads quantities on the record's behalf | — |
+| **Anyone** | **No Sales permission, ever** | The source order's number is captured onto the demand | — |
+
+:::warning[Fleet → Officer is not enough for a planner]
+
+Odoo's *Fleet → Officer* carries a record rule narrowing the user to the vehicles they
+personally drive. A planner holding it sees an empty vehicle list and cannot plan.
+
+Planners need **Fleet → Administrator**.
+
+:::
+
+:::note[Reading a SCOP screen needs no Odoo rights]
+
+Opening a demand or a driver's stop screen does **not** require Odoo's Inventory group.
+Those screens read delivered quantities on the record's behalf. A planner needs Inventory →
+User to *operate* a demand, not to look at one — and a driver, who must never be able to
+read every transfer in the company, does not need it at all.
+
+:::
+
+## Object access matrix
+
+`R` read · `W` change · `C` create · `U` delete.
+
+| Model | SCOP User | Warehouse | Planner | Ops Manager | Driver | Administrator |
+| --- | --- | --- | --- | --- | --- | --- |
+| Demand | R | R | RWC | RWC | — | RWCU |
+| Shipment | R | RW | RWC | RWC | — | RWCU |
+| Warehouse Readiness | R | RWC | RWC | RWC | — | RWCU |
+| Loading Task | R | RWC | R | RWC | — | RWCU |
+| Daily Plan | R | R | RWC | RWC | — | RWCU |
+| Trip | R | R | RWC | RWC | **RW (own)** | RWCU |
+| Stop | R | R | RWCU | RWCU | **RW (own)** | RWCU |
+| Load | R | RW | RWC | RWC | **R (own)** | RWCU |
+| Exception | RWC | RWC | RWC | RWC | — | RWCU |
+| Planning Node | R | R | RW | RW | **R** | RWCU |
+
+A dash means **no access of any kind** — the record does not exist as far as that role is
+concerned.
+
+## Record rules — the driver's own work
+
+Object access says a Driver may read trips. A record rule then narrows *which* trips.
+
+| Model | A driver may reach | Rule |
+| --- | --- | --- |
+| Trip | Trips where they are the driver | `driver_id.user_id = you` |
+| Stop | Stops on those trips | `trip_id.driver_id.user_id = you` |
+| Stop Line | Lines on those stops | read only |
+| Load, Load Line | Loads on those trips | read only |
+| Execution Event | Events on those trips | may create |
+
+The match is on the **employee's linked user account**, not on the employee alone. Two
+employees sharing a login would otherwise see each other's work.
+
+:::info[The restriction is on reading, not only on writing]
+
+A driver who could *read* every trip could read every customer's address and every delivery
+quantity for the day. So the rule constrains reading first and writing second — including
+through counts and grouped views, not only when opening a record.
+
+:::
+
+## Approval authority
+
+Separate from access. Recorded at `SCOP → Governance → Approval Authorities`.
+
+| Object | Action | Group | Self-approval forbidden |
+| --- | --- | --- | --- |
+| `scop.plan` | approve | Operations Manager | **Yes** |
+| `scop.plan` | release | Operations Manager | **Yes** |
+| `scop.trip` | approve | Operations Manager | No |
+| `scop.trip` | release | Operations Manager | No |
+| `scop.trip` | depart | Planner / Dispatcher | No |
+| `scop.trip` | cancel | Planner / Dispatcher | No |
+| `scop.demand` | plan | Planner / Dispatcher | No |
+| `scop.demand` | replan | Planner / Dispatcher | No |
+| `scop.demand` | cancel | Planner / Dispatcher | No |
+| `scop.shipment` | cancel | Planner / Dispatcher | No |
+| `scop.load` | cancel | Warehouse User | No |
+
+:::danger[Administrator rights do not override BR-PLN-001]
+
+An Administrator holds every group, including Operations Manager, and can therefore approve
+plans in general. They still **cannot approve a plan they created**. Separation of duties
+outranks administrative rights, by design.
+
+:::
+
+## Company isolation
+
+Every SCOP record belongs to a company, and users see only their own company's records.
+That rule is global — it applies to Administrators as well.
+
+## Setting up a new user, in order
+
+1. Create the Odoo user as normal.
+2. Assign **one** SCOP role from the table above.
+3. Add the Odoo groups that role also needs.
+4. For a driver: create the employee record and link it to the user, or the trip cannot be
+   assigned and **My Trips** stays empty.
+5. Confirm by signing in as that user and checking that the expected menus appear.
+
+:::warning[Do not stack roles "to be safe"]
+
+Giving one person both Planner and Operations Manager means they can create a plan and then
+find they cannot approve it — `BR-PLN-001` still refuses the author. Assign the role that
+matches the job.
+
+:::
+
+## Related Pages
+
+- [Roles Overview](./roles-overview.mdx)
+- [The Governance Model](../concepts/the-governance-model.mdx)
+- [Driver Security Model](../execution/driver-security-model.mdx)
+- [Plan Governance](../planning/plan-governance.mdx)
+- [Release 1 Scope](../about/release-1-scope.mdx)

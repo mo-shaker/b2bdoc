@@ -1,0 +1,142 @@
+---
+id: warehouse
+title: Warehouse
+description: What the Warehouse role does in SCOP — readiness, staging, loading tasks, the departure gate, and validating the transfer that supplies actual quantities.
+sidebar_label: Warehouse
+sidebar_position: 3
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+
+# Warehouse
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Warehouse', 'Operations', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="6 min"
+/>
+
+## Your responsibility
+
+You make the goods **ready**, get them **onto the vehicle**, and record **what actually
+moved**. Three of those are SCOP work. The last one is Odoo work, and it is the most
+important thing you do for the accuracy of the whole system.
+
+## Your day, in order
+
+| # | Task | Where |
+| --- | --- | --- |
+| 1 | Pick and prepare the goods | **Odoo** — the delivery order |
+| 2 | Confirm the shipment is staged | `SCOP → Operations → Shipments` → **Stage Everything** |
+| 3 | Check readiness is right | `SCOP → Operations → Warehouse Readiness` |
+| 4 | Load the vehicle | `SCOP → Operations → Loading Tasks` → **Start**, then **Done** |
+| 5 | After delivery, validate the transfer | **Odoo** — the delivery order |
+
+## Your menus
+
+| Menu | What you use it for |
+| --- | --- |
+| `Operations → Warehouse Readiness` | Whether goods can go, and why not |
+| `Operations → Shipments` | Staging, and reading a shipment's contents |
+| `Operations → Loading Tasks` | The vehicle loading queue |
+| `Operations → Loads` | What is physically on a vehicle |
+| `Operations → Demands` | Read-only — what the requirement was |
+| `Operations → Trips` | Read-only — what is arriving at the dock |
+
+## Readiness is computed, not typed
+
+Readiness answers one question — *can this shipment actually go, and why* — and it is
+**computed from evidence**. It always carries its reasoning in words.
+
+| Readiness | Meaning | Plannable? |
+| --- | --- | --- |
+| **Ready** | Everything is staged | **Yes** |
+| **Conditionally Ready** | Reserved for the whole shipment, not yet staged | **Yes** |
+| **Partially Ready** | Only part can be covered | No |
+| **Not Ready** | Nothing prepared, or the shipment has no lines | No |
+| **Blocked** | Something must be fixed first | No |
+
+Full detail: [Warehouse Readiness](../readiness/warehouse-readiness.mdx).
+
+## Staging
+
+**Stage Everything** on the shipment marks every line staged and recomputes readiness.
+
+Use it when the goods for the **whole shipment** are physically picked and standing in the
+staging area. It is a shortcut for confirming line by line, so use it only when that is
+actually true.
+
+## The supervisor override
+
+You can see things the database cannot — a pallet already on the dock that Odoo has not
+caught up with. **Override Readiness** overrules the computation completely and is recorded
+with who set it, when, and why.
+
+It is shown **beside** the computed value, never replacing it, so the computation stays
+auditable. Clear it when it is no longer true.
+
+## Loading tasks and the departure gate
+
+Releasing a trip creates **one loading task per shipment on board**.
+
+| Action | Effect |
+| --- | --- |
+| **Start** the first task | The trip moves to **Loading** |
+| **Done** on the last task | The trip becomes **Ready to Depart** |
+| Any task still open | The vehicle is held at the gate |
+
+Actual loading duration is measured against the planned duration, and appears in
+[Trip Planned vs Actual](../reporting/trip-planned-vs-actual.mdx).
+
+## The most important thing you do
+
+:::warning[Validating the transfer is what supplies the delivered quantity]
+
+SCOP has no field where anyone types how much was delivered. It reads the **validated Odoo
+transfer**.
+
+Until you validate the transfer, the stop's actual quantities are zero, and the driver's
+**Delivered** button has nothing to record.
+
+:::
+
+| You validate with | Odoo does | SCOP reads back |
+| --- | --- | --- |
+| The full quantity | Closes the transfer | Demand → **Completed** |
+| Less than ordered | Creates a **backorder** | Demand → **Partially Completed** |
+| Nothing | — | The stop must be failed with a reason |
+
+Full workflow: [Odoo Delivery Validation](../execution/odoo-delivery-validation.mdx).
+
+## What you may not do
+
+| Not permitted | Who does it |
+| --- | --- |
+| Validate a demand or mark it eligible | Planner |
+| Build a plan | Planner |
+| Approve or release a plan | Operations Manager |
+| Assign vehicles or drivers | Planner |
+| Type a delivered quantity into SCOP | Nobody — it comes from Odoo |
+
+## If something is wrong
+
+| Symptom | Check |
+| --- | --- |
+| Readiness stays **Blocked** | Ownership is unresolved on a line — see [Inventory Ownership](../ownership/inventory-ownership.mdx) |
+| Readiness stays **Not Ready** | The shipment has no lines, or nothing is reserved in Odoo |
+| **Stage Everything** does nothing visible | Click **Refresh Readiness** |
+| Staged % shows `10000%` | A known display defect. Read it as a hundredth, or use Readiness — see [Release 1 Scope](../about/release-1-scope.mdx) |
+| No loading tasks for a released trip | See [Loading Tasks Missing](../troubleshooting/execution-problems.mdx) |
+| The trip will not depart | A loading task is still open |
+| The driver reports zero quantities | The transfer has not been validated yet |
+
+## Related Pages
+
+- [Warehouse Readiness](../readiness/warehouse-readiness.mdx)
+- [Loading Operations](../execution/loading-operations.mdx)
+- [Odoo Delivery Validation](../execution/odoo-delivery-validation.mdx)
+- [Partial Deliveries and Backorders](../execution/partial-deliveries-and-backorders.mdx)

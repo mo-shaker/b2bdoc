@@ -1,0 +1,93 @@
+---
+id: management
+title: Management
+description: What the Management role sees in SCOP — the dashboard, the performance reports, and the questions each one answers.
+sidebar_label: Management
+sidebar_position: 8
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+
+# Management
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Management', 'Operations']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="4 min"
+/>
+
+## Your responsibility
+
+You read the operation. **You change nothing.**
+
+Management is a read-oriented role: it adds the dashboard and pilot readiness to what a
+SCOP User can already see, and grants no operational authority.
+
+## Your menus
+
+| Menu | Question it answers |
+| --- | --- |
+| `SCOP → Dashboard` | What is happening today? |
+| `Reporting → Plan Coverage` | Did we plan what could be planned? |
+| `Reporting → OTIF` | Did we deliver on time and in full? |
+| `Reporting → Vehicle Utilization` | Are the vehicles being used properly? |
+| `Reporting → Trip Planned vs Actual` | How close is the plan to reality? |
+| `Reporting → Exception Ageing` | What problems are overdue? |
+| `Reporting → Decision Quality` | How often is the recommendation overridden? |
+| `Reporting → Unplanned Demand` | What are we consistently unable to do? |
+| `Master Data → Onboarding → 3 · Pilot Readiness` | Is the pilot ready to go live? |
+
+## The five questions worth asking weekly
+
+| Question | Report | What a bad answer looks like |
+| --- | --- | --- |
+| Are we planning everything we could? | [Plan Coverage](../reporting/plan-coverage.mdx) | Coverage well below 100% with no explanation |
+| What is stopping us? | [Unplanned Demand](../reporting/unplanned-demand-report.mdx) | One reason dominating every day |
+| Are we keeping our promises? | [OTIF](../reporting/otif.mdx) | On-time falling while in-full holds — a scheduling problem, not a stock problem |
+| Are the vehicles right for the work? | [Vehicle Utilization](../reporting/vehicle-utilization.mdx) | Consistently low peak utilisation — vehicles too big, or work too fragmented |
+| Do we trust the recommendation? | [Decision Quality](../reporting/decision-quality.mdx) | A high modification rate with the same override reason repeating |
+
+## Reading OTIF honestly
+
+:::warning[Not every delivery is measurable]
+
+OTIF counts only deliveries that carry a **commitment**. A delivery with no promise attached
+is not counted late — it is not counted at all.
+
+Always group by **Has Commitment** before drawing a conclusion, or you will be averaging a
+denominator that changes shape.
+
+:::
+
+Full explanation: [OTIF](../reporting/otif.mdx).
+
+## What you may not do
+
+| Not permitted | Who does it |
+| --- | --- |
+| Approve or release a plan | Operations Manager |
+| Change any operational record | Planner, Warehouse |
+| Change configuration | Administrator |
+
+If you also need to authorise plans, you need the **Operations Manager** role in addition —
+and `BR-PLN-001` will still refuse a plan you created yourself.
+
+## Pilot readiness
+
+`Master Data → Onboarding → 3 · Pilot Readiness` runs a check and reports whether the
+prerequisites for going live are in place — scope applied, nodes mapped, ownership
+migrated.
+
+Use it before a go-live decision, not as a daily screen. See
+[Onboarding and Migration](../configuration/onboarding-and-migration.mdx).
+
+## Related Pages
+
+- [Reporting Overview](../reporting/reporting-overview.mdx)
+- [The Dashboard](../reporting/the-dashboard.mdx)
+- [OTIF](../reporting/otif.mdx)
+- [Release 1 Scope](../about/release-1-scope.mdx)

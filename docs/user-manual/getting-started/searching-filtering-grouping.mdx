@@ -1,0 +1,136 @@
+---
+id: searching-filtering-grouping
+title: Searching, Filtering and Grouping
+description: Finding a record fast, the filters SCOP ships by default, and the activity reminders that arrive on your record.
+sidebar_label: Searching, Filtering and Grouping
+sidebar_position: 4
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+
+# Searching, Filtering and Grouping
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Operations', 'Warehouse', 'Planning', 'Management', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="5 min"
+/>
+
+**Role**
+Everyone.
+
+## Purpose
+
+Most SCOP questions are answered by finding the right record quickly. This page covers the
+search behaviour that is specific to SCOP.
+
+## Searching by business identifier
+
+The fastest way to reach any SCOP record is its printed identifier.
+
+| Type this | Finds |
+| --- | --- |
+| `DMD-2026-000010` | That demand |
+| `SHP-2026-000006` | That shipment |
+| `PLN-2026-08-25-01` | That daily plan |
+| `TRP-2026-000005` | That trip |
+
+Identifiers are **immutable**. Once allocated they never change, which is why they are safe
+to quote in an email or a ticket.
+
+## Searching by source document
+
+A demand carries the number of the order it came from — `S09520`, for example. Searching a
+demand list for that number finds the demand without needing any rights over the order
+itself.
+
+See [How Demands Are Created](../demand/how-demands-are-created.mdx).
+
+## Filters SCOP applies for you
+
+Several screens open with a filter already applied. Knowing which saves confusion when a
+record you expect is "missing".
+
+| Screen | Opens filtered to | Why |
+| --- | --- | --- |
+| `Operations → Exceptions` | Open exceptions | Closed problems are history |
+| `Reporting → OTIF` | Records that carry a commitment | A delivery with no promise cannot be measured against one |
+| `Reporting → Unplanned Demand` | Grouped by reason | The reason is the point |
+| `Reporting → Ownership Data Quality` | Grouped by resolution | Shows resolved against unresolved at a glance |
+| `Reporting → Vehicle Utilization` | Grouped by vehicle | |
+| `Reporting → Trip Planned vs Actual` | Completed and partially completed trips | A trip still running has no actuals |
+| `Reporting → Decision Quality` | Grouped by whether the plan was modified | |
+| `Reporting → Failed Projections` | Failed events only | |
+| `Reporting → Orphan Moves` | Moves no demand line covers | |
+| `My Work → My Trips` | Your own trips, released or later | |
+| `My Work → My Stops` | Stops on those trips | |
+
+:::warning[A record that seems to be missing is usually filtered, not absent]
+
+Before concluding that SCOP did not create something, clear the search bar completely. This
+is the single most common false alarm during UAT.
+
+:::
+
+## Grouping by status
+
+`Group By ▸ Status` works on demands, shipments, plans, trips and exceptions, and shows
+**every lifecycle state including the empty ones**, in lifecycle order.
+
+That is the fastest daily health check there is: group the demand list by status, and
+anything piled up in **Submitted** or **Validated** is work waiting for someone.
+
+## Useful groupings by role
+
+| Role | Screen | Group by | Tells you |
+| --- | --- | --- | --- |
+| Planner | Demands | Status | What is stuck, and where |
+| Planner | Unplanned Demand | Reason | Which constraint is costing you most |
+| Warehouse | Warehouse Readiness | Readiness | What still needs staging |
+| Warehouse | Loading Tasks | Status | What is holding a vehicle at the gate |
+| Ops Manager | Daily Plans | Status | What is waiting for approval |
+| Ops Manager | Exceptions | Severity, then Owner | Who has the blocking problems |
+| Management | OTIF | Customer, then month | Service performance |
+
+## Favourites
+
+Any search you build — filters, grouping and all — can be saved as a favourite and, if you
+choose, set as the default for that screen. This is the right way to give a warehouse team
+a "today's work" view without changing anything for anyone else.
+
+## Activities and notifications
+
+SCOP uses Odoo's standard activity system in one place specifically: **assigning an
+exception creates an activity for its owner**, so it appears in that person's activity
+list rather than only on a screen they might not open.
+
+Everything else reaches you by **following** a record. Following a demand, a plan or a trip
+means its state changes and messages arrive in your inbox.
+
+| You want | Do this |
+| --- | --- |
+| To be told when a specific plan is approved | Follow the plan |
+| To be told when an exception is assigned to you | Nothing — the activity arrives automatically |
+| A daily overview | Use the [Dashboard](../reporting/the-dashboard.mdx) or a saved favourite |
+
+:::note[SCOP does not send automated operational alerts in Release 1]
+
+There is no email alert for a late trip or an unplanned demand. Those are read from the
+[reports](../reporting/reporting-overview.mdx). The only automatic notification is exception
+escalation, which notifies the responsible group when an SLA is breached.
+
+:::
+
+## Related Pages
+
+- [Working with Lists and Forms](./working-with-lists-and-forms.mdx)
+- [Reporting Overview](../reporting/reporting-overview.mdx)
+- [Exception Management](../exceptions/exception-management.mdx)
+
+## Next
+
+[Roles Overview](../roles/roles-overview.mdx).

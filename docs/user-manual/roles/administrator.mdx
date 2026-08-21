@@ -1,0 +1,150 @@
+---
+id: administrator
+title: SCOP Administrator
+description: What the Administrator configures and diagnoses — pilot scope, planning nodes, approval authorities, feature flags, and the technical diagnostics.
+sidebar_label: Administrator
+sidebar_position: 9
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+
+# SCOP Administrator
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Operations', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="6 min"
+/>
+
+## Your responsibility
+
+You decide **what SCOP reacts to**, **where it can route to**, and **who is entitled to
+authorise what**. You are also the only role that can read the technical diagnostics.
+
+You inherit everything an Operations Manager and Management can do — with the same
+exception everybody has.
+
+:::danger[Administrative rights do not confer approval authority]
+
+`BR-PLN-001` refuses approval of a plan by its own author, **including yours**. This is not
+a permission that can be granted; it is a separation of duties.
+
+:::
+
+## Configuration you own
+
+| Screen | What it controls | Chapter |
+| --- | --- | --- |
+| `Technical → Pilot Scope` | Which Odoo operation types generate demand, and from when | [Pilot Scope](../configuration/pilot-scope.mdx) |
+| `Master Data → Locations` | The planning nodes SCOP can route to | [Planning Nodes](../configuration/planning-nodes.mdx) |
+| `Master Data → Import Locations` | Bulk node creation | [Planning Nodes](../configuration/planning-nodes.mdx) |
+| `Governance → Approval Authorities` | Who may perform which action on which object | [The Governance Model](../concepts/the-governance-model.mdx) |
+| `Governance → Feature Flags` | Switches for optional behaviour | Below |
+| `Master Data → Onboarding` | The three go-live wizards, in order | [Onboarding and Migration](../configuration/onboarding-and-migration.mdx) |
+| `Technical → Releases` | Release records for the deployment | [Pilot Scope](../configuration/pilot-scope.mdx) |
+
+## The two settings that stop everything
+
+Almost every *"SCOP did nothing"* report traces to one of these.
+
+| Setting | If wrong |
+| --- | --- |
+| **Pilot Scope not applied**, or the operation type not switched on | **No demand is created at all.** SCOP only reacts to configured operations |
+| **A planning node missing** for an origin or destination | No demand for that transfer, but a `DemandGenerationSkipped` event is recorded naming the unmapped location |
+
+Neither fails loudly at the moment it happens, which is why they are the first two things
+to check. See [Missing Node Diagnostics](../configuration/missing-node-diagnostics.mdx).
+
+## Diagnostics you own
+
+| Screen | What it tells you |
+| --- | --- |
+| `Technical → Domain Events` | Every fact SCOP recorded about what it did, or declined to do |
+| `Reporting → Failed Projections` | Where SCOP failed to record something, and why |
+| `Reporting → Orphan Moves` | Stock moves on a demand-generating transfer that no demand line covers |
+| `Reporting → Ownership Data Quality` | How much ownership is still unresolved |
+| `Technical → Execution Events` | What physically happened during trips |
+| `Technical → Capacity Snapshots` | Vehicle load at every point of every route |
+| `Technical → Sequence Counters` | The counters behind the business identifiers |
+| `Technical → Travel Matrix` | Stored distances and durations between nodes |
+
+### Reading Domain Events
+
+Domain events are the answer to *"did SCOP see this at all?"*
+
+| Event name | Meaning |
+| --- | --- |
+| `DemandGenerated` | A demand was created for this transfer |
+| `DemandGenerationSkipped` | SCOP saw the transfer and deliberately did not create a demand — the row names the unmapped location and which end of the movement failed |
+
+:::info[The two markers are kept apart on purpose]
+
+A skip is never recorded as *"already handled"*. If it were, mapping the location later and
+re-saving the transfer would do nothing, because SCOP would believe the work was done.
+
+:::
+
+### Failed projections
+
+Demand generation is **non-blocking by design**: if it fails, it rolls back on its own and
+the transfer still saves. A warehouse operator must never be unable to record a movement
+because a planning projection has a problem.
+
+The cost of that design is that failures are silent at the point of failure. They are
+visible at `Reporting → Failed Projections`, and that screen deserves a daily glance during
+a pilot.
+
+## Feature flags
+
+`Governance → Feature Flags` switches optional behaviour on and off. In a standard Release 1
+deployment there are none configured, and none is required.
+
+Treat a flag as a deployment-level decision, not a way to work around a business rule.
+
+## Onboarding, in order
+
+The numbering is not decorative — each step depends on the one before.
+
+```text
+1 · Consignment Partners   flag the partners whose stock we hold
+        ↓
+2 · Inventory Ownership    migrate ownership onto existing stock
+        ↓
+3 · Pilot Readiness        check that go-live prerequisites are met
+```
+
+Full detail: [Onboarding and Migration](../configuration/onboarding-and-migration.mdx).
+
+## What you should not do
+
+| Avoid | Why |
+| --- | --- |
+| Editing a governed state directly | It skips the checks that belong to the transition. SCOP refuses it anyway |
+| Adding `SCOP User` to a driver | It silently undoes the driver security model |
+| Re-running demand generation across history | There is deliberately no backfill. A reconstructed planning history is fiction presented as evidence |
+| Granting Fleet → Officer instead of Administrator to planners | Officer narrows the user to vehicles they personally drive |
+| Suspending a business rule to get past a refusal | Use a [rule exemption](../concepts/the-governance-model.mdx), which is authorised and time-boxed |
+
+## If something is wrong
+
+| Symptom | Check |
+| --- | --- |
+| No demands at all | Pilot scope not applied, or the operation type not in scope |
+| Demands for some destinations only | Missing planning nodes — check `DemandGenerationSkipped` |
+| Demands appear but nothing can be planned | Nodes missing coordinates, timezone or opening hours |
+| Coverage is understated | `Reporting → Orphan Moves` shows moves no demand line covers |
+| A planner cannot approve anything | Check `Governance → Approval Authorities` for the object and action |
+| Ownership blocking everywhere | Consignment partners not flagged, or ownership not migrated |
+
+## Related Pages
+
+- [Pilot Scope](../configuration/pilot-scope.mdx)
+- [Planning Nodes](../configuration/planning-nodes.mdx)
+- [Missing Node Diagnostics](../configuration/missing-node-diagnostics.mdx)
+- [The Governance Model](../concepts/the-governance-model.mdx)
+- [Permissions Reference](./permissions-reference.mdx)
+- [Data Quality Reports](../reporting/data-quality-reports.mdx)
