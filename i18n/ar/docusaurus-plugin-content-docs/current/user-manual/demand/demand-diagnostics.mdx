@@ -1,0 +1,190 @@
+---
+id: demand-diagnostics
+title: تشخيص الطلب
+description: كيف تعرف لماذا الطلب عالق أو مفقود أو خاطئ — الشاشات الخمس التي تجيب عن ذلك، وبالترتيب الذي تُجرَّب به.
+sidebar_label: تشخيص الطلب
+sidebar_position: 6
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+
+# تشخيص الطلب
+
+<DocumentInfo
+  category="دليل المستخدم"
+  audience={['تخطيط', 'عمليات', 'اختبار قبول المستخدم']}
+  status="Draft"
+  version="1.0"
+  owner="فريق المنتج"
+  updated="أغسطس 2026"
+  readingTime="6 دقائق"
+/>
+
+**الدور**
+المخطِّط، وشاشتان محجوزتان لمسؤول النظام.
+
+## الغرض
+
+كل سؤال عن الطلب تقريباً هو واحد من أربعة:
+
+| السؤال | ابدأ من |
+| --- | --- |
+| *لماذا لا يوجد طلب أصلاً؟* | [أحداث المجال](#هل-يوجد-طلب-أصلاً) |
+| *لماذا لا يتحرك هذا الطلب؟* | [الطلب نفسه](#لماذا-لا-يتحرك) |
+| *لماذا لم يُخطَّط؟* | [الطلب غير المخطَّط](#لماذا-لم-يُخطَّط) |
+| *لماذا لم يكتمل؟* | [تحويل Odoo](#لماذا-لم-يكتمل) |
+
+## هل يوجد طلب أصلاً
+
+اعمل نزولاً في هذه القائمة. وهي مرتَّبة بحسب تكرار كون كل سبب هو الجواب.
+
+| # | تحقّق | أين | إن كان هذا هو |
+| --- | --- | --- | --- |
+| 1 | هل القائمة مُرشَّحة؟ | امسح شريط البحث بالكامل | لم يكن هناك خلل |
+| 2 | هل نوع العملية داخل النطاق؟ | `Technical → Pilot Scope` | أضِفه واضغط **Apply** |
+| 3 | هل طُبِّق النطاق؟ | الشاشة نفسها — الحالة **Applied** | طبّقه |
+| 4 | هل أُنشئ التحويل قبل الانطلاق؟ | تاريخ إنشاء التحويل | متوقَّع. لا استرجاع |
+| 5 | هل كانت عقدة التخطيط مفقودة؟ | `Technical → Domain Events`، رشّح `DemandGenerationSkipped` | اربط العقدة، أعِد حفظ التحويل |
+| 6 | هل فشل التوليد؟ | `Reporting → Failed Projections` | اقرأ الخطأ، أصلِح السبب، أعِد الحفظ |
+
+:::info[التحويل المُتخطَّى لا يُنسى بصمت أبداً]
+
+يكتب كل تخطٍّ حدث `DemandGenerationSkipped` يسمّي التحويل وموقع المخزون غير المربوط والجهة و**أي طرف** من الحركة تعذّر حلّه.
+
+**كما ظهر على `b2b`:**
+
+```text
+No SCOP planning node resolves the destination location 'Partners/Customers'
+for SCOP Manual Demo Customer, SCOP Manual Branch C, so no demand was created
+for QSD/OUT/00012. Map the location to a SCOP location, then re-save the transfer.
+```
+
+وعلامة التخطّي مفصولة عن علامة النجاح عمداً، ولهذا يُنتج إصلاحُ العقدة وإعادةُ حفظ التحويل الطلبَ طبيعياً بدل أن تظن SCOP العمل منجزاً.
+
+:::
+
+→ [تشخيص العقدة المفقودة](../configuration/missing-node-diagnostics.mdx)
+
+## لماذا لا يتحرك
+
+افتح الطلب واقرأه بهذا الترتيب.
+
+### 1 · شريط الملكية
+
+إن كان التحذير في أعلى النموذج موجوداً، فهذا هو جوابك. ولا شيء غيره يهم حتى يُحَل.
+
+→ [ملكية المخزون](../ownership/inventory-ownership.mdx)
+
+### 2 · الحالة، مقابل الأزرار
+
+| الحالة | ينتظر |
+| --- | --- |
+| **Draft** | من يضغط **Submit** |
+| **Submitted** | مخطِّطاً يضغط **Validate** |
+| **Validated** | الجاهزية، ثم **Mark Eligible** |
+| **Eligible for Planning** | دورة تخطيط تضعه |
+| **Planned** | اعتماد الخطة وإطلاقها |
+| **Released** | مغادرة الرحلة |
+| **In Execution** | التحقق من تحويل Odoo |
+
+### 3 · جاهزية الشحنة
+
+الطلب في **Eligible for Planning** الذي لا يُخطَّط أبداً هو مشكلة جاهزية عادةً لا مشكلة طلب.
+
+افتح تبويب **Shipments**، ثم راجع `Operations → Warehouse Readiness`. ويذكر حقل **Evidence** بالكلمات لماذا بلغ الحساب جوابه:
+
+| نص الدليل | المعنى |
+| --- | --- |
+| *"Everything is staged."* | Ready |
+| *"Stock is reserved for the whole shipment but not yet staged…"* | Conditionally Ready |
+| *"N of M units are reserved or staged."* | Partially Ready — **غير قابل للتخطيط** |
+| *"Nothing is reserved or staged yet."* | Not Ready |
+| *"Ownership is unresolved on N line(s): …"* | Blocked |
+| *"Every transfer behind this shipment is cancelled."* | Blocked |
+| *"The shipment has no lines."* | Not Ready |
+
+### 4 · تقييم القاعدة
+
+إن رفض زر، فالسبب مُسجَّل.
+
+`SCOP → Governance → Rule Evaluations` — اعثر على الطلب واقرأ التقييم. والرسالة المعروضة للمستخدم مخزَّنة حرفياً، ومعها الدليل خلفها.
+
+→ [نموذج الحوكمة](../concepts/the-governance-model.mdx)
+
+## لماذا لم يُخطَّط
+
+`SCOP → Planning → Unplanned Demand`، أو تبويب **Unplanned Demand** في الخطة نفسها.
+
+كل طلب تعذّر على الدورة وضعه مسرود بأحد اثني عشر سبباً وإجراء تالٍ مقترح.
+
+| السبب | المعنى |
+| --- | --- |
+| **No available inventory** | لا شيء للتخصيص |
+| **Warehouse not ready** | الجاهزية غير قابلة للتخطيط |
+| **No feasible vehicle** | **لا مركبة في الدورة تُعلن ملف سعة** |
+| **Capacity shortage** | المركبات صالحة، لكن الحمولة لا تتّسع |
+| **No qualified driver** | لا سائق متاح يحمل المؤهل المطلوب |
+| **Time-window conflict** | الوعد وساعات العمل لا يجتمعان |
+| **Product incompatibility** | بضائع لا يجوز أن تسافر معاً |
+| **Route restriction** | لا يمكن استخدام المسار |
+| **Missing required data** | عقدة تنقصها إحداثيات أو منطقة زمنية أو ساعات عمل |
+| **Customer location unavailable** | العقدة غير مفتوحة في ذلك التاريخ |
+| **Planning horizon exceeded** | خارج النافذة التي نظرت فيها الدورة |
+| **Lower priority than available capacity permits** | خسر أمام عمل أهم |
+
+:::warning[سببا السعة مختلفان]
+
+**No feasible vehicle** = لم تُنظر أي مركبة أصلاً، لأن لا واحدة تُعلن ملف سعة.
+**Capacity shortage** = نُظرت المركبات ولم تتّسع الحمولة.
+
+وقد أُنتج كلاهما على `b2b` على الطلب نفسه. وقراءة الخطأ منهما تقود إلى شراء شاحنة حين كان الجواب حقلاً ناقصاً في البيانات الرئيسية.
+
+:::
+
+→ [الطلب غير المخطَّط](../planning/unplanned-demand.mdx)
+
+## لماذا لم يكتمل
+
+| تحقّق | أين | المعنى |
+| --- | --- | --- |
+| زر **Transfers** | الطلب | هل تُحُقِّق من تحويلات Odoo؟ |
+| **Qty Fulfilled** على كل سطر | تبويب **Lines** | الصفر يعني ألّا شيء قُرئ |
+| حالة المحطة | `Operations → Stops` | هل أُغلقت المحطة أصلاً؟ |
+| حالة الرحلة | `Operations → Trips` | هل انتهت الرحلة؟ |
+
+والجواب الأشيع بفارق كبير: **لم يُتحقَّق من تحويل Odoo.**
+
+## شاشتان لمسؤول النظام
+
+### Orphan Moves
+
+`SCOP → Reporting → Orphan Moves`
+
+حركات مخزون على تحويل مولِّد للطلب **لا يغطيها أي سطر طلب**. والعدد غير الصفري يعني أن تغطية الطلب أقل من الحقيقة — أي أن SCOP تخطّط أقل مما يتحرك فعلاً.
+
+### Ownership Data Quality
+
+`SCOP → Reporting → Ownership Data Quality`
+
+كم من الملكية غير محلول، مجمَّعاً بحسب كيفية حلّها. استخدمه لإيجاد مشكلة منهجية — شريك واحد أو منتج واحد أو مصدر واحد — بدل إصلاح الطلبات واحداً واحداً.
+
+→ [تقارير جودة البيانات](../reporting/data-quality-reports.mdx)
+
+## إعادة بناء القصة كاملةً
+
+حين يكون السؤال *«ماذا حدث لهذا التسليم»* لا *«لماذا هو عالق»*:
+
+1. افتح الطلب.
+2. انسخ **Correlation Reference** من تبويب **Technical**.
+3. `SCOP → Reporting → Operation Timeline` ← الصق ← **Show**.
+
+فتحصل على كل إجراء على كل سجل في تلك العملية، بالترتيب، مع من نفّذه.
+
+→ [الخط الزمني للعملية](../reporting/operation-timeline.mdx)
+
+## صفحات ذات صلة
+
+- [مشكلات الطلب](../troubleshooting/demand-problems.mdx)
+- [تشخيص العقدة المفقودة](../configuration/missing-node-diagnostics.mdx)
+- [الهوية والتتبّع](../concepts/identity-and-traceability.mdx)
+- [تقارير جودة البيانات](../reporting/data-quality-reports.mdx)
