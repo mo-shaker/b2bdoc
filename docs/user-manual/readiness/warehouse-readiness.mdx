@@ -166,6 +166,12 @@ next gate.
 />
 
 Each shipment has exactly **one** readiness record.
+<Screenshot
+  src="user-manual/91-readiness-ready-and-conditional.png"
+  alt="The SCOP Warehouse Readiness list showing one shipment Ready and another Conditionally Ready, each with its evidence."
+  caption="Two readiness states side by side on b2b. Both are plannable; the difference is whether the goods are staged yet."
+/>
+
 
 ## Staging
 
@@ -181,6 +187,12 @@ when that is actually true.
 | --- | --- |
 | Marks every shipment line staged | Staged quantity equals shipment quantity |
 | Recomputes readiness | Usually **Ready**, evidence *"Everything is staged."* |
+<Screenshot
+  src="user-manual/93-shipment-staged.png"
+  alt="A SCOP shipment form after Stage Everything, showing every line staged and readiness Ready."
+  caption="SHP-2026-000007 after Stage Everything: every line staged, readiness Ready, evidence 'Everything is staged.'"
+/>
+
 
 You cannot stage more than the shipment asks for. SCOP rejects it.
 
