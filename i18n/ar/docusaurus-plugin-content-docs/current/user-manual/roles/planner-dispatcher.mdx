@@ -1,0 +1,168 @@
+---
+id: planner-dispatcher
+title: المخطِّط / المُوزِّع
+description: ما يقوم به المخطِّط في SCOP — التحقق من الطلب، وتوليد الخطة ومراجعتها، وإسناد المركبات والسائقين، ومعالجة ما تعذّر تخطيطه.
+sidebar_label: المخطِّط / المُوزِّع
+sidebar_position: 4
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+
+# المخطِّط / المُوزِّع
+
+<DocumentInfo
+  category="دليل المستخدم"
+  audience={['تخطيط', 'عمليات', 'اختبار قبول المستخدم']}
+  status="Draft"
+  version="1.0"
+  owner="فريق المنتج"
+  updated="أغسطس 2026"
+  readingTime="7 دقائق"
+/>
+
+## مسؤوليتك
+
+أنت تحوّل كومة من المتطلبات إلى **يوم تشغيل واحد منسَّق**، وتجيب عمّا لم يتّسع له اليوم.
+
+وأنت أكثر الأدوار انشغالاً في SCOP وأكثرها شاشات.
+
+:::warning[تحتاج ثلاث مجموعات Odoo لا تمنحها SCOP]
+
+**Fleet → Administrator** و**Employees → Officer** و**Inventory → User**.
+
+فبدونها لا يستطيع معالج التخطيط قراءة المركبات، ولا يُحمّل حقل **Driver** خياراته، ويفشل **Validate**. راجع [مرجع الصلاحيات](./permissions-reference.mdx).
+
+:::
+
+## يومك بالترتيب
+
+| # | المهمة | أين |
+| --- | --- | --- |
+| 1 | تفقّد ما وصل ليلاً | `Operations → Demands` مجمَّعة حسب الحالة |
+| 2 | حلّ أي ملكية غير محلولة | الطلب ← **Resolve Ownership** |
+| 3 | التحقق من الطلبات | **Validate** |
+| 4 | تأهيلها | **Mark Eligible** |
+| 5 | مراجعة الجاهزية مع المستودع | `Operations → Warehouse Readiness` |
+| 6 | توليد الخطة | `Planning → Generate a Plan` |
+| 7 | مراجعة التوصية | `Planning → Daily Plans` |
+| 8 | تعديلها عند الضرورة، بسبب | **Modify** |
+| 9 | رفعها للاعتماد | **Submit** |
+| 10 | معالجة ما لم يتّسع | `Planning → Unplanned Demand` |
+
+لاحظ الخطوة 9: **أنت لا تعتمد خطتك بنفسك** — انظر أدناه.
+
+## قوائمك
+
+| القائمة | لماذا تستخدمها |
+| --- | --- |
+| `Planning → Generate a Plan` | المعالج الذي يطلب توصية |
+| `Planning → Daily Plans` | المراجعة والتعديل والرفع |
+| `Planning → Planning Runs` | ما سُئل عنه المزوّد وما أجاب |
+| `Planning → Unplanned Demand` | ما تعذّر إدراجه، ولماذا |
+| `Operations → Demands` | التحقق والتأهيل وحلّ الملكية وإعادة التخطيط |
+| `Operations → Shipments` | مراجعة التجميع والجاهزية |
+| `Operations → Trips` و`→ Stops` | عرض المُوزِّع الكامل |
+| `Operations → Resource Assignments` | أي مركبة وسائق محجوز لماذا |
+| `Master Data → Vehicle / Driver Availability` | من وما المتاح |
+| `Master Data → Routes` و`→ Stop Activities` | التسلسلات المتكررة وأنواع الأنشطة |
+| `Governance → Rule Exemptions` | تنازلات مُصرَّح بها ومحدَّدة المدة |
+| `Reporting → Plan Coverage` و`→ Decision Quality` و`→ Vehicle Utilization` | جودة تخطيطك |
+
+## دفع الطلب إلى الأمام
+
+| الزر | من ← إلى | ما يفحصه |
+| --- | --- | --- |
+| **Validate** | Submitted ← Validated | `BR-INV-002` — الملكية محلولة على كل سطر |
+| **Mark Eligible** | Validated ← Eligible for Planning | الجاهزية Ready أو Conditionally Ready أو Partially Ready |
+| **Resolve Ownership** | — | يعيد استنتاج المالك من المصادر الخمسة المعتمدة |
+| **Reject** | Submitted ← Rejected | السبب مطلوب |
+| **Replan** | Released ← Planned | تغيير مُصرَّح به قبل التنفيذ |
+
+وتأهيل الطلب **يُكوِّن شحنته تلقائياً** كذلك. فلا توجد خطوة إنشاء منفصلة في التشغيل الطبيعي.
+
+## توليد خطة
+
+يسأل المعالج عن **تاريخ التخطيط** و**ملف الأهداف**، ويعرض الطلبات المؤهلة لذلك التاريخ.
+
+وما ينتجه **توصية**، لا قراراً:
+
+```text
+Planning Run   الطلب والجواب والتوقيت — محفوظة لإعادة التشغيل
+     ↓
+Daily Plan     بحالة Generated
+     ↓
+Trips          بحالة Recommended، لكلٍّ محطاته ومركبته وسائقه
+     ↓
+Unplanned Demand  كل ما تعذّر إدراجه، مع السبب
+```
+
+التفصيل الكامل: [توليد خطة](../planning/generate-a-plan.mdx).
+
+:::info[المزوّد حتمي لا مُحسِّن بالذكاء الاصطناعي]
+
+يقدّم الإصدار الأول **مزوّداً أساسياً حتمياً** للتوصية، و**مزوّداً يدوياً** يتحقق من إسناداتك أنت ويقيّمها. ولا يتعلّم أيٌّ منهما، وليس أيٌّ منهما مُحسِّن مسارات بالذكاء الاصطناعي. فالمدخلات نفسها تعطي الخطة نفسها، وهذا ما يجعل الدورة قابلة لإعادة التشغيل.
+
+:::
+
+## المراجعة والتعديل
+
+| الزر | الأثر |
+| --- | --- |
+| **Submit** | Generated أو Modified ← Under Review |
+| **Modify** | Under Review ← Modified. **سبب تجاوز مطلوب** |
+| **Reject** | Under Review ← Rejected. السبب مطلوب |
+| **Replan** | Rejected ← Generated، بطلب دورة جديدة |
+
+وكل تعديل يُحسب ويُنسب، وتُحفظ التوصية الأصلية بجانب تغييرك. وهذا ما تقيسه [جودة القرار](../reporting/decision-quality.mdx) — لا لمراقبتك، بل لإظهار المواضع التي تكون فيها التوصية خاطئة باستمرار.
+
+## ما لا يجوز لك
+
+:::danger[لا تستطيع اعتماد خطتك أو إطلاقها]
+
+يرفض `BR-PLN-001` الاعتماد والإطلاق من مؤلف الخطة. فهما لـ**مدير عمليات** لم يُنشئها.
+
+وهذا يسري حتى لو كنت تحمل صلاحيات مدير العمليات أو مسؤول النظام.
+
+:::
+
+| غير مسموح | من يقوم به |
+| --- | --- |
+| اعتماد أو إطلاق خطة أنشأتها | مدير عمليات آخر |
+| تجهيز البضائع | المستودع |
+| التحقق من تحويل Odoo | المستودع |
+| كتابة كمية مسلَّمة | لا أحد |
+| تغيير نطاق التجربة أو صلاحيات الاعتماد | مسؤول النظام |
+
+## معالجة ما لم يتّسع
+
+يسرد `Planning → Unplanned Demand` كل طلب تعذّر على الدورة إدراجه، بأحد اثني عشر سبباً وإجراء تالٍ مقترح.
+
+| سبب شائع | العلاج المعتاد |
+| --- | --- |
+| **Warehouse not ready** | اطلب من المستودع التجهيز |
+| **No feasible vehicle** | لا مركبة في الدورة تُعلن ملف سعة — أضِف واحدة |
+| **Capacity shortage** | الحمولة لا تتّسع — قسّم الشحنة أو زِد السعة |
+| **Missing required data** | عقدة تنقصها إحداثيات أو منطقة زمنية أو ساعات عمل |
+| **Time-window conflict** | الوعد وساعات العمل لا يجتمعان |
+
+القائمة الكاملة ومعالجتها: [الطلب غير المخطَّط](../planning/unplanned-demand.mdx).
+
+## إذا كان هناك خلل
+
+| العَرَض | تحقّق من |
+| --- | --- |
+| `Access Error` على **Vehicle** | نقص Fleet → Administrator |
+| حقل **Driver** لا يُحمّل | نقص Employees → Officer |
+| **Validate** يرفض | `BR-INV-002` — راجع [ملكية المخزون](../ownership/inventory-ownership.mdx) |
+| **Mark Eligible** يرفض | الجاهزية Not Ready أو Blocked |
+| الخطة لا تُطلَق | رحلة عليها تحمل نتيجة حاجبة — `BR-PLN-002` |
+| رحلة تظهر غير مجدية | `BR-RTE-001` — أو أن السعة لم تُحسب أصلاً |
+| لم يظهر طلب إطلاقاً | راجع [لا طلب أُنشئ](../troubleshooting/demand-problems.mdx) |
+
+## صفحات ذات صلة
+
+- [نظرة عامة على التخطيط](../planning/planning-overview.mdx)
+- [توليد خطة](../planning/generate-a-plan.mdx)
+- [حوكمة الخطة](../planning/plan-governance.mdx)
+- [الطلب غير المخطَّط](../planning/unplanned-demand.mdx)
+- [مرجع الصلاحيات](./permissions-reference.mdx)
