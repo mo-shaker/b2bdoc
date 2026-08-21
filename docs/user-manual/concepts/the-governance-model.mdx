@@ -7,6 +7,7 @@ sidebar_position: 3
 ---
 
 import DocumentInfo from '@site/src/components/DocumentInfo';
+import Screenshot from '@site/src/components/Screenshot';
 
 # The Governance Model
 
@@ -133,6 +134,12 @@ Each evaluation also records the **message** shown to the user, the **measured**
 
 This is the screen to open when someone says *"SCOP blocked me and I do not know why"* —
 find their record, read the evaluation, and the message is there verbatim.
+<Screenshot
+  src="user-manual/27-rule-evaluations.png"
+  alt="The SCOP Rule Evaluations list showing recorded checks with their rule code, result, subject and message."
+  caption="Every gate that fired, with its answer. This is where a refusal is explained after the dialog has gone."
+/>
+
 
 ## Rule exemptions — the authorised waiver
 
@@ -187,6 +194,12 @@ Access rights say who can *open* a screen. Approval authority says who is entitl
 
 The **Forbid Self-Approval** flag is what implements separation of duties for plans. It is
 enforced regardless of how many groups the user holds.
+<Screenshot
+  src="user-manual/30-approval-authorities.png"
+  alt="The SCOP Approval Authorities list showing which group may perform which action on which object, and where self-approval is forbidden."
+  caption="The seeded authorities on b2b. Only the two plan rows forbid self-approval."
+/>
+
 
 :::danger[Separation of duties outranks administrative rights]
 

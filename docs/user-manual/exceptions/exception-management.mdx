@@ -7,6 +7,7 @@ sidebar_position: 1
 ---
 
 import DocumentInfo from '@site/src/components/DocumentInfo';
+import Screenshot from '@site/src/components/Screenshot';
 
 # Exception Management
 
@@ -66,6 +67,12 @@ completed or cancelled.
 ## The list
 
 `SCOP → Operations → Exceptions` opens filtered to **open** exceptions.
+<Screenshot
+  src="user-manual/11-exceptions-list.png"
+  alt="The SCOP Exceptions list showing five open exceptions with category, severity, owner, SLA deadline, escalation count and status."
+  caption="The open queue on b2b. Note EXC-2026-000006, still in Detected, which already carries an SLA deadline."
+/>
+
 
 | Column | Meaning |
 | --- | --- |
@@ -239,6 +246,12 @@ presses **Escalate**.
 | The **responsible group** is notified | From the category |
 
 **Resume** takes it back to **In Resolution** once it is moving again.
+<Screenshot
+  src="user-manual/47-exception-form-escalated.png"
+  alt="A SCOP exception form in the Escalated state showing its category, severity, owner, SLA deadline and escalation count."
+  caption="An escalated critical exception. The escalation count and the moment it escalated are both recorded."
+/>
+
 
 :::note[Escalation is the only automatic notification in Release 1]
 
