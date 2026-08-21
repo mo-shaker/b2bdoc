@@ -268,3 +268,26 @@ recognises the records.
 | **H** | Final QA | Definition of Done, all 30 items |
 
 Build validation runs at the end of every phase, not only at the end.
+
+---
+
+## Build constraint discovered during Phase G
+
+**The Arabic translation cannot be shipped partially.**
+
+Docusaurus resolves relative `.mdx` links by source-file path. In the Arabic build, a page
+that *has* been translated **shadows** its English source, so that source path no longer
+corresponds to any document in that build. Any not-yet-translated page that links to a
+translated one therefore produces a broken link, and `onBrokenLinks: 'throw'` fails the build.
+
+Consequences:
+
+| | |
+| --- | --- |
+| The English build | Unaffected. Passes with the Arabic partial or absent |
+| The Arabic build | Passes only when **every** page in `docs/user-manual/` has a counterpart |
+| Practical rule | Translate the whole chapter tree, then build. Do not merge a partial Arabic set to `main` |
+
+This is why the Arabic phase is all-or-nothing rather than incremental, and it is worth
+knowing before any future chapter is added: a new English page must be accompanied by its
+Arabic counterpart in the same change, or the Arabic build breaks.
