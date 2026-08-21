@@ -38,7 +38,7 @@ import Screenshot from '@site/src/components/Screenshot';
 
 <Screenshot
   src="quick-start/03-scop-demand-list.png"
-  alt="قائمة الطلبات في SCOP تُظهر DMD-2026-000001 للعميل Wood Corner بحالة Draft."
+  alt="قائمة الطلبات في SCOP تُظهر DMD-2026-000001 للعميل SCOP Quick Start Demo Customer بحالة Draft."
   caption="أنشأت SCOP الطلب DMD-2026-000001 من تلقاء نفسها عند تأكيد أمر التسليم."
 />
 
@@ -140,7 +140,7 @@ import Screenshot from '@site/src/components/Screenshot';
 | ما تزال `BR-INV-002` ترفض | لم يُحدَّث الحجز بعد تسجيل المالك، فبنود الحركة ما تزال بلا مالك |
 | الملكية مُسجَّلة نصفياً | المالك ومصدره يُحدَّدان معاً أو لا يُحدَّدان؛ وترفض SCOP أحدهما دون الآخر |
 | البنود متعارضة | حركتان على بند واحد أدّتا إلى مالكَين مختلفَين. وتتركها SCOP غير محسومة بقصد — فهذه مشكلة بيانات يجب أن ينظر فيها إنسان |
-| خطأ `Access Error` على `Stock Move` | يحتاج مستخدمك إلى مجموعة Odoo **Inventory → User** إضافة إلى دوره في SCOP |
+| خطأ `Access Error` على `Stock Move` | لم يعد متوقعاً: فـSCOP تقرأ كميات Odoo نيابةً عن السجل، ولذلك لا يتطلب فتح الطلب مجموعة **Inventory → User**. فإن صادفته، سجّله كعيب |
 
 ## التالي
 

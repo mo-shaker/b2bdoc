@@ -60,11 +60,11 @@ Trip → Depart → Stop → I have arrived → Start unloading → Delivered / 
 **ما تفعله SCOP**
 تنتقل الرحلة إلى **In Progress**، وتتبعها الشحنات والطلبات التي تحملها إلى التنفيذ. يقوم السائق بإجراء واحد، وتسجّل SCOP نتائجه.
 
-:::warning[لا يستطيع السائق الانطلاق في هذا الإصدار]
+:::info[ينطلق السائق برحلته، ولا يكتسب شيئاً سواها]
 
-يؤدي الضغط على **Depart** بحساب سائق إلى خطأ `Access Error` على `SCOP Shipment`. فالسلسلة التي تنقل الشحنات والطلبات إلى التنفيذ تعمل بصلاحيات السائق نفسه، والسائقون لا يملكون صلاحية على الشحنات.
+الانطلاق داخل صلاحية السائق، وهو الإجراء الوحيد على مستوى الرحلة الذي يقوم به. أما نقل الشحنات والطلبات إلى التنفيذ فليس إجراءً ثانياً ينفّذه السائق — بل هو تسجيل النظام لما يعنيه الانطلاق — ولذلك يجري نيابةً عن النظام.
 
-وحتى إصلاح ذلك، يجب أن يقوم مخطِّط أو مدير عمليات أو مسؤول بانطلاق الرحلة. موثَّق في [حدود الإصدار الأول](../release-1-boundaries.mdx).
+ويبقى السائق عاجزاً عن فتح طلب أو شحنة أو خطة أو كتالوج القواعد، وعن رؤية رحلة سائق آخر. وهذه العزلة تتحقق منها اختبارات آلية، لا مجرّد غياب زر.
 
 :::
 
@@ -77,8 +77,8 @@ Trip → Depart → Stop → I have arrived → Start unloading → Delivered / 
 
 <Screenshot
   src="quick-start/28-driver-my-stops.png"
-  alt="شاشة محطاتي في SCOP على الهاتف تُظهر محطة الاستلام من المستودع ومحطة التسليم إلى Wood Corner."
-  caption="شاشة My Stops، بترتيب الرحلة والتسلسل: المحطة 0 استلام من المستودع، والمحطة 1 تسليم إلى Wood Corner."
+  alt="شاشة محطاتي في SCOP على الهاتف تُظهر محطة الاستلام من المستودع ومحطة التسليم إلى SCOP Quick Start Demo Customer."
+  caption="شاشة My Stops، بترتيب الرحلة والتسلسل: المحطة 0 استلام من المستودع، والمحطة 1 تسليم إلى SCOP Quick Start Demo Customer."
   device="mobile"
 />
 
@@ -159,7 +159,7 @@ Trip → Depart → Stop → I have arrived → Start unloading → Delivered / 
 
 <Screenshot
   src="quick-start/37-odoo-transfer-before-validate.png"
-  alt="أمر تسليم في Odoo برقم WH/OUT/00012 بحالة Ready والكميات محددة، قبل الاعتماد."
+  alt="أمر تسليم في Odoo برقم QSD/OUT/00001 بحالة Ready والكميات محددة، قبل الاعتماد."
   caption="قبل الاعتماد. الكميات محددة لكن لم يُعتمد شيء، فما تزال SCOP تقرأ الكمية الفعلية صفراً."
 />
 
@@ -173,7 +173,7 @@ Trip → Depart → Stop → I have arrived → Start unloading → Delivered / 
 
 <Screenshot
   src="quick-start/38-odoo-transfer-validated.png"
-  alt="أمر تسليم في Odoo برقم WH/OUT/00012 بحالة Done بعد الاعتماد."
+  alt="أمر تسليم في Odoo برقم QSD/OUT/00001 بحالة Done بعد الاعتماد."
   caption="تم. أصبحت الكميات حقائق، وأصبح بإمكان SCOP قراءتها."
 />
 
@@ -183,18 +183,28 @@ Trip → Depart → Stop → I have arrived → Start unloading → Delivered / 
 <Screenshot
   src="quick-start/33-driver-goods-quantities.png"
   alt="تبويب البضائع في محطة السائق يُظهر الكمية المخططة 12 و8 و20 والكمية الفعلية 12 و8 و20، مع ملاحظة أن الكميات تأتي من تحويل المستودع."
-  caption="المخطط 12 / 8 / 20، والفعلي 12 / 8 / 20 — مقروءة من التحويل المعتمد. والملاحظة على الشاشة تقولها بوضوح: «Quantities come from the warehouse transfer. Record a short delivery there, not here.»"
+  caption="المخطط 24 / 15 / 30، والفعلي 24 / 15 / 30 — مقروءة من التحويل المعتمد. والملاحظة على الشاشة تقولها بوضوح: «Quantities come from the warehouse transfer. Record a short delivery there, not here.»"
 />
 
-:::danger[الترتيب مهم]
+:::danger[الترتيب مهم — وSCOP تميّز بين الحالتين]
 
-إذا ضغطت **Delivered** قبل اعتماد تحويل Odoo، فستكون الكميات الفعلية ما تزال صفراً، فتستنتج SCOP أن المحطة لم تُسلِّم ما كان مخططاً وترفض إغلاقها كتسليم سليم:
+إذا ضغطت **Delivered** قبل أن يعتمد المكتب التحويل، فستكون الكميات الفعلية ما تزال صفراً. ولا تستنتج SCOP أن التسليم فشل، بل تقول ذلك صراحةً:
+
+> Stop 1 has no delivered quantity recorded yet. The warehouse validates the transfer in Odoo, and SCOP reads the result — wait for that, then close the stop. If the delivery genuinely failed, use 'Could not deliver' and give the reason.
+>
+> (المحطة 1 لا تحمل أي كمية مُسلَّمة مسجَّلة بعد. يعتمد المستودع التحويل في Odoo وتقرأ SCOP النتيجة — انتظر ذلك ثم أغلق المحطة. وإن كان التسليم قد فشل فعلاً، فاستخدم «Could not deliver» واذكر السبب.)
+
+<Screenshot
+  src="quick-start/39-awaiting-odoo-validation.png"
+  alt="تحذير Odoo يخبر السائق بعدم وجود كمية مُسلَّمة مسجَّلة بعد، وأن المستودع يعتمد التحويل في Odoo أولاً."
+  caption="انتظار المكتب ليس تسليماً فاشلاً، وترفض SCOP أن يُسجَّل على أنه كذلك."
+/>
+
+وهذا التمييز مهم: فمطالبة السائق بسبب فشل هنا تدفعه إلى تسجيل فشل لم يقع، ثم يتعيّن تفكيك أثره من كل مقاييس الخدمة لاحقاً.
+
+وبعد اعتماد التحويل فعلاً، إذا كانت الكميات ناقصة حقاً، تظهر رسالة أخرى وتطلب `BR-EXE-001` السبب:
 
 > Stop 1 did not deliver everything planned, so it needs a reason before it can be closed.
->
-> (المحطة 1 لم تُسلِّم كل ما كان مخططاً، فهي تحتاج سبباً قبل إغلاقها.)
-
-وهذه هي القاعدة `BR-EXE-001` تؤدي عملها. **اعتمد التحويل أولاً**، ثم أغلق المحطة.
 
 :::
 
@@ -226,8 +236,11 @@ Trip → Depart → Stop → I have arrived → Start unloading → Delivered / 
 
 | العَرَض | ما تتحقق منه |
 | --- | --- |
-| زر **Delivered** يطلب سبباً | تحويل Odoo غير معتمد، أو اعتُمد بكمية ناقصة. اعتمده، أو اذكر السبب |
-| زر **Depart** يُظهر `Access Error` | مشكلة معروفة — يجب أن يقوم مخطِّط أو مسؤول بانطلاق الرحلة |
+| زر **Delivered** يقول إنه لم تُسجَّل كمية بعد | لم يعتمد المستودع تحويل Odoo بعد. انتظره — ولا تُسجِّل فشلاً لم يقع |
+| زر **Delivered** يطلب سبباً | اعتُمد التحويل بكمية ناقصة. اذكر سبب النقص |
+| زر **Depart** غير معروض | الرحلة ليست **Ready to Depart**. فمهام تحميلها لا تزال مفتوحة — راجع [الخطوة 6](./loading-and-departure.mdx) |
+| الرحلة لا تظهر تحت **My Trips** | يجب أن يكون سائق الرحلة هو سجل `hr.employee` المرتبط بحسابك، وأن تكون الرحلة Released أو بعدها |
+| الرحلة لا تزال **In Progress** بعد آخر تسليم | ما زالت هناك محطة بلا نتيجة — وغالباً محطة الاستلام من المستودع |
 | زر **Start unloading** غير معروض | المحطة لم تصل بعد إلى حالة **Arrived** |
 | الكميات الفعلية تبقى صفراً | التحويل ليس بحالة **Done**، أو الحركات غير مرتبطة بهذا الطلب |
 | السائق لا يرى أي رحلات | لا سائق مُسنَد للرحلة، أو حساب السائق غير مرتبط بسجل الموظف الخاص به |

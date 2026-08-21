@@ -53,9 +53,11 @@ Every report is read-only and built on standard list, pivot and graph views, so 
 
 Read it as the honest scorecard of the planning step. A plan that placed everything offered is full coverage; a plan that left demand behind shows exactly how much.
 
-:::warning
+:::info[An empty day has no coverage, and does not score 100%]
 
-The coverage percentage is currently rendered a hundred times too large — a plan with full coverage displays as `10000%` rather than `100%`. The underlying counts are correct. Recorded in [Release 1 Boundaries](./release-1-boundaries.mdx).
+Coverage is blank when nothing was offered, deliberately. A day with no demand has no coverage to report, and showing a perfect score for it is the kind of number that quietly destroys trust in a dashboard.
+
+The denominator is frozen at generation time, read from the run's stored request. Demand that becomes eligible an hour later does not retroactively lower a figure that was correct when it was produced.
 
 :::
 
@@ -98,9 +100,14 @@ OTIF compares two things SCOP captured independently:
 
 The commitment was captured once, when the order was confirmed, and is never re-read — so a later edit to the order cannot quietly improve the score.
 
-:::warning
+:::info[What supplies the commitment, and what happens without one]
 
-In this release a completed delivery does not appear in OTIF, because the demand and shipment lifecycles do not advance during execution. This is the most consequential open item for pilot measurement. Recorded in [Release 1 Boundaries](./release-1-boundaries.mdx).
+Two things can supply the promise, and a commitment always outranks the branch's opening hours:
+
+- a **service commitment** on the demand — including the delivery date SCOP captures from the sale order at confirmation, which is scored on the day in the destination's own timezone;
+- failing that, a **mandatory location window** on the destination node.
+
+A demand with neither is **excluded from the on-time denominator** and counted in its own bucket. A delivery nobody promised a time for cannot be late, and counting it as on time would inflate the figure with exactly the deliveries nobody was watching. Group on **Has Commitment** before averaging.
 
 :::
 

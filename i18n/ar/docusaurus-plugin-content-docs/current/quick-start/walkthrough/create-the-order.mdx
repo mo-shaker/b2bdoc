@@ -27,9 +27,9 @@ import Screenshot from '@site/src/components/Screenshot';
 
 | | |
 | --- | --- |
-| العميل | **Wood Corner** — عميل تجريبي |
-| الأمر | **S00025** |
-| المنتجات | 12 × Corner Desk Right Sit، و8 × Large Cabinet، و20 × Storage Box |
+| العميل | **SCOP Quick Start Demo Customer** — عميل تجريبي |
+| الأمر | **S09508** |
+| المنتجات | 24 × QS Demo Chilled Box، و15 × QS Demo Dry Goods Carton، و30 × QS Demo Beverage Crate |
 | المطلوب | يوم التشغيل التالي |
 
 :::info
@@ -52,14 +52,14 @@ import Screenshot from '@site/src/components/Screenshot';
 **ما يجب فعله**
 
 1. أنشئ عرض سعر.
-2. اختر العميل. يجب أن يكون فرع العميل موجوداً كعقدة تخطيط في SCOP، وإلا فلن يُنشأ أي طلب — راجع قسم *إذا لم يعمل الأمر*.
+2. اختر العميل. يجب أن يكون فرع العميل موجوداً كعقدة تخطيط في SCOP، وإلا فلن يُنشأ أي طلب ويُسجَّل السبب كحدث نطاق — راجع قسم *إذا لم يعمل الأمر*.
 3. أضف المنتجات والكميات.
 4. حدِّد **Delivery Date** (تاريخ التسليم) إذا كان هناك التزام تجاه العميل؛ فـ SCOP تحوّله إلى التزام الخدمة الذي يستخدمه تقرير OTIF لاحقاً.
 5. اضغط **Confirm** (تأكيد).
 
 <Screenshot
   src="quick-start/01-sales-order-quotation.png"
-  alt="عرض سعر في Odoo برقم S00025 للعميل Wood Corner يتضمن ثلاثة بنود، قبل التأكيد."
+  alt="عرض سعر في Odoo برقم S09508 للعميل SCOP Quick Start Demo Customer يتضمن ثلاثة بنود، قبل التأكيد."
   caption="عرض السعر قبل التأكيد. لا يوجد شيء في SCOP بعد."
 />
 
@@ -79,7 +79,7 @@ import Screenshot from '@site/src/components/Screenshot';
 
 <Screenshot
   src="quick-start/01-sales-order-confirmed.png"
-  alt="أمر بيع مؤكَّد في Odoo برقم S00025 يُظهر مرحلة Sales Order وزر Delivery."
+  alt="أمر بيع مؤكَّد في Odoo برقم S09508 يُظهر مرحلة Sales Order وزر Delivery."
   caption="مؤكَّد. أنشأ Odoo أمر التسليم — وزر Delivery يحصيه."
 />
 
@@ -89,8 +89,8 @@ import Screenshot from '@site/src/components/Screenshot';
 
 <Screenshot
   src="quick-start/02-odoo-delivery-order.png"
-  alt="أمر تسليم في Odoo برقم WH/OUT/00012 للعميل Wood Corner في حالة Ready."
-  caption="أمر التسليم WH/OUT/00012 بحالة Ready. هذا هو المستند الذي تراقبه SCOP — وهو نفسه الذي سيحمل الكميات الفعلية لاحقاً."
+  alt="أمر تسليم في Odoo برقم QSD/OUT/00001 للعميل SCOP Quick Start Demo Customer في حالة Ready."
+  caption="أمر التسليم QSD/OUT/00001 بحالة Ready. هذا هو المستند الذي تراقبه SCOP — وهو نفسه الذي سيحمل الكميات الفعلية لاحقاً."
 />
 
 **إذا لم يعمل الأمر**
@@ -99,7 +99,7 @@ import Screenshot from '@site/src/components/Screenshot';
 | --- | --- |
 | لا يوجد أمر تسليم | المنتجات غير قابلة للتخزين، أو الأمر لا يحتوي بنداً قابلاً للتسليم |
 | أمر التسليم في حالة `Waiting` وليس `Ready` | لا يوجد مخزون متاح للحجز؛ وستعكس الجاهزية ذلك لاحقاً |
-| لا يظهر أي طلب في SCOP في الخطوة 2 | نوع العملية خارج النطاق التجريبي، أو العميل ليس له عقدة تخطيط في SCOP |
+| لا يظهر أي طلب في SCOP في الخطوة 2 | نوع العملية خارج النطاق التجريبي، أو العميل ليس له عقدة تخطيط في SCOP. راجع `SCOP → Technical → Domain Events` بحثاً عن صف `DemandGenerationSkipped` — فهو يذكر التحويل والموقع غير المربوط وأيّ طرفَي الحركة تعذّر حلّه. اربط الموقع ثم أعد حفظ التحويل |
 
 :::note[لم يكتب أحد شيئاً في SCOP]
 

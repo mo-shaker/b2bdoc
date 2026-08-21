@@ -37,7 +37,7 @@ A demand exists, in state **Draft**, referencing your delivery order.
 
 <Screenshot
   src="quick-start/03-scop-demand-list.png"
-  alt="SCOP Demands list showing DMD-2026-000001 for Wood Corner in the Draft state."
+  alt="SCOP Demands list showing DMD-2026-000001 for SCOP Quick Start Demo Customer in the Draft state."
   caption="SCOP created DMD-2026-000001 by itself when the delivery order was confirmed."
 />
 
@@ -139,7 +139,7 @@ The status bar shows **Eligible for Planning**.
 | `BR-INV-002` still refuses | The reservation was not refreshed after the owner was recorded, so the move lines still carry no owner |
 | Ownership is half-recorded | An owner and its source are set together or not at all; SCOP rejects one without the other |
 | Lines disagree | Two moves on one line resolved to different owners. SCOP leaves this unresolved deliberately — it is a data problem for a person to look at |
-| `Access Error` on `Stock Move` | Your user needs the Odoo **Inventory → User** group as well as its SCOP role |
+| `Access Error` on `Stock Move` | No longer expected: SCOP reads Odoo's quantities on the record's behalf, so opening a Demand does not require the Odoo **Inventory → User** group. If you still meet it, raise it as a defect |
 
 ## Next
 

@@ -27,9 +27,9 @@ Throughout this walkthrough we follow one delivery on a demonstration database:
 
 | | |
 | --- | --- |
-| Customer | **Wood Corner** — a demonstration customer |
-| Order | **S00025** |
-| Products | 12 × Corner Desk Right Sit, 8 × Large Cabinet, 20 × Storage Box |
+| Customer | **SCOP Quick Start Demo Customer** — created for this guide |
+| Order | **S09508** |
+| Products | 24 × QS Demo Chilled Box, 15 × QS Demo Dry Goods Carton, 30 × QS Demo Beverage Crate |
 | Required | the next operating day |
 
 :::info
@@ -51,14 +51,14 @@ Sales / Customer Service
 **What to do**
 
 1. Create a quotation.
-2. Select the customer. The customer's branch must exist as a SCOP planning node, otherwise no demand is created — see *If it does not work*.
+2. Select the customer. The customer's branch must exist as a SCOP planning node, otherwise no demand is created and the reason is recorded as a domain event — see *If it does not work*.
 3. Add the products and quantities.
 4. Set the **Delivery Date** if the customer has committed to one. SCOP turns this into the Service Commitment used later by OTIF.
 5. Click **Confirm**.
 
 <Screenshot
   src="quick-start/01-sales-order-quotation.png"
-  alt="Odoo quotation S00025 for Wood Corner with three order lines, before confirmation."
+  alt="Odoo quotation S09508 for SCOP Quick Start Demo Customer with three order lines, before confirmation."
   caption="The quotation before confirmation. Nothing exists in SCOP yet."
 />
 
@@ -78,7 +78,7 @@ The order shows the **Sales Order** stage and a **Delivery** button appears in t
 
 <Screenshot
   src="quick-start/01-sales-order-confirmed.png"
-  alt="Odoo sales order S00025 confirmed, showing the Sales Order stage and a Delivery smart button."
+  alt="Odoo sales order S09508 confirmed, showing the Sales Order stage and a Delivery smart button."
   caption="Confirmed. Odoo has created the delivery order — the Delivery button counts it."
 />
 
@@ -88,8 +88,8 @@ Click **Delivery** to open the transfer Odoo created.
 
 <Screenshot
   src="quick-start/02-odoo-delivery-order.png"
-  alt="Odoo delivery order WH/OUT/00012 for Wood Corner in the Ready state."
-  caption="Delivery order WH/OUT/00012, state Ready. This is the document SCOP watches — and the one that will later carry the actual quantities."
+  alt="Odoo delivery order QSD/OUT/00001 for SCOP Quick Start Demo Customer in the Ready state."
+  caption="Delivery order QSD/OUT/00001, state Ready. This is the document SCOP watches — and the one that will later carry the actual quantities."
 />
 
 **If it does not work**
@@ -98,7 +98,7 @@ Click **Delivery** to open the transfer Odoo created.
 | --- | --- |
 | No Delivery Order | The products are not storable, or the order has no deliverable line |
 | Delivery Order is `Waiting` not `Ready` | No stock is available to reserve; readiness will reflect this later |
-| No SCOP Demand appears in Step 2 | The operation type is outside the pilot scope, or the customer has no SCOP planning node |
+| No SCOP Demand appears in Step 2 | The operation type is outside the pilot scope, or the customer has no SCOP planning node. Check `SCOP → Technical → Domain Events` for a `DemandGenerationSkipped` row — it names the transfer, the unmapped location and which end of the movement could not be resolved. Map the location, then re-save the transfer |
 
 :::note[Nobody typed anything into SCOP]
 
