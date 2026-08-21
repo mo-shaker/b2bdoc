@@ -1,0 +1,133 @@
+---
+id: routes-and-stop-activities
+title: Routes and Stop Activities
+description: Named repeatable routes, the activity types that classify what happens at a stop, and how they affect visit consolidation.
+sidebar_label: Routes and Stop Activities
+sidebar_position: 7
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+
+# Routes and Stop Activities
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Planning', 'Operations', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="4 min"
+/>
+
+**Role**
+Planner
+
+**Navigate to**
+`SCOP → Master Data → Routes` and `→ Stop Activities`
+
+## Stop activities
+
+A **stop activity** classifies what happens at a stop.
+
+| Field | Meaning |
+| --- | --- |
+| **Name** | Delivery, Pickup, Collection, and so on |
+| **Code** | A short reference |
+| **Sequence** | Display order |
+
+### Why the activity matters
+
+:::info[The activity is part of what makes two requirements the same physical visit]
+
+Two requirements at the same node, on the same date, in the same window, are still **two
+stops** if one is a delivery and the other is a pickup.
+
+A pickup is not a delivery, even at the same address at the same hour.
+
+→ [The Physical Visit](../shipments/the-physical-visit.mdx)
+
+:::
+
+The activity also affects how service duration is estimated, since a collection and a
+delivery are not the same amount of work.
+
+### Configuring them
+
+Most deployments need only two or three: **Delivery**, **Pickup**, and possibly
+**Collection** for supplier work.
+
+:::warning[Do not proliferate activities]
+
+Every distinct activity is a reason two requirements at one address become two visits.
+Creating *Delivery — Morning* and *Delivery — Afternoon* as separate activities would stop
+them ever consolidating, when a service commitment already expresses that difference
+properly.
+
+:::
+
+## Routes
+
+A **route** is a named, repeatable sequence of planning nodes.
+
+| Field | Meaning |
+| --- | --- |
+| **Name** | What the route is called |
+| **Code** | A short reference |
+| **Route Stops** | The nodes, in sequence |
+
+Each route stop names a node and its position in the sequence.
+
+### What routes are for
+
+| Use | Detail |
+| --- | --- |
+| Recurring delivery rounds | A fixed set of branches served in a fixed order |
+| Pilot scoping | A scope record can be limited to named routes |
+| Trip reference | A trip can name the route it follows |
+
+:::note[Routes are optional in Release 1]
+
+Planning does not require a route. The baseline provider builds sequences from the demands
+and the travel matrix, not from a route master.
+
+Routes are useful where a round genuinely repeats. If yours do not, leave the list empty —
+an unused route master is not a gap.
+
+:::
+
+## Routes and pilot scope
+
+A [pilot scope](./pilot-scope.mdx) record can name **Named Routes**, restricting SCOP's
+attention to operations on those routes.
+
+Use it when a pilot covers a subset of a warehouse's delivery rounds rather than all of them.
+
+## Verify
+
+| Check | Where | Expect |
+| --- | --- | --- |
+| The activities you need exist | `Master Data → Stop Activities` | Delivery, Pickup |
+| Stops carry the right activity | The stop's **Activity** field | Correct classification |
+| Deliveries and pickups are separate stops | The trip's **Stops** tab | Two stops at one node, where both apply |
+| A route's sequence is right | The route form | The nodes in order |
+
+## If it does not work
+
+| Symptom | Cause |
+| --- | --- |
+| Two stops at one address where one was expected | Different activities — correct behaviour |
+| One stop where two were expected | Same activity, node, date and window — consolidation working |
+| A route is never used | Planning does not require routes. This is normal |
+| Pilot scope catches nothing | The scope names routes that no operation uses |
+
+## Related Pages
+
+- [The Physical Visit](../shipments/the-physical-visit.mdx)
+- [Planning Nodes](./planning-nodes.mdx)
+- [Pilot Scope](./pilot-scope.mdx)
+- [Stops](../execution/stops.mdx)
+
+## Next
+
+[Catalogues](./catalogues.mdx).

@@ -1,0 +1,176 @@
+---
+id: catalogues
+title: Catalogues
+description: Capacity profiles, handling profiles, compatibility groups and shelf-life profiles — the shared vocabularies planning uses to decide what can travel together.
+sidebar_label: Catalogues
+sidebar_position: 8
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+
+# Catalogues
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Planning', 'Operations', 'Warehouse', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="5 min"
+/>
+
+**Role**
+Planner reads. Administrator maintains.
+
+**Navigate to**
+`SCOP → Master Data`
+
+## What the catalogues are for
+
+Four shared vocabularies that answer four planning questions:
+
+| Catalogue | Question |
+| --- | --- |
+| **Capacity Profiles** | How much can this vehicle carry, in which dimensions? |
+| **Handling Profiles** | How must these goods be handled? |
+| **Compatibility Groups** | What may not travel together? |
+| **Shelf-Life Profiles** | How much remaining life must these goods have? |
+
+## Capacity profiles
+
+`SCOP → Master Data → Capacity Profiles`
+
+The dimensions a vehicle is measured in, and its limit in each.
+
+| Field | Meaning |
+| --- | --- |
+| **Name** | What the profile is called |
+| **Code** | A short reference |
+| **Dimensions** | Which measures apply, and the limit in each |
+
+Typical dimensions are **weight** in kilograms and **volume** in cubic metres.
+
+:::danger[This is the one catalogue that is not optional]
+
+A vehicle with **no capacity profile is invisible to planning.** The provider filters to
+vehicles that declare one.
+
+If every demand comes back *No feasible vehicle*, check this before anything else.
+
+→ [Fleet and Vehicles](./fleet-and-vehicles.mdx)
+
+:::
+
+Capacity is validated at **every point of the stop sequence** — see
+[Trips](../execution/trips.mdx).
+
+## Handling profiles
+
+`SCOP → Master Data → Handling Profiles`
+
+How a product must be handled: refrigerated, frozen, fragile, hazardous, upright.
+
+| Applied to | Meaning |
+| --- | --- |
+| A **product** | These goods need this handling |
+| A **vehicle** or **compartment** | This can provide it |
+
+Planning matches the two. A shipment needing refrigeration is not placed on a vehicle that
+cannot provide it.
+
+:::note[An empty handling catalogue means handling is not considered]
+
+If no product declares a handling profile, nothing is matched and nothing is refused. That is
+correct for a deployment where handling genuinely does not vary.
+
+Add profiles when a real constraint exists, not to be thorough.
+
+:::
+
+## Compatibility groups
+
+`SCOP → Master Data → Compatibility Groups`
+
+What may **not** travel together.
+
+| Field | Meaning |
+| --- | --- |
+| **Name** | The group |
+| **Code** | A short reference |
+| **Handling Profiles** | Which handling profiles belong to this group |
+| **Incompatible With** | Which other groups it may not share a vehicle with |
+
+A demand that cannot join a load because of an incompatibility comes back unplanned with
+*Product incompatibility*.
+
+:::info[Incompatibility is symmetric]
+
+Declaring group A incompatible with group B means neither may travel with the other. You do
+not need to declare it twice.
+
+:::
+
+## Shelf-life profiles
+
+`SCOP → Master Data → Shelf-Life Profiles`
+
+Remaining-life rules for a product: how much life must remain at dispatch, or on arrival.
+
+Used where goods have an expiry date and a minimum acceptable remaining life.
+
+:::note[Shelf-life is not enforced as a planning refusal in Release 1]
+
+The profiles are recorded and available. Release 1 does not refuse a plan on remaining life.
+
+If shelf-life is an operational control in your business, treat it as a warehouse
+responsibility today.
+
+:::
+
+## Which catalogues you actually need
+
+| Catalogue | Needed when |
+| --- | --- |
+| **Capacity Profiles** | **Always.** Planning cannot work without them |
+| **Handling Profiles** | Goods genuinely differ in how they must be carried |
+| **Compatibility Groups** | Some goods genuinely may not travel together |
+| **Shelf-Life Profiles** | Goods have expiry dates that matter operationally |
+
+:::warning[An empty catalogue is not a gap]
+
+Three of the four are optional. Populating them "for completeness" adds constraints planning
+must satisfy, and every unnecessary constraint is a demand that comes back unplanned.
+
+Add a profile when a real rule exists.
+
+:::
+
+## Verify
+
+| Check | Where | Expect |
+| --- | --- | --- |
+| Every planning vehicle has a capacity profile | The vehicle | **Planning Ready** true |
+| Handling needs are matched | The trip | The right vehicle for the goods |
+| Incompatible goods are separated | The trip's contents | Not on one vehicle |
+| Nothing is over-constrained | `Planning → Unplanned Demand` | Few *Product incompatibility* rows |
+
+## If it does not work
+
+| Symptom | Cause | Fix |
+| --- | --- | --- |
+| Every demand comes back *No feasible vehicle* | No vehicle has a capacity profile | Assign one |
+| Demands come back *Product incompatibility* | An incompatibility excludes every combination | Check whether the rule is real, or plan them separately |
+| A vehicle is never offered work it could do | Its handling capabilities do not cover the goods | Add the capability |
+| Incompatible goods travelled together | Neither product declares a handling profile in a group | Declare them |
+
+## Related Pages
+
+- [Fleet and Vehicles](./fleet-and-vehicles.mdx)
+- [Trips](../execution/trips.mdx)
+- [Unplanned Demand](../planning/unplanned-demand.mdx)
+- [Planning Overview](../planning/planning-overview.mdx)
+
+## Next
+
+[Onboarding and Migration](./onboarding-and-migration.mdx).
