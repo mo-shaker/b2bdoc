@@ -1,0 +1,222 @@
+---
+id: failed-delivery-scenario
+title: Failed Delivery
+description: A delivery that genuinely fails — and the near-identical case that is not a failure at all.
+sidebar_label: Failed Delivery
+sidebar_position: 5
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+
+# Failed Delivery
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Driver', 'Operations', 'Warehouse', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="5 min"
+/>
+
+## The situation
+
+The driver arrives at **SCOP Manual Branch A** and the delivery cannot happen — the premises
+are closed.
+
+This scenario also covers the case that **looks identical on screen and is not a failure**.
+
+## Setup
+
+Follow [Standard Full Delivery](./standard-full-delivery.mdx) to the point where the trip has
+departed and the driver has arrived at the customer stop.
+
+---
+
+## The fork in the road
+
+At this point the driver's **Goods** tab shows **zero** delivered. Two completely different
+things produce that.
+
+| Situation | What is true |
+| --- | --- |
+| **The Odoo transfer has not been validated yet** | The goods may be at the customer. The paperwork is behind |
+| **The delivery genuinely failed** | The goods came back on the vehicle |
+
+:::danger[Getting this wrong is expensive]
+
+A failure recorded because the office had not caught up has to be unpicked from OTIF, from
+the demand chain, and from every service measure afterwards.
+
+:::
+
+### How to tell them apart
+
+Ask one question: **did the goods come off the vehicle?**
+
+| Answer | Action |
+| --- | --- |
+| Yes, the customer has them | **Wait** for validation, then **Delivered** |
+| No, they are still on board | **Could not deliver**, with a reason |
+
+### How SCOP helps
+
+Pressing **Delivered** with no recorded quantity does not simply refuse:
+
+> Stop 2 has no delivered quantity recorded yet. The warehouse validates the transfer in
+> Odoo, and SCOP reads the result — wait for that, then close the stop. If the delivery
+> genuinely failed, use 'Could not deliver' and give the reason.
+
+The message names both paths on purpose.
+
+---
+
+## Step 1 — Record the failure
+
+**Role** Driver
+**Where** `SCOP → My Work → My Stops` → open the stop
+
+Press **Could not deliver**.
+
+:::danger[A reason is required]
+
+`BR-EXE-001` will not let the stop close without one. You are asked at the door, because that
+is when you can answer.
+
+:::
+
+Choose **Customer location closed**.
+
+### The seven reasons
+
+| Reason | Follow-up belongs to |
+| --- | --- |
+| **Customer location closed** | Customer Service |
+| **Customer refused the delivery** | Customer Service |
+| **Goods damaged in transit** | Warehouse and Operations |
+| **Access to the location blocked** | Planning — the node may need constraints |
+| **Ran out of time on the route** | Planning — the route was too long |
+| **Vehicle issue** | Fleet |
+| **Rescheduled at the customer's request** | Customer Service |
+
+:::note[Choose the reason that is true]
+
+*Ran out of time on the route* recorded honestly is a planning signal somebody can act on.
+Recorded as *Customer location closed*, it hides a fixable problem.
+
+:::
+
+---
+
+## Step 2 — Photograph the evidence
+
+**Where** The **Proof of delivery** tab
+
+Attach a photograph of the closed premises. Photographs resolve most delivery disputes and
+cost a moment.
+
+---
+
+## Step 3 — What SCOP records
+
+| Record | Becomes |
+| --- | --- |
+| The stop | Status **Failed**, outcome **Failed**, with the reason |
+| The trip | **Partially Completed** when it closes |
+| The demand | **Failed** |
+| **A follow-up demand** | Created — the requirement is not lost |
+| Loads and resources | Close normally |
+
+**Verify**
+
+| Check | Where | Expect |
+| --- | --- | --- |
+| The stop failed with a reason | The stop | Status and **Outcome Reason** |
+| The trip closed | The trip | **Partially Completed** |
+| The demand | `Operations → Demands` | **Failed** |
+| A follow-up exists | The demand's **Follow-Up and Returns** tab | A child demand |
+| The evidence | The **Proof of Delivery** tab | The photograph |
+
+---
+
+## Step 4 — Decide what happens next
+
+**Role** Operations Manager
+
+A failed delivery does **not** automatically create an operational exception. Raise one when
+the failure needs owning beyond replanning.
+
+| Raise an exception when | Do not when |
+| --- | --- |
+| Goods were damaged | The customer was simply closed |
+| The customer disputes it | It will just be redelivered |
+| A vehicle failed | — |
+| It is the third failure this week at one branch | — |
+
+→ [Exception Management](../exceptions/exception-management.mdx)
+
+**Role** Planner
+
+Plan the follow-up demand for another day.
+
+---
+
+## The variation — late paperwork, not a failure
+
+Repeat the setup, but this time the goods **were** delivered and the warehouse simply has not
+validated the transfer.
+
+| # | What happens |
+| --- | --- |
+| 1 | The driver presses **Delivered** |
+| 2 | SCOP refuses, and explains that no quantity has been recorded yet |
+| 3 | **The driver waits.** They do **not** press Could not deliver |
+| 4 | The warehouse validates the transfer in Odoo |
+| 5 | The driver presses **Delivered** again — it succeeds |
+| 6 | The demand reaches **Completed** |
+
+:::info[The two cases end completely differently]
+
+| | Genuine failure | Late paperwork |
+| --- | --- | --- |
+| Demand | **Failed** | **Completed** |
+| Trip | Partially Completed | Completed |
+| Follow-up demand | Created | None |
+| OTIF | Not in full, not on time | On time, in full |
+
+One driver decision, made in ten seconds at a customer's door, decides all of that.
+
+:::
+
+---
+
+## What this proves
+
+| Property | Demonstrated by |
+| --- | --- |
+| `BR-EXE-001` requires a reason | Step 1 |
+| The reason is asked at the moment somebody can answer | Step 1 |
+| A failure does not lose the requirement | Step 3 — the follow-up |
+| SCOP distinguishes a failure from missing paperwork | The variation |
+| A closed stop cannot be reopened | Below |
+
+:::warning[A closed stop is terminal]
+
+Failed, Skipped and Completed cannot be reopened. If a failure was recorded in error, the
+correction is made through the **follow-up demand**, not by rewriting history.
+
+Inventing transitions would put states in the audit trail that nobody performed.
+
+:::
+
+## Related Pages
+
+- [Failed Delivery](../execution/failed-delivery.mdx)
+- [Odoo Delivery Validation](../execution/odoo-delivery-validation.mdx)
+- [Driver Delivery](../execution/driver-delivery.mdx)
+- [Exception Management](../exceptions/exception-management.mdx)
+
+## Next
+
+[Unresolved Ownership](./unresolved-ownership-scenario.mdx).

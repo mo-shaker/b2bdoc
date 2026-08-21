@@ -1,0 +1,233 @@
+---
+id: plan-modification-before-approval
+title: Plan Modification Before Approval
+description: Changing a recommendation with a recorded reason, and the separation of duties that stops the author approving it.
+sidebar_label: Plan Modification Before Approval
+sidebar_position: 9
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+
+# Plan Modification Before Approval
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Planning', 'Operations', 'Management', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="5 min"
+/>
+
+## The situation
+
+A planning run produces a recommendation. The planner knows something the system does not —
+a customer has asked for an earlier slot — and needs to change it before it is authorised.
+
+## Roles involved
+
+**Two people.** A planner and an Operations Manager who is **not** that planner.
+
+:::danger[This scenario cannot be completed by one person]
+
+`BR-PLN-001` refuses approval by the plan's own author, including for an Administrator.
+
+That is the whole point of the scenario.
+
+:::
+
+---
+
+## Step 1 — Generate the plan
+
+**Role** Planner
+**Where** `SCOP → Planning → Generate a Plan`
+
+Generate a plan for the date, then open it. It is in **Generated**.
+
+Read the **Trips** tab and the **Unplanned Demand** tab before doing anything else.
+
+---
+
+## Step 2 — Submit it
+
+Press **Submit**. The plan moves to **Under Review**.
+
+:::note[Modify is only available in Under Review]
+
+A plan in **Generated** cannot be modified — it has not been put forward yet. Submit first.
+
+:::
+
+---
+
+## Step 3 — Modify it
+
+**Role** Planner (still)
+
+Press **Modify**.
+
+:::danger[An override reason is required]
+
+The plan cannot be modified without one. SCOP is recording *why* the recommendation was not
+good enough.
+
+:::
+
+### Choosing the reason
+
+| Reason | Use when |
+| --- | --- |
+| **Operational information unavailable to the engine** | You know something the system does not |
+| **Customer instruction** | The customer asked |
+| **Management instruction** | Instructed from above |
+| **Incorrect master data** | The data is wrong and is being fixed |
+| **Unexpected warehouse condition** | Something changed on the floor |
+| **Driver or vehicle issue** | A transport constraint |
+| **Local route knowledge** | You know the ground |
+| **Service-risk judgment** | A deliberate service call |
+| **Emergency requirement** | An emergency |
+
+For this scenario, the true answer is **Customer instruction**.
+
+:::warning[Choose the reason that is true, not the convenient one]
+
+These are grouped and counted in [Decision Quality](../reporting/decision-quality.mdx).
+
+A planner who always chooses *Local route knowledge* produces a report that says the routing
+model is wrong, when the real answer might have been *Incorrect master data* — which somebody
+could have fixed.
+
+:::
+
+### What SCOP records
+
+| Effect | Where |
+| --- | --- |
+| The **override reason** | On the plan |
+| **Modification Count** increments | On the plan, and in Decision Quality |
+| **Modified By** | The planner |
+| **The original recommendation is preserved** | The **Recommendation** tab |
+
+:::info[The recommendation is not overwritten]
+
+The plan now carries both: what was recommended, and what a person decided instead.
+
+That is what makes the comparison possible months later.
+
+:::
+
+---
+
+## Step 4 — Submit again
+
+Press **Submit**. The plan returns to **Under Review**, carrying its modification record.
+
+---
+
+## Step 5 — The planner tries to approve it
+
+**Role** Planner (still) — deliberately
+
+Press **Approve**.
+
+**Result** Refused. The dialog names `BR-PLN-001` and states the policy.
+
+:::danger[Try this as an Administrator too]
+
+An Administrator holds every group, including Operations Manager, and can approve plans in
+general.
+
+They still **cannot approve a plan they created**. Separation of duties outranks
+administrative rights, and is not a permission that can be granted to yourself.
+
+:::
+
+---
+
+## Step 6 — A different Operations Manager approves it
+
+**Role** Operations Manager — **not** the author
+
+| # | Do |
+| --- | --- |
+| 1 | Open the plan |
+| 2 | Read the **Recommendation** tab — what was changed, and why |
+| 3 | Read the **Unplanned Demand** tab |
+| 4 | Check no trip is flagged as infeasible |
+| 5 | Press **Approve** |
+| 6 | Press **Release** |
+
+**Verify**
+
+| Check | Expect |
+| --- | --- |
+| The plan | **Released** |
+| **Approved By** | The Operations Manager |
+| **Created By** | The planner — a **different** person |
+| **Approved At** | A timestamp |
+| The **Approvals** tab | An approval record |
+
+---
+
+## Step 7 — Read what it produced
+
+**Where** `SCOP → Reporting → Decision Quality`, grouped by **Override Reason**
+
+The modification appears with its reason. Over a month, that grouping is the finding:
+
+```text
+Override Reason                                    Count
+Incorrect master data                                14
+Operational information unavailable to the engine     3
+Customer instruction                                  2
+Emergency requirement                                 1
+```
+
+Fourteen of twenty modifications caused by **wrong data**. That is not a planning finding —
+it is a data-quality finding with a name and a count attached, and fixing it removes fourteen
+modifications from next month.
+
+---
+
+## What this proves
+
+| Property | Demonstrated by |
+| --- | --- |
+| A recommendation can be changed | Step 3 |
+| A change must say why | Step 3 |
+| The original recommendation survives the change | Step 3 |
+| The author cannot authorise their own work | Step 5 |
+| Administrative rights do not confer approval authority | Step 5 |
+| Approval is attributed | Step 6 |
+| Overrides become an analysable signal | Step 7 |
+
+## If something is refused
+
+| Symptom | Cause |
+| --- | --- |
+| **Modify** is not offered | The plan is not **Under Review** — submit it first |
+| **Modify** is refused | No override reason chosen |
+| **Approve** is not offered | The plan is not **Under Review** |
+| **Approve** refused, separation of duties | You created it. Someone else must approve |
+| **Approve** refused, not entitled | You are not an Operations Manager |
+| **Release** is refused | A trip carries a blocking finding — `BR-PLN-002` |
+
+:::warning[If nobody is available to approve, the answer is a second approver]
+
+Not an exemption. `BR-PLN-001` exists precisely so no single person can authorise their own
+work; waiving it for convenience defeats the only control it provides.
+
+:::
+
+## Related Pages
+
+- [The Daily Plan](../planning/the-daily-plan.mdx)
+- [Plan Governance](../planning/plan-governance.mdx)
+- [Decision Quality](../reporting/decision-quality.mdx)
+- [Business Rules](../reference/business-rules.mdx)
+
+## Next
+
+[Loading Delay](./loading-delay-scenario.mdx).

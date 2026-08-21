@@ -1,0 +1,197 @@
+---
+id: two-orders-one-visit
+title: Two Orders, One Visit
+description: Two compatible orders become one shipment and one physical stop — and each demand stays independently traceable.
+sidebar_label: Two Orders, One Visit
+sidebar_position: 3
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+
+# Two Orders, One Visit
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Planning', 'Operations', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="5 min"
+/>
+
+## The situation
+
+**SCOP Manual Demo Customer** places **two separate orders**, both for delivery to
+**SCOP Manual Branch A**, both on the same required date.
+
+The vehicle should go **once**, and both requirements should stay separately traceable.
+
+## Setup
+
+| Order | Destination | Required date |
+| --- | --- | --- |
+| First | SCOP Manual Branch A | The same day |
+| Second | SCOP Manual Branch A | The same day |
+
+Confirm both in Odoo. Two demands appear.
+
+---
+
+## Step 1 — Make the first demand eligible
+
+**Role** Planner
+
+**Validate**, then **Mark Eligible**.
+
+**Result** A shipment is formed for that demand alone.
+
+---
+
+## Step 2 — Make the second demand eligible
+
+**Validate**, then **Mark Eligible**.
+
+**Result** No second shipment. The demand **joins the shipment already open**.
+
+:::info[Why it joins rather than forming its own]
+
+All five parts of the consolidation key match:
+
+| # | Matches |
+| --- | --- |
+| 1 | Origin node |
+| 2 | Destination node |
+| 3 | Shipment type |
+| 4 | Company |
+| 5 | **Required date** |
+
+And the shipment is still **open** — it is in **Created** or **Ready**, and not yet on a trip.
+
+→ [Formation and Consolidation](../shipments/formation-and-consolidation.mdx)
+
+:::
+
+**Verify**
+
+| Check | Where | Expect |
+| --- | --- | --- |
+| One shipment, not two | `Operations → Shipments` | A single `SHP-…` |
+| It carries both demands | Its **Lines** tab, **Demand** column | Both references |
+| Combined weight | The shipment header | The sum of both |
+| From each demand's side | The demand's **Shipments** tab | The same shipment |
+
+---
+
+## Step 3 — Stage and plan
+
+**Role** Warehouse, then Planner
+
+Stage the shipment. Generate a plan for that date.
+
+---
+
+## Step 4 — Read the trip
+
+**Role** Planner
+**Where** The plan's **Trips** tab → open the trip → **Stops**
+
+**Expect two stops, not three:**
+
+```text
+Stop 1   the warehouse   pickup
+Stop 2   Branch A        delivery  ← one visit, carrying both demands
+```
+
+:::info[Why one delivery stop]
+
+All four parts of the visit key match:
+
+| # | Matches |
+| --- | --- |
+| 1 | The planning node |
+| 2 | The activity — both are deliveries |
+| 3 | The required date |
+| 4 | The effective time window |
+
+Arriving once genuinely satisfies both requirements.
+
+→ [The Physical Visit](../shipments/the-physical-visit.mdx)
+
+:::
+
+**Verify** the stop's **Quantities** tab — there is a line for each demand, each naming its
+own demand.
+
+---
+
+## Step 5 — Deliver, and confirm the traceability holds
+
+**Role** Driver, then Warehouse
+
+The driver arrives **once**, unloads **once**, and gives **one** proof of delivery.
+
+The warehouse validates **both** Odoo transfers — one per demand.
+
+**Verify**
+
+| Check | Expect |
+| --- | --- |
+| One stop, one arrival, one signature | The stop record |
+| Two demands | Both **Completed** |
+| Each demand's quantities | From **its own** transfer |
+
+---
+
+## The property this proves
+
+:::info[A shared stop does not merge the demands]
+
+```text
+One physical Stop
+  → multiple delivery lines
+    → each line still traceable to its own Demand
+      → and its own Odoo transfer
+```
+
+Within one visit, one demand can complete in full while the other is short. See
+[Partial Delivery With Backorder](./partial-delivery-with-backorder.mdx).
+
+:::
+
+## Variations worth trying
+
+| Change | Expected result | Why |
+| --- | --- | --- |
+| Second order to **Branch B** | **Two** shipments, **two** stops | A different branch is a different node |
+| Second order for the **next day** | **Two** shipments | The required date is part of the key |
+| Second order is a **pickup** | **Two** stops even at one node | A pickup is not a delivery |
+| Second order has a **different committed window** | **Two** stops | Two promises, one arrival cannot keep both |
+| Make the second demand eligible **after** the first shipment is planned onto a trip | **Two** shipments | A planned shipment is never joined |
+
+Each of these is correct behaviour, not a consolidation failure.
+
+## If it does not consolidate
+
+Work through the five key parts, then the sixth condition:
+
+| # | Check |
+| --- | --- |
+| 1 | Same origin node? |
+| 2 | Same destination node — the same **branch**? |
+| 3 | Same shipment type? |
+| 4 | Same company? |
+| 5 | **Same required date?** |
+| 6 | Was the first shipment already **planned**? |
+
+→ [Readiness and Shipment Problems](../troubleshooting/readiness-and-shipment-problems.mdx)
+
+## Related Pages
+
+- [Formation and Consolidation](../shipments/formation-and-consolidation.mdx)
+- [The Physical Visit](../shipments/the-physical-visit.mdx)
+- [Partial Delivery With Backorder](./partial-delivery-with-backorder.mdx)
+
+## Next
+
+[Partial Delivery With Backorder](./partial-delivery-with-backorder.mdx).

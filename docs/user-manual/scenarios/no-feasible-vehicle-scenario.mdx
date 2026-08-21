@@ -1,0 +1,206 @@
+---
+id: no-feasible-vehicle-scenario
+title: No Feasible Vehicle
+description: Demand that cannot be planned for capacity reasons — the configuration cause, the genuine cause, and how to tell them apart.
+sidebar_label: No Feasible Vehicle
+sidebar_position: 8
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+
+# No Feasible Vehicle
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Planning', 'Operations', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="5 min"
+/>
+
+## The situation
+
+A planning run completes, but demands come back unplanned with **No feasible vehicle**.
+
+There are **two completely different causes**, and they need opposite responses.
+
+## Telling them apart in one look
+
+| Signal | Cause | Response |
+| --- | --- | --- |
+| **Every** demand in the run | Configuration — no vehicle has a capacity profile | Fix the vehicle |
+| **Only the large** demands | Genuine — the load exceeds every vehicle | Split, or add capacity |
+
+---
+
+## Case 1 — The configuration cause
+
+### Reproducing it
+
+| # | Do |
+| --- | --- |
+| 1 | Take a vehicle and **remove its capacity profile** |
+| 2 | Generate a plan using only that vehicle |
+
+**Result** Every demand comes back **No feasible vehicle**, with the detail *"No vehicle in
+this run declares a capacity profile."*
+
+### Why
+
+:::danger[The planning provider filters to vehicles that declare a capacity profile]
+
+A vehicle without one is **invisible to planning**. It is not considered and rejected — it is
+never considered at all.
+
+:::
+
+### Fixing it
+
+| # | Step | Where |
+| --- | --- | --- |
+| 1 | Open the vehicle | Odoo Fleet |
+| 2 | Set its **Capacity Profile** | The vehicle's SCOP fields |
+| 3 | Confirm **Planning Ready** is now true | Same |
+| 4 | Replan | `Planning → Generate a Plan` |
+
+→ [Fleet and Vehicles](../configuration/fleet-and-vehicles.mdx)
+
+:::warning[This is the cause almost every time it affects the whole run]
+
+If every demand comes back with this reason, the answer is very rarely that the fleet is too
+small.
+
+:::
+
+---
+
+## Case 2 — The genuine cause
+
+### Reproducing it
+
+| # | Do |
+| --- | --- |
+| 1 | Give **SCOP Manual Vehicle** a small capacity profile |
+| 2 | Create a demand heavier than that capacity |
+| 3 | Generate a plan with only that vehicle available |
+
+**Result** That demand comes back **No feasible vehicle**. Smaller demands are planned
+normally.
+
+### Fixing it
+
+| Option | When |
+| --- | --- |
+| **Split the shipment** | The goods can travel in two loads |
+| **Use a larger vehicle** | One exists |
+| **Add capacity** | The fleet is genuinely short |
+| **Replan for another date** | It can wait |
+
+The suggested **Next Action** on the unplanned row names one of these.
+
+---
+
+## Case 3 — The one that looks the same and is not
+
+### Capacity shortage
+
+| | No feasible vehicle | Capacity shortage |
+| --- | --- | --- |
+| **Means** | No vehicle **can carry** this load | There is more work than **available fleet** |
+| **The vehicles are** | Unusable for this demand | Usable, just full |
+| **Fix** | Split, or a bigger vehicle | More vehicles, or replan low-priority work |
+
+Reading the wrong one leads to buying a bigger lorry when you needed a second one.
+
+### Route restriction
+
+If a **restriction** excludes every candidate vehicle — a zone, a time of day, a load type —
+the reason is **Route restriction**, not No feasible vehicle.
+
+→ [Fleet and Vehicles](../configuration/fleet-and-vehicles.mdx)
+
+---
+
+## The related refusal — BR-RTE-001
+
+A demand can be planned onto a trip and the **trip** can still be infeasible.
+
+| | Unplanned: No feasible vehicle | `BR-RTE-001` |
+| --- | --- | --- |
+| **When** | During the planning run | When approving or releasing the trip |
+| **Means** | Nothing could carry it | The **sequence** breaches capacity at some point |
+| **Where to look** | Unplanned Demand | The trip's **First Breach Sequence** |
+
+:::info[A trip that fits at departure can still be impossible]
+
+A mixed pickup-and-delivery trip changes load after each stop. A vehicle that leaves within
+its limit can exceed it in the middle of the route, after a collection.
+
+Capacity is validated at **every point** of the sequence.
+
+:::
+
+### Reproducing BR-RTE-001
+
+| # | Do |
+| --- | --- |
+| 1 | Build a trip with a delivery **and** a collection |
+| 2 | Make the collection large enough to exceed the vehicle after the delivery |
+| 3 | Try to approve or release the trip |
+
+**Result** Refused. **First Breach Sequence** names the point; the **Capacity** tab names the
+**Breached Dimensions**.
+
+### The knock-on
+
+Releasing the **plan** is then also refused, under `BR-PLN-002`, which names the offending
+trip.
+
+| Option | How |
+| --- | --- |
+| Repair the trip | Reduce the load, change the vehicle, resequence the stops |
+| Remove it from the plan | Its demands return to **Eligible for Planning** |
+
+→ [Plan Governance](../planning/plan-governance.mdx)
+
+---
+
+## The warning that is not an error
+
+`BR-RTE-002` — *vehicle utilisation should not be wasteful* — **warns** rather than blocks.
+
+:::info[A half-empty vehicle is sometimes exactly right]
+
+Utilisation is rank 7 in the objective profile. Customer commitments are rank 3.
+
+SCOP will send a half-empty vehicle rather than break a promise.
+
+:::
+
+A single warning needs no action. Persistent warnings across many trips are a fleet-sizing
+signal — read them with
+[Vehicle Utilization](../reporting/vehicle-utilization.mdx).
+
+## What this proves
+
+| Property | Demonstrated by |
+| --- | --- |
+| A missing capacity profile makes a vehicle invisible | Case 1 |
+| The provider classifies every rejection with a reason | All cases |
+| Similar-sounding reasons mean different things | Case 3 |
+| Capacity is checked at every point, not only at departure | `BR-RTE-001` |
+| A blocked trip cannot be released with its plan | `BR-PLN-002` |
+| Utilisation warns rather than blocks | `BR-RTE-002` |
+
+## Related Pages
+
+- [Unplanned Demand](../planning/unplanned-demand.mdx)
+- [Fleet and Vehicles](../configuration/fleet-and-vehicles.mdx)
+- [Trips](../execution/trips.mdx)
+- [Business Rules](../reference/business-rules.mdx)
+
+## Next
+
+[Plan Modification Before Approval](./plan-modification-before-approval.mdx).
