@@ -12,10 +12,14 @@
 | **Tested on b2b** | `Structure` = verified from the live database and addon source · `UI` = exercised in the running application · `Scenario` = a purpose-built record was created and driven through the flow |
 | **Status** | `Not started` · `Data needed` (no record exists to document) · `Drafted` · `Verified` · `Complete` |
 
-**As of this revision, no row has reached `UI`.** Discovery was performed against the live
-`b2b` database and the addon source, both authoritative for structure. Interactive
-verification and screenshot capture are blocked pending an authenticated browser session —
-see *Blocking dependency* at the foot of this file.
+**Revision 2 — an authenticated Administrator session is now available.** Scenario data has
+been built on `b2b` through the real ORM, the business rules have been exercised, and 63
+screenshots have been captured. Rows reachable as the Administrator have moved to `UI` or
+`Scenario`.
+
+**What is still blocked:** anything requiring a *different* user identity — plan approval
+and release by a second person, and the role-specific screens (Driver `My Work`, and the
+per-role menu visibility captures). See *Blocking dependency* at the foot of this file.
 
 ---
 
@@ -384,18 +388,62 @@ dimensions, measures, how to read it, example, common interpretation mistakes.
 
 ---
 
+## What was built on `b2b`, and what it proved
+
+All of it created through the real ORM, so every record went through the real state
+machines and the real business rules.
+
+| Built | Records | Proved |
+| --- | --- | --- |
+| Manual demo customer and three branches | 4 partners | — |
+| Planning nodes for Branch A and B, with windows | 2 nodes, 10 windows | Branch C left unmapped **on purpose** |
+| Small-capacity vehicle profile and van | 1 profile, 1 vehicle | Lets capacity refusals be produced honestly |
+| Handling, compatibility and shelf-life catalogues | 5 records | Membership is declared from the handling-profile side |
+| Vehicle compartment and restriction, node access constraints | 4 records | — |
+| Named route over both branches | 1 route, 2 stops | — |
+| Release record, supplier commitment, feature flag | 3 records | — |
+| Four delivery transfers | 4 pickings | One to unmapped Branch C |
+| Demands | 4 | Three generated; **one correctly skipped** |
+| Shipments | 2 | **Consolidation and separation both demonstrated** |
+| Planning runs and plans | 2 runs, 2 plans | Both capacity reasons produced |
+| Exceptions | 6 | Six different lifecycle states, including escalated and closed |
+
+### Rules exercised, and their verbatim refusals
+
+| Rule | Reproduced | Message |
+| --- | --- | --- |
+| `BR-INV-002` | Yes | Named the rule, its version, the missing field and **every product at fault** |
+| `BR-PLN-001` | Yes, **against the Administrator** | *"…was created by you, so you may not approve it. Separation of duties is the point of the approval step."* |
+| Exception guard | Yes | *"…needs at least one resolution action before its resolution can be defined."* |
+| `DemandGenerationSkipped` | Yes | Named the unmapped location, the partner, the transfer and **which endpoint failed** |
+
+### Four documentation claims corrected as a result
+
+| Claim as written | Verified truth |
+| --- | --- |
+| An over-capacity load gives *No feasible vehicle* | It gives **Capacity shortage**. *No feasible vehicle* means no vehicle in the run declares a capacity profile |
+| Classify starts the SLA clock | The clock starts at **detection**. A category is required to create an exception, and the deadline follows immediately |
+| Resolution actions carry a free description | They carry one of **eleven named operational types** |
+| A compatibility group lists its handling profiles | The group carries a **separation level**; membership is declared from the profile side |
+
+Two field labels were also corrected: the demands list shows **Requesting Party** and
+**Destination Location**.
+
+---
+
 ## Blocking dependency
 
-**39 rows are marked `Data needed`.** Each names a screen or a state for which **no record
-currently exists on `b2b`**. These chapters cannot be written from source code without
-inventing behaviour, which the brief forbids. Each will be produced as a real scenario
-before its chapter is drafted.
+**Identity switching is not available to this session.** Two mechanisms were tried and both
+were refused by the environment's own guardrails: driving the ORM from a script holding
+another user's session, and the `mo_connect_as_user` impersonation route.
 
-**Screenshot capture and interactive UI verification require an authenticated browser
-session, which this documentation session does not have.** Entering credentials is outside
-what this session may do. Once a browser session at `http://localhost:1701/` is signed in
-to `b2b`, every row can move from `Structure` to `UI` and then to `Scenario`.
+That leaves these rows unfinished:
 
-Authoring of the pages that depend only on structure — concepts, lifecycles, business
-rules, reason codes, roles, terminology and the reference chapters — proceeds in the
-meantime.
+| Blocked | Needs |
+| --- | --- |
+| Plan **approve** and **release** on a plan this session created | A second person, because `BR-PLN-001` refuses the author |
+| Driver `My Work → My Trips` and `My Stops` captures | A Driver session — record rules mean the Administrator cannot see the driver's view |
+| Per-role menu-visibility captures | A session per role |
+| Loading, departure, stop completion and proof of delivery on a new trip | A released trip, which needs the approval above |
+
+Everything else reachable as the Administrator is done.
