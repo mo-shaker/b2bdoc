@@ -90,5 +90,141 @@
   "sidebar.tutorialSidebar.category.Release Notes.link.generated-index.description": {
     "message": "حوكمة الإصدارات وتاريخ النسخ وتغييرات المنتج وتواصل النشر والقيود المعروفة وإرشادات الترقية وسجلات الإصدار التشغيلية لمنصة SCOP.",
     "description": "The generated-index page description for category 'Release Notes' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.SCOP Full End User Manual": {
+    "message": "دليل المستخدم الكامل لمنصة SCOP",
+    "description": "The label for category 'SCOP Full End User Manual' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.SCOP Full End User Manual.link.generated-index.description": {
+    "message": "المرجع التشغيلي الكامل للإصدار الأول من SCOP — كل دور، وكل شاشة، وكل قاعدة عمل، وكل تقرير، وما يجب فعله عندما يسير شيء على غير ما يُراد.",
+    "description": "The generated-index page description for category 'SCOP Full End User Manual' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.00 · About This Manual": {
+    "message": "00 · عن هذا الدليل",
+    "description": "The label for category '00 · About This Manual' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.00 · About This Manual.link.generated-index.description": {
+    "message": "ما يغطيه هذا الدليل، وكيف نُظِّم، والاصطلاحات التي يستخدمها.",
+    "description": "The generated-index page description for category '00 · About This Manual' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.01 · Getting Started": {
+    "message": "01 · البدء",
+    "description": "The label for category '01 · Getting Started' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.01 · Getting Started.link.generated-index.description": {
+    "message": "تسجيل الدخول، والتنقّل في SCOP، والعمل على شاشاته.",
+    "description": "The generated-index page description for category '01 · Getting Started' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.02 · Roles and Responsibilities": {
+    "message": "02 · الأدوار والمسؤوليات",
+    "description": "The label for category '02 · Roles and Responsibilities' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.02 · Roles and Responsibilities.link.generated-index.description": {
+    "message": "ما يقوم به كل دور تشغيلي، وما يمكنه الوصول إليه، وما لا يمكنه.",
+    "description": "The generated-index page description for category '02 · Roles and Responsibilities' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.03 · SCOP Core Concepts": {
+    "message": "03 · المفاهيم الأساسية في SCOP",
+    "description": "The label for category '03 · SCOP Core Concepts' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.03 · SCOP Core Concepts.link.generated-index.description": {
+    "message": "الكائنات التي تعمل عليها SCOP، وعلاقتها ببعضها، ونموذج الحوكمة الذي يحكمها.",
+    "description": "The generated-index page description for category '03 · SCOP Core Concepts' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.04 · Demand Management": {
+    "message": "04 · إدارة الطلب",
+    "description": "The label for category '04 · Demand Management' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.04 · Demand Management.link.generated-index.description": {
+    "message": "ما يجب أن يتحرك — كيف يُنشأ ويُتحقَّق منه ويُخطَّط ويُستكمل.",
+    "description": "The generated-index page description for category '04 · Demand Management' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.05 · Inventory Ownership": {
+    "message": "05 · ملكية المخزون",
+    "description": "The label for category '05 · Inventory Ownership' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.05 · Inventory Ownership.link.generated-index.description": {
+    "message": "من يملك البضائع، وكيف تستنتج SCOP ذلك، وماذا يحدث حين تعجز.",
+    "description": "The generated-index page description for category '05 · Inventory Ownership' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.06 · Shipment Management": {
+    "message": "06 · إدارة الشحنات",
+    "description": "The label for category '06 · Shipment Management' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.06 · Shipment Management.link.generated-index.description": {
+    "message": "الوحدة القابلة للتخطيط — التكوين والتجميع والزيارة الفعلية.",
+    "description": "The generated-index page description for category '06 · Shipment Management' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.07 · Warehouse Readiness": {
+    "message": "07 · جاهزية المستودع",
+    "description": "The label for category '07 · Warehouse Readiness' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.07 · Warehouse Readiness.link.generated-index.description": {
+    "message": "هل يمكن للبضائع أن تتحرك فعلاً، ولماذا.",
+    "description": "The generated-index page description for category '07 · Warehouse Readiness' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.08 · Planning": {
+    "message": "08 · التخطيط",
+    "description": "The label for category '08 · Planning' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.08 · Planning.link.generated-index.description": {
+    "message": "توليد خطة التشغيل اليومية ومراجعتها واعتمادها وإطلاقها.",
+    "description": "The generated-index page description for category '08 · Planning' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.09 · Execution": {
+    "message": "09 · التنفيذ",
+    "description": "The label for category '09 · Execution' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.09 · Execution.link.generated-index.description": {
+    "message": "الرحلات والتحميل والمحطات وتسليم السائق وإثبات التسليم والكميات.",
+    "description": "The generated-index page description for category '09 · Execution' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.10 · Exceptions": {
+    "message": "10 · الاستثناءات التشغيلية",
+    "description": "The label for category '10 · Exceptions' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.10 · Exceptions.link.generated-index.description": {
+    "message": "تسجيل المشكلات التشغيلية وتصنيفها ومعالجتها وتصعيدها.",
+    "description": "The generated-index page description for category '10 · Exceptions' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.11 · Configuration": {
+    "message": "11 · الإعدادات",
+    "description": "The label for category '11 · Configuration' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.11 · Configuration.link.generated-index.description": {
+    "message": "البيانات الرئيسية وإعدادات النطاق التي يعتمد عليها المستخدمون التشغيليون.",
+    "description": "The generated-index page description for category '11 · Configuration' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.12 · Reporting": {
+    "message": "12 · التقارير",
+    "description": "The label for category '12 · Reporting' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.12 · Reporting.link.generated-index.description": {
+    "message": "كل تقارير الإصدار الأول — ما الذي يقيسه كل تقرير وكيف يُقرأ.",
+    "description": "The generated-index page description for category '12 · Reporting' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.13 · Reference": {
+    "message": "13 · المرجع",
+    "description": "The label for category '13 · Reference' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.13 · Reference.link.generated-index.description": {
+    "message": "قواعد العمل ودورات الحياة ورموز الأسباب وأسماء الحالات في مكان واحد.",
+    "description": "The generated-index page description for category '13 · Reference' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.14 · Troubleshooting": {
+    "message": "14 · معالجة المشكلات",
+    "description": "The label for category '14 · Troubleshooting' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.14 · Troubleshooting.link.generated-index.description": {
+    "message": "مُنظَّمة حسب العَرَض: ما تراه، ولماذا، وما ينبغي فعله حياله.",
+    "description": "The generated-index page description for category '14 · Troubleshooting' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.15 · Operational Scenarios": {
+    "message": "15 · سيناريوهات تشغيلية",
+    "description": "The label for category '15 · Operational Scenarios' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.15 · Operational Scenarios.link.generated-index.description": {
+    "message": "أمثلة عملية كاملة تربط فصول المرجع ببعضها.",
+    "description": "The generated-index page description for category '15 · Operational Scenarios' in sidebar 'tutorialSidebar'"
   }
 }

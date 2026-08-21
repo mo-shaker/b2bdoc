@@ -1,0 +1,133 @@
+---
+id: terminology
+title: المصطلحات
+description: كل مصطلح في SCOP يستخدمه هذا الدليل، في سطر واحد لكل مصطلح، مع المقابل العربي المعتمد.
+sidebar_label: المصطلحات
+sidebar_position: 5
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+
+# المصطلحات
+
+<DocumentInfo
+  category="دليل المستخدم"
+  audience={['عمليات', 'مستودعات', 'تخطيط', 'إدارة', 'اختبار قبول المستخدم']}
+  status="Draft"
+  version="1.0"
+  owner="فريق المنتج"
+  updated="أغسطس 2026"
+  readingTime="6 دقائق"
+/>
+
+مصطلح واحد لكل مفهوم، يُستخدم باتساق في الدليل كله. ويُبقي هذا الجدول الاسم الإنجليزي بين قوسين ليستطيع القارئ مطابقته على الواجهة الإنجليزية.
+
+## كائنات التشغيل
+
+| المصطلح | المعنى في سطر واحد | مشروح في |
+| --- | --- | --- |
+| **الطلب (Demand)** | ما يجب أن يتحرك | [إدارة الطلب](../demand/demand-management.mdx) |
+| **سطر الطلب (Demand Line)** | منتج وكمية داخل طلب، يحمل مالكه الخاص | [إدارة الطلب](../demand/demand-management.mdx) |
+| **التخصيص (Allocation)** | المخزون المحدَّد المحجوز لسطر طلب | [أهلية التخطيط](../demand/planning-eligibility.mdx) |
+| **الشحنة (Shipment)** | الوحدة القابلة للتخطيط — طلب أو أكثر يتحركان معاً | [إدارة الشحنات](../shipments/shipment-management.mdx) |
+| **سطر الشحنة (Shipment Line)** | منتج وكمية داخل شحنة، يمكن تتبّعه إلى طلبه | [إدارة الشحنات](../shipments/shipment-management.mdx) |
+| **جاهزية المستودع (Warehouse Readiness)** | هل يمكن للبضائع أن تتحرك فعلاً، ولماذا | [جاهزية المستودع](../readiness/warehouse-readiness.mdx) |
+| **دورة التخطيط (Planning Run)** | محاولة واحدة لبناء خطة، بمدخلاتها وجوابها محفوظين | [دورات التخطيط](../planning/planning-runs.mdx) |
+| **الخطة اليومية (Daily Plan)** | خطة التشغيل المقترحة ليوم واحد | [الخطة اليومية](../planning/the-daily-plan.mdx) |
+| **الرحلة (Trip)** | مركبة واحدة وسائق ينفّذان سلسلة محطات | [الرحلات](../execution/trips.mdx) |
+| **المحطة (Stop)** | زيارة فعلية واحدة أثناء الرحلة | [المحطات](../execution/stops.mdx) |
+| **سطر المحطة (Stop Line)** | منتج واحد يُسلَّم أو يُستلَم في محطة | [المحطات](../execution/stops.mdx) |
+| **الحمولة (Load)** | ما هو على المركبة فعلياً، متتبَّعاً من الاقتراح إلى الإغلاق | [عمليات التحميل](../execution/loading-operations.mdx) |
+| **مهمة التحميل (Loading Task)** | عمل المستودع لتحميل شحنة واحدة على مركبة | [عمليات التحميل](../execution/loading-operations.mdx) |
+| **الطلب غير المخطَّط (Unplanned Demand)** | طلب لم تستطع الدورة إدراجه، مع السبب | [الطلب غير المخطَّط](../planning/unplanned-demand.mdx) |
+| **الاستثناء التشغيلي (Exception)** | مشكلة تشغيلية مُسجَّلة تحتاج معالجة | [إدارة الاستثناءات](../exceptions/exception-management.mdx) |
+| **إثبات التسليم (Proof of Delivery)** | التوقيع والصور والإحداثيات المُلتقطة عند المحطة | [إثبات التسليم](../execution/proof-of-delivery.mdx) |
+
+## البيانات الرئيسية والإعدادات
+
+| المصطلح | المعنى في سطر واحد | مشروح في |
+| --- | --- | --- |
+| **عقدة التخطيط (Planning Node)** | مكان فعلي تستطيع SCOP التوجّه إليه، بإحداثيات ومنطقة زمنية وساعات عمل | [عقد التخطيط](../configuration/planning-nodes.mdx) |
+| **التزام الخدمة (Service Commitment)** | ما وُعِد به العميل — تاريخ أو نافذة زمنية | [التزامات الخدمة](../configuration/service-commitments.mdx) |
+| **التزام المورّد (Supplier Commitment)** | ما وعدنا به المورّد | [التزامات الخدمة](../configuration/service-commitments.mdx) |
+| **نشاط المحطة (Stop Activity)** | نوع العمل في المحطة — تسليم أو استلام وما إليه | [المسارات وأنشطة المحطات](../configuration/routes-and-stop-activities.mdx) |
+| **المسار (Route)** | تسلسل مُسمّى ومتكرر من العقد | [المسارات وأنشطة المحطات](../configuration/routes-and-stop-activities.mdx) |
+| **مصفوفة السفر (Travel Matrix)** | المسافات والمدد المخزَّنة بين العقد | [عقد التخطيط](../configuration/planning-nodes.mdx) |
+| **ملف السعة (Capacity Profile)** | الأبعاد التي تُقاس بها المركبة — الوزن والحجم | [الكتالوجات](../configuration/catalogues.mdx) |
+| **ملف المناولة (Handling Profile)** | كيف يجب مناولة المنتج | [الكتالوجات](../configuration/catalogues.mdx) |
+| **مجموعة التوافق (Compatibility Group)** | ما لا يجوز أن يسافر معاً | [الكتالوجات](../configuration/catalogues.mdx) |
+| **ملف مدة الصلاحية (Shelf-Life Profile)** | قواعد العمر المتبقي للمنتج | [الكتالوجات](../configuration/catalogues.mdx) |
+| **إسناد المورد (Resource Assignment)** | مركبة أو سائق محجوز لرحلة — مرشَّح أو محجوز أو مُلتزَم به | [الأسطول والمركبات](../configuration/fleet-and-vehicles.mdx) |
+| **نطاق التجربة (Pilot Scope)** | أي أنواع عمليات Odoo تتفاعل معها SCOP، ومن متى | [نطاق التجربة](../configuration/pilot-scope.mdx) |
+
+## الحوكمة
+
+| المصطلح | المعنى في سطر واحد | مشروح في |
+| --- | --- | --- |
+| **قاعدة العمل (Business Rule)** | سياسة مُسمّاة ومُصدَّرة تفرضها SCOP في لحظة محددة | [قواعد العمل](../reference/business-rules.mdx) |
+| **البوابة (Gate)** | اللحظة التي تُقيَّم فيها القاعدة — مثل `plan_approve` | [نموذج الحوكمة](../concepts/the-governance-model.mdx) |
+| **تقييم القاعدة (Rule Evaluation)** | السجل المحفوظ لفحص قاعدة واحدة وجوابه | [نموذج الحوكمة](../concepts/the-governance-model.mdx) |
+| **إعفاء القاعدة (Rule Exemption)** | تنازل مُصرَّح به ومحدَّد المدة عن قاعدة | [نموذج الحوكمة](../concepts/the-governance-model.mdx) |
+| **صلاحية الاعتماد (Approval Authority)** | أي مجموعة تجوز لها أي إجراء على أي كائن | [نموذج الحوكمة](../concepts/the-governance-model.mdx) |
+| **رمز السبب (Reason Code)** | مُدخَل من مفردات مضبوطة يشرح سبب ما حدث | [رموز الأسباب](../reference/reason-codes.mdx) |
+| **سبب التجاوز (Override Reason)** | التبرير المُسجَّل للخروج عن التوصية | [الخطة اليومية](../planning/the-daily-plan.mdx) |
+| **ملف الأهداف (Objective Profile)** | الأهداف المرتَّبة التي يُحسِّن التخطيط تجاهها | [نظرة عامة على التخطيط](../planning/planning-overview.mdx) |
+| **الملكية (Ownership)** | من يملك البضائع التي تُنقل | [ملكية المخزون](../ownership/inventory-ownership.mdx) |
+
+## التتبّع
+
+| المصطلح | المعنى في سطر واحد | مشروح في |
+| --- | --- | --- |
+| **المعرِّف التجاري (Business ID)** | المرجع المقروء الذي تطبعه SCOP — `DMD-` و`SHP-` و`PLN-` و`TRP-` | [الهوية والتتبّع](../concepts/identity-and-traceability.mdx) |
+| **مرجع الارتباط (Correlation Reference)** | المعرِّف المشترك بين كل ما جرى في عملية واحدة | [الهوية والتتبّع](../concepts/identity-and-traceability.mdx) |
+| **حدث المجال (Domain Event)** | حقيقة مُسجَّلة عمّا فعلته SCOP أو امتنعت عنه | [الهوية والتتبّع](../concepts/identity-and-traceability.mdx) |
+| **حدث التنفيذ (Execution Event)** | حقيقة مُسجَّلة عمّا حدث فعلياً أثناء الرحلة | [الهوية والتتبّع](../concepts/identity-and-traceability.mdx) |
+| **الخط الزمني للعملية (Operation Timeline)** | إعادة بناء عملية واحدة من مرجع ارتباطها | [الخط الزمني للعملية](../reporting/operation-timeline.mdx) |
+
+## القياس
+
+| المصطلح | المعنى في سطر واحد | مشروح في |
+| --- | --- | --- |
+| **تغطية الخطة (Plan Coverage)** | هل خطّطنا كل ما كان قابلاً للتخطيط؟ | [تغطية الخطة](../reporting/plan-coverage.mdx) |
+| **OTIF** | التسليم في الوقت وبالكامل | [OTIF](../reporting/otif.mdx) |
+| **جودة القرار (Decision Quality)** | مدى تكرار قبول التوصية أو تجاوزها | [جودة القرار](../reporting/decision-quality.mdx) |
+| **استغلال المركبات (Vehicle Utilization)** | كم كانت المركبة ممتلئة فعلاً، عند كل نقطة من المسار | [استغلال المركبات](../reporting/vehicle-utilization.mdx) |
+| **تقادم الاستثناءات (Exception Ageing)** | منذ متى والمشكلات المفتوحة مفتوحة، مقابل اتفاقية مستوى الخدمة | [تقادم الاستثناءات](../reporting/exception-ageing.mdx) |
+| **الحركة اليتيمة (Orphan Move)** | حركة مخزون على تحويل مولِّد للطلب لا يغطيها أي سطر طلب | [تقارير جودة البيانات](../reporting/data-quality-reports.mdx) |
+
+## أنواع الطلب ومصادره
+
+تصنّف SCOP كل طلب مرتين: بحسب **نوع الحركة**، وبحسب **مصدر المتطلب**. وكلاهما يُضبط تلقائياً من أدلة Odoo نفسه.
+
+### نوع الطلب (Demand Type) — نوع الحركة
+
+| القيمة | المعنى |
+| --- | --- |
+| **Delivery** | بضائع تخرج إلى عميل أو فرع |
+| **Collection** | بضائع تُستلم |
+| **Transfer** | حركة داخلية |
+| **Return** | بضائع عائدة |
+| **Inbound** | بضائع واردة من مورّد |
+
+### نوع المصدر (Origin Type) — من أين جاء المتطلب
+
+| القيمة | يُضبط حين |
+| --- | --- |
+| **Customer Order** | خلف التحويل أمر بيع |
+| **Procurement Requirement** | خلف التحويل أمر شراء |
+| **Return** | حركات التحويل مرتبطة بحركة سابقة |
+| **Inter-Warehouse Movement** | تحويل داخلي بين مستودعين مختلفين |
+| **Internal Replenishment** | تحويل داخلي داخل مستودع واحد |
+| **Supplier Collection** | تحويل وارد بلا أمر شراء |
+| **Branch Request** | تحويل صادر بلا أمر بيع |
+| **Customer-Owned Movement** | يُضبط يدوياً حيث تكون البضائع المنقولة للعميل |
+| **Urgent Request** | يُضبط يدوياً |
+| **Corrective Follow-Up** | يُضبط يدوياً |
+
+والقيم الثلاث الأخيرة لا تُستنتج أبداً. وتبقى قابلة للتعديل ما دام الطلب في **Draft**.
+
+## صفحات ذات صلة
+
+- [نموذج الكائنات](../concepts/the-object-model.mdx) — كيف ترتبط هذه الكائنات
+- [معجم الحالات](../reference/status-glossary.mdx) — كل اسم حالة
+- [رموز الأسباب](../reference/reason-codes.mdx) — رموز الأسباب الواحد والخمسون
