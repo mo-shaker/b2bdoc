@@ -78,7 +78,7 @@ By the end of this guide you will have taken **one customer delivery through the
 | Take one delivery from order to completion | [Customer Delivery Walkthrough](./walkthrough/create-the-order.mdx) |
 | Understand why SCOP sometimes refuses to proceed | [When Things Do Not Go to Plan](./exceptions/unplanned-demand.mdx) |
 | Find the six reports a new user needs | [Reports You Should Know](./reports-you-should-know.mdx) |
-| Test the platform yourself in 15 steps | [End-to-End Test Checklist](./end-to-end-test-checklist.mdx) |
+| Test the platform yourself, step by step | [SCOP End-to-End Test Checklist](./end-to-end-test-checklist.mdx) |
 | Tell today's capability from tomorrow's plan | [Release 1 Boundaries](./release-1-boundaries.mdx) |
 
 ## What this guide is not
@@ -97,7 +97,7 @@ You will need:
 
 :::warning[Some SCOP roles also need Odoo rights]
 
-SCOP is an overlay on Odoo, so a role that does Odoo's own work needs Odoo's own groups: **Fleet / Administrator** and **Employees / Officer** for planners, because the planning wizard reads vehicles and assigning a driver reads employees, and **Inventory / User** for whoever validates transfers. See [Roles and Responsibilities](./roles-and-responsibilities.mdx).
+SCOP is an overlay on Odoo, so a role that does Odoo's own work needs Odoo's own groups: **Fleet / Administrator** and **Employees / Officer** for planners, because the planning wizard reads vehicles and assigning a driver reads employees, and **Inventory / User** for planners and for whoever validates transfers, because resolving ownership and marking a demand eligible read Odoo's reservations. No Sales permission is needed to open or operate a demand. See [Roles and Responsibilities](./roles-and-responsibilities.mdx).
 
 Simply *reading* a SCOP screen does not require them.
 

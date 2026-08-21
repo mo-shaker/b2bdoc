@@ -1,14 +1,14 @@
 ---
 id: end-to-end-test-checklist
-title: End-to-End Test Checklist
-description: Test SCOP in 15 steps — a compact checklist with the expected result of each step, verified against the running system.
-sidebar_label: End-to-End Test Checklist
+title: SCOP End-to-End Test Checklist
+description: A compact checklist with the expected result of every step, verified against the running system.
+sidebar_label: SCOP End-to-End Test Checklist
 sidebar_position: 7
 ---
 
 import DocumentInfo from '@site/src/components/DocumentInfo';
 
-# Test SCOP in 15 Steps
+# SCOP End-to-End Test Checklist
 
 <DocumentInfo
   category="Quick Start"
@@ -28,8 +28,7 @@ import DocumentInfo from '@site/src/components/DocumentInfo';
 | A **Planner** and an **Operations Manager** account | The whole cycle runs on operational roles; no administrator is needed at any step |
 | A warehouse inside the pilot scope | SCOP only creates demand for operations a pilot-scope record has switched on |
 | Odoo **Fleet / Administrator** and **Employees / Officer** for the planner | The planning wizard reads vehicles, and assigning a driver reads employees. *Fleet / Officer* is **not** enough — it carries a record rule limiting the user to vehicles they drive themselves |
-| Odoo **Inventory / User** for whoever validates transfers | Validating a transfer is Odoo's own work. Reading a SCOP screen does not need Inventory rights |
-| Odoo **Sales / User: All Documents** for the planner | Currently required to open a demand raised from a Sales Order — see [Release 1 Boundaries](./release-1-boundaries.mdx) |
+| Odoo **Inventory / User** for the planner, and for whoever validates transfers | *Opening* a SCOP screen needs no Inventory rights. *Operating* a demand does: resolving ownership and marking it eligible refresh allocation from Odoo's own reservations. Validating a transfer is Odoo's own work |
 | Stock on hand for the test products | So the transfer can reserve, and readiness can become plannable |
 | A customer whose branch exists as a SCOP planning node | A destination without a node produces no demand — the reason is recorded as a `DemandGenerationSkipped` event |
 
@@ -41,7 +40,8 @@ import DocumentInfo from '@site/src/components/DocumentInfo';
 | 2 | Sales | Confirm the Sales Order | Sales Order confirmed; Odoo creates the Delivery Order |
 | 3 | Planner | `SCOP → Operations → Demands` | A Demand exists in **Draft**, referencing the delivery order. **Nobody created it by hand** |
 | 4 | Planner | Open the demand, **Submit**, then **Validate** | **Refused** by `BR-INV-002` while ownership is unresolved — the rule and the products are named |
-| 5 | Warehouse | Record inventory ownership, then **Resolve Ownership** on the demand | Each line shows an owner and ownership source `stock_move_line` |
+| 5 | Warehouse | Record the owner on the inventory itself | The stock now says who owns it |
+| 5b | Planner | Press **Resolve Ownership** on the demand | Each line shows an owner and ownership source `stock_move_line` |
 | 6 | Planner | **Validate**, then **Mark Eligible** | Demand reaches **Eligible for Planning** |
 | 7 | Planner | `SCOP → Operations → Shipments` | A shipment **already exists**. Marking the demand eligible formed it — no button was pressed |
 | 8 | Warehouse | Open the shipment, click **Stage Everything** | Readiness becomes **Ready**; evidence reads *"Everything is staged."* |
@@ -94,8 +94,6 @@ These prove the controls work. Every one was re-run on `b2b` for this revision.
 Earlier revisions of this checklist listed eight defects to expect — an empty Loading Tasks list, `Access Error` on the driver's **Depart**, **Create Shipment** and **Approve** refusing the roles that own them, a trip header with no buttons, `10000%` coverage, an empty OTIF and a crash on **Group By ▸ Status**.
 
 All of them are fixed and covered by automated tests, and this revision re-confirmed each on `b2b`. If you meet any of them, that **is** a defect — raise it.
-
-Two **new** issues were found while re-running the cycle, and are described in [Release 1 Boundaries](./release-1-boundaries.mdx): a planner needs Odoo Sales read access to open a demand, and a consolidated shipment still produces one stop per demand.
 
 :::
 
