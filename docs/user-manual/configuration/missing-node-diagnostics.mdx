@@ -7,6 +7,7 @@ sidebar_position: 2
 ---
 
 import DocumentInfo from '@site/src/components/DocumentInfo';
+import Screenshot from '@site/src/components/Screenshot';
 
 # Missing Node Diagnostics
 
@@ -86,6 +87,12 @@ and the payload alongside it:
 
 The payload is the useful part. It names the exact location that could not be resolved, so
 you are not guessing which end of the movement is at fault.
+<Screenshot
+  src="user-manual/85-domain-events-skipped.png"
+  alt="The SCOP Domain Events list showing DemandGenerated and DemandGenerationSkipped events with their subject, state and message."
+  caption="Both markers side by side on b2b. The skip is recorded as its own event, which is what makes the transfer recoverable by re-saving it."
+/>
+
 
 ## Fixing it
 
