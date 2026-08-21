@@ -34,6 +34,8 @@ A second requirement on the **same route and the same required date** joins the 
 
 **Create Shipment** is still on the demand form as a re-run, for a demand made eligible before this release or one whose shipment was cancelled. Pressing it on a normal demand returns the shipment that already exists.
 
+So **one demand does not necessarily equal one shipment**, and equally **one consolidated shipment does not create duplicate customer stops**: see the note below.
+
 :::
 
 **Navigate to**
@@ -53,9 +55,35 @@ A shipment exists in state **Ready**, with a readiness of **Conditionally Ready*
 
 <Screenshot
   src="quick-start/08-shipment-list.png"
-  alt="SCOP Shipments list showing SHP-2026-000001 for SCOP Quick Start Demo Customer with readiness Conditionally Ready."
-  caption="SHP-2026-000001 — 2.96 kg, 0.24 m³, 0% staged, readiness Conditionally Ready."
+  alt="SCOP Shipments list showing several shipments for the demo customer with their weight, volume, staged percentage and readiness."
+  caption="One row per shipment, with its weight, volume and readiness. SHP-2026-000006 is the consolidated one — 172 kg across two demands, Conditionally Ready until it is staged. (The Staged % column currently renders a hundred times too large; see Release 1 Boundaries.)"
 />
+
+---
+
+## One shipment, one visit
+
+Consolidation is about the **physical visit**, not the customer's name.
+
+When compatible demands are consolidated into one shipment and represent the same physical customer visit, SCOP creates **one delivery stop** containing the combined work. Different branches, locations, dates, service windows, or activities remain separate stops.
+
+The stop is one arrival, one service period, one departure, one proof of delivery — so two requirements only share it when arriving once can actually satisfy both. Two orders for the same commercial customer may still be two stops: a different branch is a different node, a pickup is not a delivery, and two different committed windows are two different promises that one arrival cannot keep.
+
+:::info[Shared stop, separate requirements]
+
+A shared stop does **not** merge the demands into one fulfilment record:
+
+```text
+One physical Stop
+  → multiple delivery lines
+    → each line still traceable to its own Demand and its own Odoo transfer
+```
+
+Actual quantities continue to come from the relevant Odoo transfers, so within a single visit `Demand A` can be fully delivered while `Demand B` is short and takes a backorder. One stop outcome does not force every demand into the same fulfilment state.
+
+:::
+
+Verified on `b2b`: two orders for the same branch and date produced `DMD-2026-000010` and `DMD-2026-000011`, one shipment `SHP-2026-000006`, and a trip with exactly two stops — the warehouse pickup and **one** customer delivery carrying a line for each demand.
 
 ---
 

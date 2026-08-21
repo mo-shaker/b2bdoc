@@ -55,10 +55,10 @@ import DocumentInfo from '@site/src/components/DocumentInfo';
 
 | دور SCOP | يحتاج كذلك إلى |
 | --- | --- |
-| أي دور تشغيلي في SCOP | **Inventory → User** |
+| Planner / Dispatcher | **Inventory → User** — لأن حسم الملكية وتأهيل الطلب يُحدِّثان التخصيص من حجوزات Odoo |
+| المستودع ومن يعتمد التحويلات | **Inventory → User** |
 | Planner / Dispatcher وOperations Manager | **Fleet → Administrator** |
 | Planner / Dispatcher | **Employees → Officer** — لأن إسناد السائق يقرأ سجلات الموظفين؛ وبدونها يظل حقل **Driver** يدور على *Loading…* ولا يعرض أحداً |
-| Planner / Dispatcher | **Sales → User: All Documents** — لازمة حالياً لفتح طلب ناشئ عن أمر بيع |
 
 ولم تعد قراءة شاشة في SCOP تتطلب صلاحيات المخزون: فالكميات المسلَّمة سجلٌّ يخصّ Odoo وSCOP تعكسه فحسب، لذا يقرأ نموذج الطلب وشاشة محطة السائق تلك الكميات نيابةً عن السجل.
 

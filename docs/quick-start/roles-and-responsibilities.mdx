@@ -57,11 +57,13 @@ SCOP is an overlay on Odoo, so a role that has to do Odoo's own work needs Odoo'
 | --- | --- | --- |
 | Planner / Dispatcher, Operations Manager | **Fleet → Administrator** | The planning wizard reads vehicles. Odoo's *Fleet → Officer* is **not** enough — it carries a record rule narrowing the user to the vehicles they personally drive, so the wizard shows an empty list and the plan comes back with *no feasible vehicle* |
 | Planner / Dispatcher | **Employees → Officer** | Assigning a driver reads employee records. Without it the **Driver** field spins on *Loading…* and never offers anyone |
-| Planner / Dispatcher | **Sales → User: All Documents** | Currently needed to open a demand raised from a Sales Order — see [Release 1 Boundaries](./release-1-boundaries.mdx) |
+| Planner / Dispatcher | **Inventory → User** | Resolving ownership and marking a demand eligible refresh allocation from Odoo's reservations |
 | Warehouse, and whoever validates transfers | **Inventory → User** | Validating a delivery order is Odoo's act, not SCOP's |
 | Driver | *nothing* | Deliberately. A driver with Odoo Inventory could read every transfer in the company |
 
-Reading a SCOP screen no longer requires Inventory rights. Delivered quantities are Odoo's record and SCOP only mirrors them, so the Demand form and the driver's stop screen read them on the record's behalf.
+*Opening* a SCOP screen requires no Odoo rights at all. Delivered quantities are Odoo's record and SCOP only mirrors them, so the Demand form and the driver's stop screen read them on the record's behalf — and the demand shows its **Source Document** number without giving anyone access to the order behind it.
+
+*Operating* a demand is different: resolving ownership and marking it eligible refresh allocation against Odoo's reservations, which is why the planner needs Inventory → User. **No Sales permission is required at any point.**
 
 :::
 

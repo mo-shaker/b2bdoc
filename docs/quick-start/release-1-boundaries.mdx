@@ -1,7 +1,7 @@
 ---
 id: release-1-boundaries
 title: Release 1 Boundaries
-description: What SCOP does and does not do in Release 1, and the verified open items a new user will meet during the walkthrough.
+description: What SCOP does and does not do in Release 1, the prerequisites it does not enforce, and the deliberate limits a new user should know.
 sidebar_label: Release 1 Boundaries
 sidebar_position: 8
 ---
@@ -54,11 +54,13 @@ The wider SCOP vision includes predicted travel times, arrival estimates and ris
 | Coordinates, timezone and opening hours on each node | Demand becomes unplannable with *missing required data* |
 | An `https` deployment | Delivery coordinates record as null with a reason |
 
-:::note[Odoo Inventory rights are no longer required to read a SCOP screen]
+:::note[Reading a SCOP screen needs no Odoo rights; operating a demand needs Inventory]
 
 Delivered quantities are Odoo's record, and SCOP only mirrors them. The Demand form and the driver's stop screen now read those quantities on the record's behalf, so an operational SCOP user no longer needs Odoo's **Inventory → User** group simply to open a SCOP screen — and a driver, who must never be able to read every transfer in the company, does not need it at all.
 
-They still need it to do Odoo's own work, such as validating a transfer.
+A planner still needs **Inventory → User** to *operate* a demand — resolving ownership and marking it eligible refresh allocation against Odoo's reservations — and whoever validates a transfer needs it because that is Odoo's own work.
+
+No Sales permission is required at any point. The demand carries the source order's number, captured when it was generated, so the planner reads **Source Document** without access to the order itself.
 
 :::
 
@@ -70,9 +72,17 @@ Each skip is recorded as a queryable event under `SCOP → Technical → Domain 
 
 Map the location to a SCOP planning node and re-save the transfer; the demand is then created normally. The skip marker is kept apart from the generation marker precisely so that it never reads as *"already handled"*.
 
-## Open items verified during this walkthrough
+## Known display issue
 
-The Release 1 walkthrough reproduced a set of defects on the running application. **They have since been fixed and covered by automated tests**, and this page previously described the workarounds they required. Those workarounds are gone, and so are the statements that recommended them:
+| Item | Effect | What to do |
+| --- | --- | --- |
+| **Staged % renders a hundred times too large** | `SHP-…` rows on `SCOP → Operations → Shipments`, and the same field on the shipment form, show `10000%` where they mean `100%`. The stored value is correct — only the column is scaled twice | Read it as a hundredth, or use **Readiness** instead, which is computed from the same evidence and is not affected. Plan Coverage is unaffected — it was corrected earlier |
+
+This is cosmetic: readiness, planning and every measure downstream use the underlying value, which is right.
+
+## Defects found during UAT, now fixed
+
+Earlier Quick Start revisions documented defects discovered during UAT, together with the workarounds they required. **All of them have been remediated and covered by automated tests, and re-verified on `b2b` for this revision.** The workarounds are gone, and so are the instructions that recommended them. The table is kept as a record of what changed, not as a list of things to expect:
 
 | Fixed | What it means now |
 | --- | --- |
@@ -94,15 +104,6 @@ Expect a pilot database upgraded from Release 1 to show those older operations a
 
 :::
 
-## Open items found in this synchronisation round
-
-Both were reproduced on `b2b` while re-running the approved Golden Path.
-
-| Item | Effect | Workaround |
-| --- | --- | --- |
-| **A planner cannot open a demand raised from a Sales Order** | The demand form raises `Access Error — You are not allowed to access 'Sales Order'`. The form does not render, so Submit, Validate and Mark Eligible are unreachable. `scop.demand.source_document_ref` is a reference field that Odoo resolves with the calling user's rights; the remediation round added `sudo()` to the neighbouring transfer and quantity computes but not to this one | Grant the planner Odoo **Sales → User: All Documents** until the reference is resolved on the record's behalf |
-| **A consolidated shipment still produces one stop per demand** | Two demands correctly merge into one shipment, but the trip then carries one stop per demand at the same address — the driver is routed to the same customer twice. The cycle completes and every state is correct; the routing saving consolidation exists to produce is not realised | None needed for the walkthrough. Expect duplicate-looking cards in **My Stops** |
-
 ## What is solid today
 
 It is worth being equally precise about what was verified working:
@@ -117,6 +118,8 @@ It is worth being equally precise about what was verified working:
 - **Actual quantities flow back from the validated Odoo transfer** onto the stop and the demand, exactly as the design intends.
 - **`BR-EXE-001` holds**, including for partial deliveries, and asks for the reason at the moment the driver can answer.
 - **Proof of delivery** captures signature, photographs and coordinates.
+- **A SCOP screen never needs rights over the model a demand came from.** The source order's number is captured on the demand when it is generated, so a planner reads it without any Sales permission — and gains none.
+- **A consolidated shipment is one physical visit.** Requirements that share a node, an activity, a date and a committed window become one stop, carrying lines traceable to every demand and every Odoo transfer behind them.
 - **The whole cycle runs on operational roles.** Customer Service, Planner, Warehouse, Operations Manager and Driver complete one operating day between them, with no administrator at any step.
 - **Loading is measured.** Actual loading duration is recorded per shipment, and an unfinished loading task keeps the vehicle at the gate.
 - **The chain closes itself.** Plan release, departure and the last stop's outcome carry the trip, its shipments and its demands to completion without anyone pushing a state by hand.
@@ -124,5 +127,5 @@ It is worth being equally precise about what was verified working:
 ## Related Pages
 
 - [Overview](./overview.mdx)
-- [End-to-End Test Checklist](./end-to-end-test-checklist.mdx)
+- [SCOP End-to-End Test Checklist](./end-to-end-test-checklist.mdx)
 - [Release Management](../release-notes/release-management.mdx)
