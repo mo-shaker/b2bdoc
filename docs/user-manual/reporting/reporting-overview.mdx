@@ -1,0 +1,129 @@
+---
+id: reporting-overview
+title: Reporting Overview
+description: Which of the eleven Release 1 reports answers which question, who reads it, and the conventions that apply to all of them.
+sidebar_label: Reporting Overview
+sidebar_position: 1
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+
+# Reporting Overview
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Management', 'Operations', 'Planning', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="5 min"
+/>
+
+**Navigate to**
+`SCOP → Reporting`
+
+## Which report answers which question
+
+| Question | Report | Who reads it |
+| --- | --- | --- |
+| Did we plan what could be planned? | [Plan Coverage](./plan-coverage.mdx) | Planner, Management |
+| What could we not plan, and why? | [Unplanned Demand](./unplanned-demand-report.mdx) | Planner |
+| How full were the vehicles? | [Vehicle Utilization](./vehicle-utilization.mdx) | Planner, Management |
+| Did we deliver on time and in full? | [OTIF](./otif.mdx) | Everyone |
+| How close was the plan to reality? | [Trip Planned vs Actual](./trip-planned-vs-actual.mdx) | Operations |
+| What problems are overdue? | [Exception Ageing](./exception-ageing.mdx) | Operations Manager |
+| How often do we override the recommendation? | [Decision Quality](./decision-quality.mdx) | Planner, Management |
+| What happened to this operation? | [Operation Timeline](./operation-timeline.mdx) | Everyone |
+| What did SCOP fail to record? | [Data Quality Reports](./data-quality-reports.mdx) | Administrator |
+| What moved that no demand covers? | [Data Quality Reports](./data-quality-reports.mdx) | Administrator |
+| How much ownership is unresolved? | [Data Quality Reports](./data-quality-reports.mdx) | Everyone |
+| What is happening today? | [The Dashboard](./the-dashboard.mdx) | Planner, Management |
+
+## The three groups
+
+| Group | Reports | Purpose |
+| --- | --- | --- |
+| **Did we plan well?** | Plan Coverage, Unplanned Demand, Decision Quality, Vehicle Utilization | Planning quality |
+| **Did we execute well?** | OTIF, Trip Planned vs Actual, Exception Ageing | Operational performance |
+| **Is the data sound?** | Failed Projections, Orphan Moves, Ownership Data Quality | Whether the other two can be trusted |
+
+:::warning[Read the data-quality reports before drawing conclusions from the others]
+
+If Orphan Moves is non-empty, Plan Coverage is **overstated** — SCOP is measuring against
+less demand than actually exists.
+
+If Ownership Data Quality shows a large unresolved population, planning is refusing work you
+may not realise is being refused.
+
+→ [Data Quality Reports](./data-quality-reports.mdx)
+
+:::
+
+## Conventions that apply to every report
+
+| Convention | Consequence |
+| --- | --- |
+| Reports are **read-only** | You cannot fix data from a report. Open the underlying record |
+| Some open with a **default filter** | Clear it deliberately, not accidentally |
+| A **percentage measure is averaged**, not summed | Summing coverage across five days is meaningless |
+| Most offer a **pivot** view | That is where the value is — drag dimensions onto rows and columns |
+| Data starts at **go-live** | There is no historical backfill |
+
+### The default filters
+
+| Report | Opens with |
+| --- | --- |
+| OTIF | Records that **have a commitment** |
+| Unplanned Demand | Grouped by **reason** |
+| Vehicle Utilization | Grouped by **vehicle** |
+| Trip Planned vs Actual | **Completed and partially completed** trips only |
+| Decision Quality | Grouped by **whether the plan was modified** |
+| Ownership Data Quality | Grouped by **resolution** |
+| Failed Projections | **Failed** events only |
+| Orphan Moves | Moves **no demand line covers** |
+| Exceptions | **Open** exceptions |
+
+:::note[A record that seems to be missing is usually filtered]
+
+Before concluding that SCOP did not record something, clear the search bar completely. This
+is the most common false alarm during UAT.
+
+:::
+
+## A weekly reading order
+
+For an Operations Manager or Management reader, in this order:
+
+| # | Read | Because |
+| --- | --- | --- |
+| 1 | **Ownership Data Quality**, **Orphan Moves** | Establish whether the rest can be trusted |
+| 2 | **Plan Coverage** | Did we plan what we could? |
+| 3 | **Unplanned Demand** | If not, why not? |
+| 4 | **OTIF** | Did we keep our promises? |
+| 5 | **Exception Ageing** | What is overdue? |
+| 6 | **Decision Quality** | Do we trust the recommendation? |
+| 7 | **Vehicle Utilization** | Is the fleet the right size? |
+
+## What is not in Release 1 reporting
+
+| Not available | Note |
+| --- | --- |
+| Scheduled report emails | Read the reports, or save a favourite |
+| Automated alerts | Only exception escalation notifies anybody |
+| A Dashboard Ninja board | Built but deliberately not installable — every measure is already in the standard reports |
+| Supplier performance | No supplier OTIF equivalent |
+| Cost reconciliation to the ledger | Cost figures are planning estimates only |
+| Predictive measures | No forecasting model ships in Release 1 |
+
+→ [Release 1 Scope](../about/release-1-scope.mdx)
+
+## Related Pages
+
+- [The Dashboard](./the-dashboard.mdx)
+- [Searching, Filtering and Grouping](../getting-started/searching-filtering-grouping.mdx)
+- [Management](../roles/management.mdx)
+
+## Next
+
+[The Dashboard](./the-dashboard.mdx).

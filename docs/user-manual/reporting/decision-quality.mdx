@@ -1,0 +1,165 @@
+---
+id: decision-quality
+title: Decision Quality
+description: How often the recommendation was accepted or overridden, why it exists, and why a high override rate is a signal about the system rather than the planner.
+sidebar_label: Decision Quality
+sidebar_position: 9
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+import Screenshot from '@site/src/components/Screenshot';
+
+# Decision Quality
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Planning', 'Management', 'Operations', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="5 min"
+/>
+
+## Purpose
+
+Answers **how often we changed the recommendation, and why**.
+
+## Audience
+
+Planner / Dispatcher and Management.
+
+## Navigate to
+
+`SCOP → Reporting → Decision Quality`
+
+## Filters
+
+Opens grouped by **whether the plan was modified**.
+
+## Dimensions
+
+| Dimension | Use |
+| --- | --- |
+| **Plan Date** | The default row dimension |
+| **Was Modified** | The headline split |
+| **Override Reason** | **The most useful dimension on this report** |
+| **Modified By** | Whether one planner differs from the rest |
+| **Status** | Released against rejected |
+
+## Measures
+
+| Measure | Meaning |
+| --- | --- |
+| **Modification Count** | How many times plans were changed |
+| **Trip Count** | How many trips resulted |
+| **Unplanned Count** | How much did not fit |
+
+## Why this report exists
+
+:::info[Not to police planners]
+
+Release 1 ships a **deterministic baseline** recommender that is not expected to be *good* —
+it is expected to be **stable and explainable**.
+
+Without a recommendation there is nothing to compare an operator's plan against, and no way
+to know whether a better planning engine would be worth building.
+
+This report is that comparison.
+
+→ [Planning Overview](../planning/planning-overview.mdx)
+
+:::
+
+A planner who overrides the recommendation is usually **right**. The finding is *why*, and
+whether the reason is something the system could learn to handle.
+
+## How to read it
+
+<Screenshot
+  src="quick-start/44-report-decision-quality.png"
+  alt="The SCOP Decision Quality report showing plans grouped by whether they were modified, with modification counts."
+  caption="Modified against unmodified. The override reason is where the finding is."
+/>
+
+| Pattern | Reading | Action |
+| --- | --- | --- |
+| Low modification rate | The recommendation is usable as-is | Nothing |
+| High rate, **varied** reasons | Ordinary operational judgement | Nothing |
+| High rate, **one** reason repeating | A systematic gap | Fix what the reason names |
+| *Incorrect master data* repeating | The data is wrong | **Fix the data** |
+| *Operational information unavailable to the engine* repeating | The system cannot see something it should | A roadmap input |
+| *Local route knowledge* repeating | The travel matrix or node data is wrong | Fix the matrix |
+| Rate rising over time | Something changed and the recommendation degraded | Investigate what |
+
+## Example
+
+```text
+Override Reason                                    Count
+Incorrect master data                                14
+Operational information unavailable to the engine     3
+Customer instruction                                  2
+Emergency requirement                                 1
+```
+
+Fourteen of twenty modifications were made because **the master data was wrong**.
+
+That is not a planning finding. It is a **data quality** finding with a name and a count
+attached — and fixing it removes fourteen modifications from next month.
+
+The other six are genuine operational judgement, and the system is behaving correctly.
+
+## The nine override reasons
+
+| Reason | What a high count means |
+| --- | --- |
+| Operational information unavailable to the engine | The system lacks an input it needs |
+| Customer instruction | Customers are changing things late |
+| Management instruction | Plans are being directed rather than planned |
+| **Incorrect master data** | **Fix the data** |
+| Unexpected warehouse condition | The warehouse and planning are out of step |
+| Driver or vehicle issue | Fleet or availability data is stale |
+| Local route knowledge | The travel matrix is wrong |
+| Service-risk judgment | Commitments may be unrealistic |
+| Emergency requirement | Ordinary, if occasional |
+
+:::warning[The value depends entirely on honest reasons]
+
+A planner who always chooses the same reason regardless of the truth produces a report that
+says nothing.
+
+Choosing *Local route knowledge* when the real answer was *Incorrect master data* hides a
+fixable problem behind an unfixable one.
+
+:::
+
+## Common interpretation mistakes
+
+| Mistake | Why it is wrong |
+| --- | --- |
+| Treating modifications as planner error | A planner who overrides a bad recommendation is doing their job |
+| Targeting a low modification rate | It would be achieved by accepting bad plans |
+| Reading the count without the reason | The reason is the entire finding |
+| Comparing across a provider change | Different recommenders are not comparable |
+| Expecting the baseline to be good | It is deterministic, not optimal, by design |
+
+## What the recommendation snapshot gives you
+
+Every modified plan keeps its **original recommendation** on the **Recommendation** tab,
+alongside the change.
+
+That is what lets you ask, months later, *what would have happened if we had left it alone* —
+and compare it against what actually did.
+
+→ [The Daily Plan](../planning/the-daily-plan.mdx)
+
+## Related Pages
+
+- [The Daily Plan](../planning/the-daily-plan.mdx)
+- [Plan Governance](../planning/plan-governance.mdx)
+- [Planning Overview](../planning/planning-overview.mdx)
+- [Plan Coverage](./plan-coverage.mdx)
+
+## Next
+
+[Operation Timeline](./operation-timeline.mdx).

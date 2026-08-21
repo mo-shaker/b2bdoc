@@ -1,0 +1,163 @@
+---
+id: operation-timeline
+title: Operation Timeline
+description: Reconstructing one complete operation from its correlation reference — the main investigation tool in SCOP.
+sidebar_label: Operation Timeline
+sidebar_position: 10
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+import Screenshot from '@site/src/components/Screenshot';
+
+# Operation Timeline
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Operations', 'Planning', 'Management', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="5 min"
+/>
+
+:::info[This is the main investigation tool in SCOP]
+
+When the question is *"what actually happened"* rather than *"why is this stuck"*, start here.
+
+:::
+
+## Purpose
+
+Reconstructs **one complete operation** — every action, on every record, in order, with who
+did it and what the result was.
+
+## Audience
+
+Everyone. It is the answer to most *"what happened?"* questions.
+
+## Navigate to
+
+`SCOP → Reporting → Operation Timeline`
+
+## How to use it
+
+| # | Step |
+| --- | --- |
+| 1 | Open any record involved in the operation — a demand, a shipment, a plan, a trip |
+| 2 | Copy its **Correlation Reference** |
+| 3 | Go to `SCOP → Reporting → Operation Timeline` |
+| 4 | Paste it into **Correlation Reference** |
+| 5 | Press **Show** |
+
+The correlation reference is on the **Technical** tab of a demand, and on plans, trips,
+shipments and stops.
+
+## What a correlation reference is
+
+An identifier **shared by every record created as part of one operation**.
+
+It is opened **before** anything is written, so the demand and the event that records its
+creation belong to the same story from the beginning.
+
+→ [Identity and Traceability](../concepts/identity-and-traceability.mdx)
+
+## Dimensions
+
+| Column | Meaning |
+| --- | --- |
+| **Timestamp** | When it happened |
+| **Actor** | Who did it |
+| **Business ID** | Which record, by its printed reference |
+| **Object Model** | What kind of record |
+| **Action** | What was done |
+| **Result** | What happened |
+| **Source** | Where the entry came from |
+
+## Measures
+
+None. It is a chronology, not an aggregate.
+
+## How to read it
+
+<Screenshot
+  src="quick-start/45-report-operation-timeline.png"
+  alt="The SCOP Operation Timeline showing a chronological list of actions across records with actor and result."
+  caption="One row per action, across every record in the operation, in order."
+/>
+
+Read it **top to bottom** and look for two things:
+
+| Look for | Meaning |
+| --- | --- |
+| A **gap in time** | Where the operation waited |
+| A **result that is not what you expected** | Where it went wrong |
+
+## Example
+
+A customer says their delivery on 25 August was late.
+
+```text
+14:02  qs.sales      DMD-2026-000010   demand      created
+14:05  qs.planner    DMD-2026-000010   demand      validated
+14:06  qs.planner    DMD-2026-000010   demand      eligible
+14:06  system        SHP-2026-000006   shipment    created
+09:40  qs.warehouse  SHP-2026-000006   shipment    staged        ← next day
+10:15  qs.planner    PLN-2026-08-25-01 plan        generated
+10:22  qs.planner    PLN-2026-08-25-01 plan        submitted
+15:48  qs.opsmgr     PLN-2026-08-25-01 plan        approved      ← five hours
+15:49  qs.opsmgr     PLN-2026-08-25-01 plan        released
+16:30  qs.warehouse  TRP-2026-000005   loading     done
+16:35  qs.driver     TRP-2026-000005   trip        departed
+18:10  qs.driver     TRP-2026-000005/2 stop        arrived
+```
+
+The finding is in one line: the plan sat **Under Review for over five hours**. The delivery
+was not late because of routing, loading or the driver. It was late because approval waited.
+
+That is an answer no amount of reading the trip record would have produced.
+
+## What it is for
+
+| Use | Why |
+| --- | --- |
+| **Investigation** | *"Why was this late?"* — the gap is visible |
+| **UAT** | Prove a test case did every step, in order |
+| **Audit** | Show who authorised what, and when |
+| **Dispute resolution** | Reconstruct a delivery from the record |
+| **Training** | Show a new user what a complete cycle looks like |
+
+## Common interpretation mistakes
+
+| Mistake | Why it is wrong |
+| --- | --- |
+| Expecting every record to share one reference | An operation is one *act* and what follows from it. A follow-up demand starts a new chain |
+| Reading it as a full audit log | It shows the operation's actions, not every field edit |
+| Assuming a missing row means nothing happened | It may have happened outside SCOP — in Odoo |
+| Using it to find a stuck record | Use [Demand Diagnostics](../demand/demand-diagnostics.mdx). This tells you what happened, not what is blocking |
+
+## Timeline against the chatter
+
+| Use the chatter | Use the timeline |
+| --- | --- |
+| The question is about **one record** | The question spans **several records** |
+| *"Who approved this plan?"* | *"Why did this delivery go out late?"* |
+| Always available on the form | Needs a correlation reference |
+
+## If it returns nothing
+
+| Symptom | Cause |
+| --- | --- |
+| No rows | The reference was mistyped — copy it, do not retype it |
+| Fewer rows than expected | Part of the operation happened in Odoo, which does not share the reference |
+| The record has no reference | Very old records, or ones created outside the normal flow |
+
+## Related Pages
+
+- [Identity and Traceability](../concepts/identity-and-traceability.mdx)
+- [Demand Diagnostics](../demand/demand-diagnostics.mdx)
+- [Troubleshooting Index](../troubleshooting/troubleshooting-index.mdx)
+
+## Next
+
+[Data Quality Reports](./data-quality-reports.mdx).

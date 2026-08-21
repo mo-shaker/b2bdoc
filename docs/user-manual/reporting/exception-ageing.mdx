@@ -1,0 +1,150 @@
+---
+id: exception-ageing
+title: Exception Ageing
+description: Which operational problems are overdue against their SLA, how the age buckets work, and what escalation counts are telling you.
+sidebar_label: Exception Ageing
+sidebar_position: 8
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+import Screenshot from '@site/src/components/Screenshot';
+
+# Exception Ageing
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Operations', 'Management', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="4 min"
+/>
+
+## Purpose
+
+Answers **what is overdue, and who has it**.
+
+## Audience
+
+Operations Manager primarily. Management for the pattern.
+
+## Navigate to
+
+`SCOP → Reporting → Exception Ageing`
+
+## Filters
+
+No default filter. Filter to overdue, or to a category, as needed.
+
+## Dimensions
+
+| Dimension | Use |
+| --- | --- |
+| **Category** | The default row dimension |
+| **Age Bucket** | The default column dimension |
+| **Severity** | Critical first |
+| **Owner** | Whose queue |
+| **Status** | Where in the lifecycle |
+| **Overdue** | Past the SLA deadline |
+
+## Measures
+
+| Measure | Meaning |
+| --- | --- |
+| **Age (hours)** | Since the exception was detected |
+| **Hours Past Deadline** | Negative means still in time |
+| **Escalation Count** | How many times it has escalated |
+| Row count | How many exceptions |
+
+## How to read it
+
+<Screenshot
+  src="quick-start/43-report-exception-ageing.png"
+  alt="The SCOP Exception Ageing report showing exceptions by category with age, SLA deadline and overdue flag."
+  caption="Category on rows, age bucket on columns. Anything past deadline in a short-SLA category is the priority."
+/>
+
+Read it in this order:
+
+| # | Look at | Question |
+| --- | --- | --- |
+| 1 | **Overdue**, filtered to true | What has already breached? |
+| 2 | **Severity**, critical first | Which breaches matter most? |
+| 3 | **Escalation Count** above zero | What has been escalated and is still open? |
+| 4 | **Category** | Is one kind of problem dominating? |
+| 5 | **Owner** | Is one person carrying everything? |
+
+## The SLA comes from the category
+
+Each of the twelve categories carries its own SLA. Age must be read **against the category**,
+never in the abstract.
+
+| Category | SLA |
+| --- | --- |
+| Vehicle breakdown | **2 h** |
+| Critical rule failure, Unauthorized configuration | 4 h |
+| Inventory shortage, No feasible plan, Picking delay | 4 h |
+| Invalid shipment composition, Customer window change, Delivery rejection, Route restriction | 8 h |
+| Supplier delay | 24 h |
+| Invalid KPI result | 48 h |
+
+A six-hour-old vehicle breakdown is three times over. A six-hour-old supplier delay has
+eighteen hours left.
+
+→ [Exception Management](../exceptions/exception-management.mdx)
+
+## Example
+
+```text
+Category                  <4h   4-8h   8-24h   >24h   Overdue
+Vehicle breakdown           1      0       0      0      1
+Picking delay               3      2       0      0      2
+Supplier delay              0      1       4      2      2
+Invalid KPI result          0      0       1      3      0
+```
+
+| Row | Reading |
+| --- | --- |
+| **Vehicle breakdown**, under 4 h, already overdue | Its SLA is 2 h. **This is the one to act on now** |
+| **Picking delay**, two overdue | A warehouse capacity problem |
+| **Supplier delay**, six open | Not urgent individually, but a procurement pattern |
+| **Invalid KPI result**, none overdue | 48 h SLA. Ignore for now |
+
+The youngest row is the most urgent. That is why age alone is never the answer.
+
+## Common interpretation mistakes
+
+| Mistake | Why it is wrong |
+| --- | --- |
+| Sorting by age and working the oldest first | A 30-hour supplier delay is in time; a 3-hour breakdown is not |
+| Treating **Age Bucket** as urgency | Urgency is age **against the category's SLA** |
+| Ignoring escalation count | An exception escalated twice is not being worked |
+| Assuming an empty report is good | It may mean nobody is raising exceptions |
+
+:::warning[An empty exception queue is not automatically good news]
+
+Exceptions are raised **deliberately**. A queue that is always empty in a busy operation
+usually means problems are being handled informally and never recorded — which means they
+cannot be counted, escalated, or fixed at source.
+
+:::
+
+:::danger[An exception with no SLA deadline was never classified]
+
+An exception left in **Detected** has no deadline and **will never show as overdue**.
+
+If the report looks thinner than the operation feels, check for unclassified exceptions on
+`Operations → Exceptions`.
+
+:::
+
+## Related Pages
+
+- [Exception Management](../exceptions/exception-management.mdx)
+- [Operations Manager](../roles/operations-manager.mdx)
+- [Reason Codes](../reference/reason-codes.mdx)
+
+## Next
+
+[Decision Quality](./decision-quality.mdx).

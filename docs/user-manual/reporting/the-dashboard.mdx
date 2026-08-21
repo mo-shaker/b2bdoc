@@ -1,0 +1,80 @@
+---
+id: the-dashboard
+title: The Dashboard
+description: The SCOP dashboard — what it shows, who sees it, and when to use a report instead.
+sidebar_label: The Dashboard
+sidebar_position: 2
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+
+# The Dashboard
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Planning', 'Management', 'Operations']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="3 min"
+/>
+
+## Purpose
+
+A single screen answering *what is happening right now*, for a planner starting the day or a
+manager glancing at the operation.
+
+**Audience**
+Planner / Dispatcher and Management. It is not visible to other roles.
+
+**Navigate to**
+`SCOP → Dashboard` — the first entry under `SCOP`.
+
+## What it shows
+
+The dashboard summarises today's operation from the same data the reports read. It is a
+**starting point**, not an analysis tool: every figure on it has a report behind it that can
+be filtered, grouped and pivoted.
+
+| Reading | Go deeper at |
+| --- | --- |
+| Demand not yet planned | [Unplanned Demand](./unplanned-demand-report.mdx) |
+| Plans awaiting approval | `Planning → Daily Plans` |
+| Trips in progress | `Operations → Trips` |
+| Open exceptions | [Exception Ageing](./exception-ageing.mdx) |
+| Service performance | [OTIF](./otif.mdx) |
+| Coverage | [Plan Coverage](./plan-coverage.mdx) |
+
+## When to use it, and when not
+
+| Use the dashboard | Use a report |
+| --- | --- |
+| Starting your day | Answering a specific question |
+| A quick health check | Anything needing a filter or a date range |
+| Showing someone the operation | Anything you need to explain or defend |
+
+:::note[The dashboard shows current state, not history]
+
+It reflects the operation now. For trends, comparisons or any question about a past period,
+go to the reports.
+
+:::
+
+## If it does not appear
+
+| Symptom | Cause |
+| --- | --- |
+| No **Dashboard** entry | You are not a Planner or Management |
+| It is empty | No operational data yet for the period shown |
+| Figures look wrong | Check the data-quality reports first — see [Reporting Overview](./reporting-overview.mdx) |
+
+## Related Pages
+
+- [Reporting Overview](./reporting-overview.mdx)
+- [Management](../roles/management.mdx)
+- [Planner / Dispatcher](../roles/planner-dispatcher.mdx)
+
+## Next
+
+[Plan Coverage](./plan-coverage.mdx).

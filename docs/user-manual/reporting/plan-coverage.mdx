@@ -1,0 +1,149 @@
+---
+id: plan-coverage
+title: Plan Coverage
+description: Did we plan what could be planned — the measures, how to read them, and the two ways this figure can mislead.
+sidebar_label: Plan Coverage
+sidebar_position: 3
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+import Screenshot from '@site/src/components/Screenshot';
+
+# Plan Coverage
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Planning', 'Management', 'Operations', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="5 min"
+/>
+
+## Purpose
+
+Answers one question: **of the demand that was available to plan, how much did we actually
+plan?**
+
+## Audience
+
+Planner / Dispatcher and Management.
+
+## Navigate to
+
+`SCOP → Reporting → Plan Coverage`
+
+## Filters
+
+No default filter. Filter by date range or plan state as needed.
+
+## Dimensions
+
+| Dimension | Use |
+| --- | --- |
+| **Plan Date** | The primary row dimension. Coverage over time |
+| **Plan** | One row per plan |
+| **Status** | The plan's state |
+| **Was Modified** | Whether a planner changed the recommendation |
+
+## Measures
+
+| Measure | Meaning |
+| --- | --- |
+| **Offered** | Eligible demand **at the moment the run was made** |
+| **Planned** | How much of it was placed on a trip |
+| **Unplanned** | How much was not |
+| **Coverage %** | Planned ÷ Offered |
+| **Modification Count** | How many times the plan was changed |
+
+:::info[Offered is measured at generation time, not now]
+
+**Offered** is what the planning run actually saw. Demand that became eligible an hour later
+is not counted against that run.
+
+That is what makes the figure fair: a run cannot be marked down for failing to plan work that
+did not exist yet.
+
+:::
+
+## How to read it
+
+<Screenshot
+  src="quick-start/40-report-plan-coverage.png"
+  alt="The SCOP Plan Coverage report showing offered, planned, unplanned counts and coverage percentage per plan."
+  caption="One row per plan. Coverage is planned over offered."
+/>
+
+| Coverage | Reading |
+| --- | --- |
+| **100%** | Everything available was planned |
+| **90–99%** | Normal. A few demands hit a constraint |
+| **60–89%** | Something systematic is blocking work |
+| **Below 60%** | Investigate before accepting the plan |
+
+The number alone is not the answer. **Always read the unplanned reasons alongside it** —
+`Planning → Unplanned Demand`, or the plan's own tab.
+
+→ [Unplanned Demand](../planning/unplanned-demand.mdx)
+
+## Example
+
+A plan for 25 August shows:
+
+```text
+Offered    11
+Planned     9
+Unplanned   2
+Coverage   81.8%
+```
+
+Reading the unplanned rows shows both are *Warehouse not ready*. That is not a planning
+failure — it is a staging backlog, and the fix is in the warehouse.
+
+The same 81.8% with *No feasible vehicle* would be a fleet problem, and with *Missing
+required data* a configuration problem. **The percentage says how much; only the reasons say
+what to do.**
+
+## Common interpretation mistakes
+
+:::warning[Do not sum coverage percentages]
+
+Coverage is a **percentage** and must be **averaged**, not summed. Adding five days of
+coverage produces a number with no meaning.
+
+Where you want a period figure, sum **Offered** and **Planned** and divide.
+
+:::
+
+| Mistake | Why it is wrong |
+| --- | --- |
+| Treating 100% as success | You can plan everything offered while a great deal of demand never became eligible at all |
+| Reading coverage without the reasons | The percentage says how much, not what to do |
+| Comparing across a configuration change | A day when a node was unmapped is not comparable with one when it was |
+| Ignoring Orphan Moves | If moves exist that no demand covers, **coverage is overstated** |
+
+:::danger[The two ways this figure misleads]
+
+**Upward, through orphan moves.** If stock is moving on demand-generating transfers that no
+demand line covers, that demand was never offered — so it never counts against coverage.
+Check `Reporting → Orphan Moves` is empty.
+
+**Upward, through eligibility.** Coverage measures against *eligible* demand. Demand stuck at
+**Submitted** or **Validated** is invisible here. A day can show 100% coverage while half the
+requirements never reached the pool.
+
+Read the demand list grouped by status alongside it.
+
+:::
+
+## Related Pages
+
+- [Unplanned Demand Report](./unplanned-demand-report.mdx)
+- [Data Quality Reports](./data-quality-reports.mdx)
+- [The Daily Plan](../planning/the-daily-plan.mdx)
+- [Decision Quality](./decision-quality.mdx)
+
+## Next
+
+[Unplanned Demand Report](./unplanned-demand-report.mdx).
