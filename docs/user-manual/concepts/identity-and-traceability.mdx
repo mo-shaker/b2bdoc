@@ -1,0 +1,191 @@
+---
+id: identity-and-traceability
+title: Identity and Traceability
+description: Business identifiers, the correlation reference, domain events and execution events — how SCOP lets you reconstruct exactly what happened.
+sidebar_label: Identity and Traceability
+sidebar_position: 2
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+
+# Identity and Traceability
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Operations', 'Planning', 'Management', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="7 min"
+/>
+
+:::info[This is the canonical page for correlation and event reconstruction]
+
+Other chapters refer here rather than restating it.
+
+:::
+
+## Why this chapter exists
+
+Six weeks after a delivery, somebody asks why it went out a day late. The answer has to
+come from the system, not from memory.
+
+SCOP is built so that question is always answerable. Three mechanisms do it: **business
+identifiers**, the **correlation reference**, and **events**.
+
+## Business identifiers
+
+Every operational SCOP record carries a printed, human-readable identifier.
+
+| Prefix | Object | Example |
+| --- | --- | --- |
+| `DMD-` | Demand | `DMD-2026-000010` |
+| `SHP-` | Shipment | `SHP-2026-000006` |
+| `PLN-` | Daily Plan | `PLN-2026-08-25-01` |
+| `TRP-` | Trip | `TRP-2026-000005` |
+
+Three properties matter:
+
+| Property | Consequence |
+| --- | --- |
+| **Immutable** | Once allocated it never changes. Safe to quote in an email or a ticket |
+| **Allocated once** | A record does not get renumbered when it is corrected |
+| **Searchable** | Typing it into any SCOP search bar finds the record |
+
+:::note[Gaps in the numbering are normal]
+
+Identifiers are allocated when a record is created. If a record is later deleted, its number
+is not reused, so the sequence has a gap. A gap is **not** evidence that something is
+missing from the audit trail.
+
+The counters are visible to an Administrator at `SCOP → Technical → Sequence Counters`.
+
+:::
+
+A plan's identifier includes the date it plans for — `PLN-2026-08-25-01` is the first plan
+built for 25 August 2026 — because two plans for the same day is a thing that happens, and
+telling them apart matters.
+
+## The correlation reference
+
+A single operating cycle touches a dozen records: a demand, a shipment, a readiness record,
+a run, a plan, a trip, stops, loading tasks, events.
+
+**They all share one correlation reference.**
+
+| | |
+| --- | --- |
+| **What it is** | An identifier stamped on every record created as part of one operation |
+| **Where you see it** | On the **Technical** tab of the demand, and on plans, trips, stops and shipments |
+| **What it is for** | Reconstructing the whole operation from any one of its records |
+
+The reference is opened **before** anything is written, so the record and the event that
+records its creation belong to the same story from the start.
+
+### Using it
+
+1. Open any record involved in the operation.
+2. Copy its **Correlation Reference**.
+3. Go to `SCOP → Reporting → Operation Timeline`.
+4. Paste it and press **Show**.
+
+You get every action taken on every record in that operation, in order, with who did it and
+what the result was.
+
+→ [Operation Timeline](../reporting/operation-timeline.mdx)
+
+## Domain events — what SCOP did, or declined to do
+
+`SCOP → Technical → Domain Events` *(Administrator)*
+
+A domain event is a durable record of a fact. The two you will meet in practice:
+
+| Event | Meaning |
+| --- | --- |
+| `DemandGenerated` | SCOP saw a transfer and created a demand for it |
+| `DemandGenerationSkipped` | SCOP saw a transfer and **deliberately did not** create a demand |
+
+Each event carries:
+
+| Field | Use |
+| --- | --- |
+| **Event Name** | What happened |
+| **Subject** | Which record it concerns |
+| **State** | Pending · Processed · **Failed** |
+| **Attempts**, **Last Attempt** | How many times it was tried |
+| **Error Class**, **Error Message** | Why it failed, if it did |
+| **Payload** | The detail — for a skip, the unmapped location and which end of the movement failed |
+
+:::info[Why a skip is recorded separately from a success]
+
+If a skip were recorded as *"handled"*, then mapping the missing planning node later and
+re-saving the transfer would do nothing — SCOP would believe the work was already done.
+
+Keeping the two markers apart is what makes the problem recoverable. See
+[Missing Node Diagnostics](../configuration/missing-node-diagnostics.mdx).
+
+:::
+
+### Failed events
+
+`SCOP → Reporting → Failed Projections` *(Administrator)* shows domain events in state
+**Failed**.
+
+Demand generation is **non-blocking by design**: if it fails, it rolls back on its own and
+**the transfer still saves**. A warehouse operator must never be unable to record a movement
+because a planning projection has a problem.
+
+The cost of that guarantee is that failures are quiet at the moment they happen. During a
+pilot, this screen deserves a daily glance.
+
+## Execution events — what physically happened
+
+`SCOP → Technical → Execution Events` *(Administrator)*
+
+Where a domain event records what *SCOP* did, an execution event records what happened in
+the world: a departure, an arrival, the start of service, a completion.
+
+They are written automatically as the driver works, and have a small lifecycle of their own:
+
+| State | Meaning |
+| --- | --- |
+| **Recorded** | The event was captured |
+| **Validated** | It is well-formed and its subject exists |
+| **Reconciled** | It has been matched against what the Odoo transfer recorded |
+
+Most users never open this screen. It matters when reconciling a disputed delivery.
+
+## The chatter — who moved this record
+
+Every operational form carries a message and activity panel at the foot.
+
+State changes are **tracked**: each transition writes a line naming who moved the record,
+when, and from what to what. That log is part of the audit trail and cannot be edited.
+
+| Use the chatter when | Use Operation Timeline when |
+| --- | --- |
+| The question is about **one record** | The question spans **several records** |
+| *"Who approved this plan?"* | *"Why did this delivery go out late?"* |
+
+## Putting it together — an investigation
+
+A customer says their delivery on 25 August was short.
+
+| # | Step | Where |
+| --- | --- | --- |
+| 1 | Find the demand by the order number | `Operations → Demands`, search `S09520` |
+| 2 | Read its status — **Partially Completed** | The demand |
+| 3 | Open the **Follow-Up and Returns** tab to find the follow-up demand | The demand |
+| 4 | Copy the **Correlation Reference** | Technical tab |
+| 5 | Reconstruct the whole operation | `Reporting → Operation Timeline` |
+| 6 | Confirm the quantity against Odoo | The demand's **Transfers** stat button |
+
+At no point do you need to ask anyone what happened.
+
+## Related Pages
+
+- [Operation Timeline](../reporting/operation-timeline.mdx)
+- [Missing Node Diagnostics](../configuration/missing-node-diagnostics.mdx)
+- [Data Quality Reports](../reporting/data-quality-reports.mdx)
+- [The Governance Model](./the-governance-model.mdx)

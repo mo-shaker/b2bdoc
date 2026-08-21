@@ -1,0 +1,236 @@
+---
+id: planning-eligibility
+title: Planning Eligibility
+description: What Validate and Mark Eligible actually check, what allocation is and when it refreshes, and why eligible does not always mean plannable.
+sidebar_label: Planning Eligibility
+sidebar_position: 4
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+import Screenshot from '@site/src/components/Screenshot';
+
+# Planning Eligibility
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Planning', 'Operations', 'Warehouse', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="7 min"
+/>
+
+**Role**
+Planner
+
+**Navigate to**
+`SCOP → Operations → Demands` → open the demand
+
+## Purpose
+
+Only **eligible** demand enters the daily planning process. This page explains the two
+gates that get a demand there, and what each one actually reads.
+
+The reason the checks are split is that they answer different questions:
+
+| Gate | Question |
+| --- | --- |
+| **Validate** | Are we *allowed* to move these goods? |
+| **Mark Eligible** | Are these goods *available* to move? |
+
+A demand can be perfectly available and still not be allowed — that is `BR-INV-002`. It can
+be perfectly allowed and not available — that is readiness.
+
+## Step 1 — Validate
+
+**Before you start**
+The demand is in **Submitted**.
+
+**What to do**
+Press **Validate**.
+
+**What SCOP does**
+
+1. **Re-derives ownership** on every line, from the five approved sources.
+2. Evaluates the gate `demand_validate`, which runs `BR-INV-002`.
+3. Moves the demand to **Validated**.
+
+:::info[Ownership is re-derived, not merely re-checked]
+
+At generation time the Odoo transfer often has no move lines yet, so there was nothing to
+read an owner from — almost every outbound demand starts unresolved.
+
+By the time you validate, the transfer is usually reserved and the owner is available. That
+re-derivation is what turns "unresolved" from a permanent verdict into a transient one, and
+it is why pressing **Validate** frequently succeeds on a demand that was showing a red
+ownership flag five minutes earlier.
+
+:::
+
+**Expected result**
+The demand shows **Validated**, and the ownership banner is gone.
+
+<Screenshot
+  src="quick-start/06-demand-ownership-resolved.png"
+  alt="SCOP Demand form after ownership resolution, showing the owner and ownership source populated on each line."
+  caption="Ownership resolved. Every line now names an owner and how it was established."
+/>
+
+**If it refuses**
+
+`BR-INV-002` names the lines whose owner could not be established.
+
+| Cause | Fix |
+| --- | --- |
+| The Odoo transfer is not reserved yet | Reserve it, then press **Resolve Ownership** and **Validate** again |
+| The goods are consignment stock from an unflagged partner | Flag the partner — [Onboarding and Migration](../configuration/onboarding-and-migration.mdx) |
+| No approved policy covers this source | See [Correcting Ownership](../ownership/correcting-ownership.mdx) |
+| You lack Odoo **Inventory → User** | Ownership derivation reads Odoo's reservations. See [Permissions Reference](../roles/permissions-reference.mdx) |
+
+## Step 2 — Mark Eligible
+
+**Before you start**
+The demand is in **Validated**, and the warehouse has done something with the goods.
+
+**What to do**
+Press **Mark Eligible**.
+
+**What SCOP does**
+
+1. Evaluates the gate `demand_eligible`.
+2. **Refreshes allocation** against Odoo's current reservations.
+3. Moves the demand to **Eligible for Planning**.
+4. **Forms the shipment** — see below.
+
+**Expected result**
+The demand shows **Eligible for Planning**, its **Allocations** tab is populated, and a
+shipment now exists on the **Shipments** tab.
+
+<Screenshot
+  src="quick-start/07-demand-eligible.png"
+  alt="SCOP Demand form in state Eligible for Planning."
+  caption="Eligible for Planning. The shipment was formed at the same moment."
+/>
+
+## What eligibility checks
+
+The gate requires readiness to be **Ready**, **Conditionally Ready** or **Partially Ready**.
+
+| Readiness | Can the demand become eligible? | Can its shipment be planned? |
+| --- | --- | --- |
+| **Ready** | Yes | **Yes** |
+| **Conditionally Ready** | Yes | **Yes** |
+| **Partially Ready** | Yes | **No** |
+| **Not Ready** | No | No |
+| **Blocked** | No | No |
+
+:::warning[Eligible does not always mean plannable]
+
+**Partially Ready** lets a demand become eligible but does **not** make its shipment
+plannable. The requirement is acknowledged as real and available in part; the transport
+requirement still cannot be put on a vehicle.
+
+A demand that sits at **Eligible for Planning** and never appears in a plan is very often
+this. Check the shipment's readiness, not the demand's state.
+
+:::
+
+→ [Warehouse Readiness](../readiness/warehouse-readiness.mdx)
+
+## Allocation
+
+The **Allocations** tab shows which specific stock is set aside for this demand.
+
+| Column | Meaning |
+| --- | --- |
+| **Product** | What is allocated |
+| **Location** | Where it physically is |
+| **Lot** | Which batch, where tracked |
+| **Owner** | Who owns it |
+| **Allocated Quantity** | How much |
+
+Allocation is a **projection**, refreshed at two moments only:
+
+| Refreshed when | Why |
+| --- | --- |
+| **Validate** | Ownership derivation reads the same evidence |
+| **Mark Eligible** | This is the moment availability is asserted |
+
+:::note[Allocation and readiness read different things]
+
+Allocation is refreshed **at gates**. Readiness reads Odoo's reservations **now**.
+
+That is deliberate: if readiness asked the projection, it would be measuring when the
+projection last ran rather than what is in the warehouse. If you change a reservation in
+Odoo, readiness moves immediately; allocation does not until the next gate.
+
+:::
+
+You can also read allocations across all demands at `SCOP → Operations → Allocations`.
+
+## Shipment formation
+
+Marking a demand eligible **forms its shipment automatically**.
+
+```text
+Validated Demand  →  Allocate Inventory  →  Create Shipment
+                     (Mark Eligible does both)
+```
+
+A second requirement on the **same route and the same required date** joins the shipment
+already open, rather than forming another. A shipment already **planned** onto a trip is
+never joined — its capacity was sized when the plan was approved.
+
+:::info[Create Shipment is a re-run, not a normal step]
+
+**Create Shipment** stays on the eligible demand for two exceptional cases: a demand made
+eligible before this behaviour shipped, and a demand whose shipment was cancelled.
+
+Pressing it on a normal demand returns the shipment that already exists. It never creates a
+duplicate.
+
+:::
+
+→ [Formation and Consolidation](../shipments/formation-and-consolidation.mdx)
+
+## Verify
+
+| Check | Where |
+| --- | --- |
+| The demand is **Eligible for Planning** | The demand's status bar |
+| A shipment exists | The demand's **Shipments** tab |
+| Allocation is populated | The demand's **Allocations** tab |
+| The shipment is plannable | `SCOP → Operations → Warehouse Readiness` |
+
+## Business rules
+
+| Rule | Fires at | Effect |
+| --- | --- | --- |
+| `BR-INV-002` | `demand_validate` | Blocking. Ownership must be resolved on every line |
+
+The eligibility gate itself carries no rule in Release 1; its check is the readiness
+condition described above.
+
+## If it does not work
+
+| Symptom | Check |
+| --- | --- |
+| **Validate** refuses with an ownership message | [Inventory Ownership](../ownership/inventory-ownership.mdx) |
+| **Validate** raises an access error | You need Odoo **Inventory → User** |
+| **Mark Eligible** refuses | Readiness is **Not Ready** or **Blocked** |
+| Readiness is **Blocked** | Ownership unresolved on a shipment line, or every transfer cancelled |
+| Eligible, but never planned | Readiness is probably **Partially Ready** — ask the warehouse to stage |
+| No shipment after Mark Eligible | Unusual. See [Readiness and Shipment Problems](../troubleshooting/readiness-and-shipment-problems.mdx) |
+| Allocations tab is empty | Nothing is reserved in Odoo for these lines |
+
+## Related Pages
+
+- [Demand Lifecycle](./demand-lifecycle.mdx)
+- [Inventory Ownership](../ownership/inventory-ownership.mdx)
+- [Warehouse Readiness](../readiness/warehouse-readiness.mdx)
+- [Formation and Consolidation](../shipments/formation-and-consolidation.mdx)
+
+## Next
+
+[Demand Completion](./demand-completion.mdx).

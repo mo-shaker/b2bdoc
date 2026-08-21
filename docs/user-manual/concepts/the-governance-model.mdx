@@ -1,0 +1,265 @@
+---
+id: the-governance-model
+title: The Governance Model
+description: How SCOP enforces policy — business rules, the gates they fire at, severities, rule evaluations, exemptions, approval authorities and reason codes.
+sidebar_label: The Governance Model
+sidebar_position: 3
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+
+# The Governance Model
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Operations', 'Planning', 'Management', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="8 min"
+/>
+
+:::info[This is the canonical page for how SCOP enforces policy]
+
+The individual rules are listed at [Business Rules](../reference/business-rules.mdx). This
+page explains the machinery they run in.
+
+:::
+
+## The idea
+
+SCOP does not rely on people remembering policy. Policy is **recorded as data**, evaluated
+**at a defined moment**, and the evaluation is **kept**.
+
+That produces three properties worth having:
+
+| Property | Consequence |
+| --- | --- |
+| A refusal names the rule | You are never told only *"not allowed"* |
+| Every check is recorded | You can prove a rule was applied, or was not |
+| Rules are versioned | You can say which policy was in force in March |
+
+## Business rules
+
+`SCOP → Governance → Business Rules`
+
+A business rule is one approved, versioned policy. Six are active in Release 1.
+
+| Field | Meaning |
+| --- | --- |
+| **Code** | The continuing business concept — `BR-INV-002` |
+| **Version** | An approved revision of it |
+| **Name** | The policy in one sentence |
+| **Domain** | Which part of the operation it belongs to |
+| **Type** | What kind of rule it is — validation, ownership, approval, capacity |
+| **Severity** | How hard it bites |
+| **Subject** | Which object it applies to |
+| **Fires at** | The gate or gates that evaluate it |
+| **If unable to evaluate** | What to do when the check itself cannot run |
+| **Status** | Only **Active** rules are enforced |
+
+The rule **code** is stable; the **version** changes when the policy changes. That is how
+you can answer *"what was the rule in March"* without guessing.
+
+### Severity
+
+| Severity | Effect when the rule fails |
+| --- | --- |
+| **Information** | Recorded. Nothing is blocked |
+| **Warning** | Recorded and shown. The action continues |
+| **Approval Required** | The action needs an authorised approval |
+| **Blocking** | The action is refused |
+| **Critical** | Refused, and treated as a serious event |
+
+Five of the six Release 1 rules are **blocking**. One — `BR-RTE-002`, vehicle utilisation —
+is a **warning**, and is meant to be.
+
+### If a rule cannot be evaluated
+
+A check can fail to run — data missing, a dependency unavailable. Each rule states in
+advance what should happen then:
+
+| Setting | Meaning |
+| --- | --- |
+| **Treat as blocking** | Refuse. Used where proceeding without the check is unacceptable |
+| **Treat as a warning** | Warn and continue |
+| **Record and continue** | Note it and proceed |
+
+`BR-INV-002`, `BR-PLN-001`, `BR-PLN-002`, `BR-RTE-001` and `BR-EXE-001` all **block** if they
+cannot be evaluated. Not knowing who owns the goods is treated exactly like knowing that
+ownership is wrong.
+
+## Gates — the moment a rule fires
+
+A rule is not evaluated on every save. It fires at a named **gate**, which is the moment an
+action is attempted.
+
+| Gate | Fires when | Rules |
+| --- | --- | --- |
+| `demand_validate` | A demand is validated | `BR-INV-002` |
+| `demand_eligible` | A demand is marked eligible | — |
+| `plan_approve` | A plan is approved | `BR-PLN-001` |
+| `plan_release` | A plan is released | `BR-PLN-001`, `BR-PLN-002` |
+| `trip_approve` | A trip is approved | `BR-RTE-001`, `BR-RTE-002` |
+| `trip_release` | A trip is released | `BR-RTE-001`, `BR-RTE-002` |
+| `load_confirm` | A load is confirmed | `BR-RTE-001` |
+| `trip_depart` | A trip departs | — |
+| `trip_complete` | A trip is completed | `BR-EXE-001` |
+| `stop_complete` | A stop is completed | — |
+
+This is why a demand that will fail validation still *saves* — the rule fires when you press
+**Validate**, not when you type.
+
+## Rule evaluations — the record of every check
+
+`SCOP → Governance → Rule Evaluations`
+
+Every time a gate fires, the answer is written down.
+
+| Result | Meaning |
+| --- | --- |
+| **Not Applicable** | The rule did not apply to this record |
+| **Passed** | The check succeeded |
+| **Failed — Warning** | Failed, but not blocking |
+| **Failed — Approval Required** | Needs an authorised approval to proceed |
+| **Failed — Blocking** | Refused |
+| **Exception Applied** | An approved exemption was in force |
+| **Unable to Evaluate** | The check could not run; the rule's own setting decided what happened |
+| **Suspended** | The rule was suspended, so the check was not run |
+
+Each evaluation also records the **message** shown to the user, the **measured** and
+**threshold** values where the rule is numeric, and the **evidence** behind the answer.
+
+This is the screen to open when someone says *"SCOP blocked me and I do not know why"* —
+find their record, read the evaluation, and the message is there verbatim.
+
+## Rule exemptions — the authorised waiver
+
+`SCOP → Governance → Rule Exemptions` *(Planner and above)*
+
+Occasionally a rule must be waived for a specific case. SCOP provides a controlled way to do
+that, so it is a decision rather than a workaround.
+
+| Field | Purpose |
+| --- | --- |
+| **Rule** | Which rule is waived |
+| **Type** | One-Time · Time-Bound · Scope-Bound · Emergency · Policy Exception |
+| **Subject** | Which record, where the waiver is not general |
+| **From / To** | **Required.** An exemption always expires |
+| **Reason** | **Required.** Why this is acceptable |
+| **Risk** | What could go wrong while it is in force |
+| **Mitigation** | What is being done about that risk |
+| **Requested by / Approved by** | Who asked, and who agreed |
+| **Status** | Draft · Approved · Expired · Revoked |
+
+Only an **Approved** exemption inside its dates has any effect. When one applies, the
+evaluation records **Exception Applied** rather than pretending the rule passed.
+
+:::warning[An exemption is not the same as suspending a rule]
+
+Suspending a rule switches it off for everybody, and every evaluation afterwards records
+**Suspended**. An exemption waives one rule for one scope, for a stated period, with a named
+approver and a recorded risk.
+
+If you are reaching for suspension to get one record moving, you want an exemption.
+
+:::
+
+## Approval authorities — who is entitled to act
+
+`SCOP → Governance → Approval Authorities` *(Administrator)*
+
+Access rights say who can *open* a screen. Approval authority says who is entitled to
+*perform an action*. They are separate on purpose.
+
+| Object | Action | Group | Self-approval forbidden |
+| --- | --- | --- | --- |
+| Daily Plan | approve | Operations Manager | **Yes** |
+| Daily Plan | release | Operations Manager | **Yes** |
+| Trip | approve | Operations Manager | No |
+| Trip | release | Operations Manager | No |
+| Trip | depart | Planner / Dispatcher | No |
+| Trip | cancel | Planner / Dispatcher | No |
+| Demand | plan, replan, cancel | Planner / Dispatcher | No |
+| Shipment | cancel | Planner / Dispatcher | No |
+| Load | cancel | Warehouse User | No |
+
+The **Forbid Self-Approval** flag is what implements separation of duties for plans. It is
+enforced regardless of how many groups the user holds.
+
+:::danger[Separation of duties outranks administrative rights]
+
+An Administrator holds Operations Manager and can approve plans in general. They still
+cannot approve **a plan they created**. `BR-PLN-001` is not a permission that can be granted
+to yourself.
+
+:::
+
+→ [Plan Governance](../planning/plan-governance.mdx)
+
+## Reason codes — controlled explanations
+
+`SCOP → Governance → Reason Codes`
+
+Where SCOP asks *why*, it offers a list rather than a free-text box. Fifty-one reasons in
+six categories.
+
+| Category | Count | You meet it when |
+| --- | --- | --- |
+| **Unplanned Demand** | 12 | Reading why a demand was not planned |
+| **Override** | 9 | Modifying a recommended plan |
+| **Exception Root Cause** | 11 | Classifying an exception |
+| **Stop Outcome** | 7 | Failing or skipping a stop |
+| **Next Action** | 7 | Recording what to do about unplanned demand |
+| **Return Disposition** | 5 | Deciding what happens to returned goods |
+
+A controlled vocabulary is what makes *"why do we keep missing deliveries"* answerable by a
+report instead of by reading a hundred comment boxes.
+
+→ [Reason Codes](../reference/reason-codes.mdx)
+
+## Objective profiles — what planning optimises for
+
+`SCOP → Governance → Objective Profiles` *(Planner)*
+
+Planning does not optimise a single number. It works down a **ranked list**, and a lower
+objective is never traded against a higher one.
+
+| Rank | Objective |
+| --- | --- |
+| 1 | Safety, legal, ownership and mandatory compliance |
+| 2 | Feasibility |
+| 3 | Mandatory customer commitments |
+| 4 | Priority and service protection |
+| 5 | Demand coverage |
+| 6 | Resource availability |
+| 7 | Capacity utilisation |
+| 8 | Distance, time and cost efficiency |
+| 9 | Operational preferences |
+
+This is why SCOP will leave a vehicle half-full rather than break a commitment: utilisation
+is rank 7 and commitments are rank 3.
+
+→ [Planning Overview](../planning/planning-overview.mdx)
+
+## Reading a refusal
+
+When a rule blocks you, the dialog names the rule, states the policy in words, and lists the
+evidence — usually the exact records at fault.
+
+| Do | Do not |
+| --- | --- |
+| Read which record is named | Retry the same button |
+| Fix that record | Ask for the rule to be switched off |
+| Retry the action | Assume it is a bug |
+
+If the rule genuinely should not apply, that is an
+[exemption](#rule-exemptions--the-authorised-waiver) conversation, not a technical one.
+
+## Related Pages
+
+- [Business Rules](../reference/business-rules.mdx) — the six rules, individually
+- [Plan Governance](../planning/plan-governance.mdx)
+- [Reason Codes](../reference/reason-codes.mdx)
+- [Permissions Reference](../roles/permissions-reference.mdx)

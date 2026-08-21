@@ -1,0 +1,184 @@
+---
+id: demand-diagnostics
+title: Demand Diagnostics
+description: How to find out why a demand is stuck, missing or wrong — the five screens that answer it, in the order to try them.
+sidebar_label: Demand Diagnostics
+sidebar_position: 6
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+
+# Demand Diagnostics
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Planning', 'Operations', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="6 min"
+/>
+
+**Role**
+Planner, with two screens reserved for the Administrator.
+
+## Purpose
+
+Almost every demand question is one of four:
+
+| Question | Start at |
+| --- | --- |
+| *Why is there no demand at all?* | [Domain Events](#is-there-a-demand-at-all) |
+| *Why will this demand not move?* | [The demand itself](#why-will-it-not-move) |
+| *Why was it not planned?* | [Unplanned Demand](#why-was-it-not-planned) |
+| *Why has it not completed?* | [The Odoo transfer](#why-has-it-not-completed) |
+
+## Is there a demand at all?
+
+Work down this list. It is ordered by how often each cause is the answer.
+
+| # | Check | Where | If this is it |
+| --- | --- | --- | --- |
+| 1 | Is the list filtered? | Clear the search bar completely | Nothing was wrong |
+| 2 | Is the operation type in scope? | `Technical → Pilot Scope` | Add it and **Apply** |
+| 3 | Was the pilot applied? | Same screen — status **Applied** | Apply it |
+| 4 | Was the transfer created before go-live? | The transfer's creation date | Expected. There is no backfill |
+| 5 | Was a planning node missing? | `Technical → Domain Events`, filter `DemandGenerationSkipped` | Map the node, re-save the transfer |
+| 6 | Did generation fail? | `Reporting → Failed Projections` | Read the error, fix the cause, re-save |
+
+:::info[A skipped transfer is never silently forgotten]
+
+Every skip writes a `DemandGenerationSkipped` event naming the transfer, the unmapped stock
+location, the partner, and **which end of the movement** could not be resolved.
+
+The skip marker is kept separate from the success marker precisely so that fixing the node
+and re-saving the transfer generates the demand normally, instead of SCOP believing the
+work was already done.
+
+:::
+
+→ [Missing Node Diagnostics](../configuration/missing-node-diagnostics.mdx)
+
+## Why will it not move?
+
+Open the demand and read it in this order.
+
+### 1 · The ownership banner
+
+If the warning at the top of the form is present, that is your answer. Nothing else matters
+until it is resolved.
+
+→ [Inventory Ownership](../ownership/inventory-ownership.mdx)
+
+### 2 · The state, against the buttons
+
+| State | Waiting on |
+| --- | --- |
+| **Draft** | Somebody to **Submit** it |
+| **Submitted** | A planner to **Validate** it |
+| **Validated** | Readiness, then **Mark Eligible** |
+| **Eligible for Planning** | A planning run to place it |
+| **Planned** | The plan to be approved and released |
+| **Released** | The trip to depart |
+| **In Execution** | The Odoo transfer to be validated |
+
+### 3 · The shipment's readiness
+
+A demand at **Eligible for Planning** that is never planned is usually a readiness problem,
+not a demand problem.
+
+Open the **Shipments** tab, then check `Operations → Warehouse Readiness`. The **Evidence**
+field states in words why the computation reached its answer:
+
+| Evidence reads | Meaning |
+| --- | --- |
+| *"Everything is staged."* | Ready |
+| *"Stock is reserved for the whole shipment but not yet staged…"* | Conditionally Ready |
+| *"N of M units are reserved or staged."* | Partially Ready — **not plannable** |
+| *"Nothing is reserved or staged yet."* | Not Ready |
+| *"Ownership is unresolved on N line(s): …"* | Blocked |
+| *"Every transfer behind this shipment is cancelled."* | Blocked |
+| *"The shipment has no lines."* | Not Ready |
+
+### 4 · The rule evaluation
+
+If a button refused, the reason is recorded.
+
+`SCOP → Governance → Rule Evaluations` — find the demand, read the evaluation. The message
+shown to the user is stored verbatim, along with the evidence behind it.
+
+→ [The Governance Model](../concepts/the-governance-model.mdx)
+
+## Why was it not planned?
+
+`SCOP → Planning → Unplanned Demand`, or the plan's own **Unplanned Demand** tab.
+
+Every demand a run could not place is listed with one of twelve reasons and a suggested
+next action.
+
+| Reason | What it means |
+| --- | --- |
+| **No available inventory** | Nothing to allocate |
+| **Warehouse not ready** | Readiness is not plannable |
+| **No feasible vehicle** | Nothing available can carry it |
+| **No qualified driver** | No driver holds the required qualification |
+| **Capacity shortage** | More work than fleet |
+| **Time-window conflict** | The promise and the opening hours cannot both be met |
+| **Product incompatibility** | Goods that may not travel together |
+| **Route restriction** | The route cannot be used |
+| **Missing required data** | A node lacks coordinates, timezone or opening hours |
+| **Customer location unavailable** | The node is not open on that date |
+| **Planning horizon exceeded** | Outside the window the run considered |
+| **Lower priority than available capacity permits** | It lost to more important work |
+
+→ [Unplanned Demand](../planning/unplanned-demand.mdx)
+
+## Why has it not completed?
+
+| Check | Where | Meaning |
+| --- | --- | --- |
+| The **Transfers** stat button | The demand | Are the Odoo transfers validated? |
+| **Fulfilled** on each line | The **Lines** tab | Zero means nothing has been read back |
+| The stop's status | `Operations → Stops` | Was the stop ever completed? |
+| The trip's state | `Operations → Trips` | Did the trip finish? |
+
+The most common answer by a wide margin: **the Odoo transfer has not been validated.**
+
+## Two Administrator screens
+
+### Orphan Moves
+
+`SCOP → Reporting → Orphan Moves`
+
+Stock moves on a demand-generating transfer that **no demand line covers**. A non-zero count
+means demand coverage is understated — SCOP is planning less than is actually moving.
+
+### Ownership Data Quality
+
+`SCOP → Reporting → Ownership Data Quality`
+
+How much ownership is unresolved, grouped by how it was resolved. Use it to find a
+systematic problem — one partner, one product, one source — rather than fixing demands one
+at a time.
+
+→ [Data Quality Reports](../reporting/data-quality-reports.mdx)
+
+## Reconstructing the whole story
+
+When the question is *"what happened to this delivery"* rather than *"why is it stuck"*:
+
+1. Open the demand.
+2. Copy its **Correlation Reference** from the **Technical** tab.
+3. `SCOP → Reporting → Operation Timeline` → paste → **Show**.
+
+Every action on every record in that operation, in order, with who did it.
+
+→ [Operation Timeline](../reporting/operation-timeline.mdx)
+
+## Related Pages
+
+- [Demand Problems](../troubleshooting/demand-problems.mdx)
+- [Missing Node Diagnostics](../configuration/missing-node-diagnostics.mdx)
+- [Identity and Traceability](../concepts/identity-and-traceability.mdx)
+- [Data Quality Reports](../reporting/data-quality-reports.mdx)
