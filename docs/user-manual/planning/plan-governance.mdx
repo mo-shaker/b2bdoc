@@ -207,6 +207,30 @@ If nobody is available to approve, the answer is a second approver, not an exemp
 
 → [The Governance Model](../concepts/the-governance-model.mdx)
 
+## What the rules record when they pass
+
+Governance is as visible when it succeeds as when it refuses. Verified on `b2b` at
+`Governance → Rule Evaluations` after an Operations Manager approved and released a plan the
+Administrator had created:
+
+| Rule | Gate | Result | Message |
+| --- | --- | --- | --- |
+| `BR-PLN-001` | `plan_approve` | Passed | *Approval is separated from creation.* |
+| `BR-PLN-001` | `plan_release` | Passed | *Approval is separated from creation.* |
+| `BR-PLN-002` | `plan_release` | Passed | *No trip on this plan carries a blocking finding.* |
+| `BR-RTE-001` | `trip_approve`, `trip_release` | Passed | *Feasible at every point of the sequence.* |
+| `BR-RTE-002` | `trip_approve`, `trip_release` | **Failed — Warning** | *Peak utilisation is only 0.0%, below the 50% the plan aims for.* |
+
+Note the last row: the plan **released normally** with a standing utilisation warning against
+it. That is `BR-RTE-002` behaving exactly as designed.
+
+:::info[BR-PLN-001 is evaluated twice]
+
+Once at approval and again at release. Both are recorded, so the audit trail shows
+separation of duties held at each step rather than only at the first.
+
+:::
+
 ## Verify governance is working
 
 | Test | Expect |

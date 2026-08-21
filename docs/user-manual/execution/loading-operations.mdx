@@ -120,6 +120,31 @@ That is the gate working correctly.
 
 :::
 
+**Verified on `b2b`.** `TRP-2026-000006` was released with two shipments, and departure was
+attempted at two points:
+
+| Attempted from | Result |
+| --- | --- |
+| **Released** — before loading started | `TRP-2026-000006 cannot move from Released to In Progress.` |
+| **Loading** — first task started, second still pending | `TRP-2026-000006 cannot move from Loading to In Progress.` |
+
+Starting the first task moved the trip from **Released** to **Loading** on its own, with
+nobody touching the trip record.
+
+:::note[Settling a task needs Odoo Inventory → User]
+
+**Done** reads the underlying stock moves, so it requires Odoo's **Inventory → User** group.
+An Operations Manager without it gets:
+
+```text
+You are not allowed to access 'Stock Move' (stock.move) records.
+```
+
+This is correct — settling a loading task is warehouse work. See
+[Permissions Reference](../roles/permissions-reference.mdx).
+
+:::
+
 ## Measured loading duration
 
 | Field | Where it comes from |
@@ -156,6 +181,18 @@ answers a different question:
 
 Loads move largely on their own, driven by trip and loading events. Most warehouse users
 never open them.
+
+:::note[The baseline planner does not create loads]
+
+Verified on `b2b`: a trip produced by the deterministic baseline provider is released with
+its loading tasks but with **no load records**. The load lifecycle exists and is enforced
+where loads are created, but nothing in the Release 1 planning path creates them
+automatically.
+
+Expect `SCOP → Operations → Loads` to be empty in a standard pilot. That is not a fault, and
+the departure gate does not depend on it.
+
+:::
 
 ### The eight load states
 

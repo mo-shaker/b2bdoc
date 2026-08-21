@@ -109,6 +109,17 @@ together.
 This is cosmetic. Readiness, planning and every measure downstream use the underlying
 value, which is right.
 
+## Defects found while writing this manual
+
+Both were reproduced on `b2b` and are recorded here rather than written around.
+
+| # | Defect | Severity | Effect | What to do meanwhile |
+| --- | --- | --- | --- | --- |
+| 1 | **Compute Capacity is offered to users who cannot use it** | Low | The button appears on the trip form for anyone who can open it, but creating a capacity snapshot is restricted to the SCOP Administrator group. An Operations Manager or Planner pressing it gets an `AccessError` naming `scop.trip.capacity.snapshot` | Have an Administrator compute the capacity, or ignore the button |
+| 2 | **Capacity Feasible reads `false` when capacity has merely never been computed** | Cosmetic | A trip with no materialised capacity curve displays **Capacity Feasible = false**, which reads as *infeasible*. `BR-RTE-001` evaluates the same trip and correctly passes | Read **First Breach Sequence** and the peak percentages beside it. A zero breach sequence with zero peaks means *not computed*, not *infeasible* |
+
+Neither changes business logic, and neither has a workaround that distorts the operation.
+
 ## Records left mid-flight by an earlier release
 
 :::warning[History is not rewritten]

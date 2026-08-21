@@ -131,6 +131,43 @@ The **Capacity** tab shows one row per point:
 **Compute Capacity** on the header recalculates it. **First Breach Sequence** on the header
 tells you where to look first.
 
+:::danger[Capacity Feasible = false does not always mean infeasible]
+
+The field is false **whenever no capacity curve has been materialised**, which includes a
+trip whose capacity has simply never been computed.
+
+Tell the two apart by reading the row beside it:
+
+| Capacity Feasible | First Breach Sequence | Peak % | Means |
+| --- | --- | --- | --- |
+| false | a real stop number | non-zero | **Genuinely infeasible.** Fix the load |
+| false | `0` | `0` | **Never computed.** Press **Compute Capacity** |
+| true | — | non-zero | Feasible |
+
+Verified on `b2b`: `TRP-2026-000006` showed **Capacity Feasible false** with a zero breach
+sequence and zero peaks, while `BR-RTE-001` evaluated at both `trip_approve` and
+`trip_release` and **passed**, recording *"Feasible at every point of the sequence."* The
+rule was right; the flag simply had no curve to read.
+
+:::
+
+:::warning[Compute Capacity needs Administrator rights]
+
+The button appears for anyone who can open a trip, but it creates capacity snapshots, and
+**only the SCOP Administrator group may create those**. An Operations Manager pressing it
+gets:
+
+```text
+You are not allowed to create 'SCOP Trip Capacity Snapshot'
+(scop.trip.capacity.snapshot) records.
+This operation is allowed for the following groups:
+  - SCOP/Administrator
+```
+
+Recorded as a defect — see [Release 1 Scope](../about/release-1-scope.mdx).
+
+:::
+
 An Administrator can read the same data across all trips at
 `SCOP → Technical → Capacity Snapshots`, and the aggregate at
 [Vehicle Utilization](../reporting/vehicle-utilization.mdx).
@@ -213,6 +250,12 @@ cannot be approved or released — and neither can the plan carrying it, under `
 It **warns**; it does not block. A half-empty vehicle is sometimes exactly right — customer
 commitments rank above utilisation in the objective profile.
 
+The threshold is **50% peak utilisation**. Verified on `b2b`, the warning reads:
+
+```text
+Peak utilisation is only 0.0%, below the 50% the plan aims for.
+```
+
 Persistent warnings across many trips are worth reading as a fleet-sizing signal, not as an
 error.
 
@@ -228,7 +271,7 @@ error.
 | **Approve** | Under Review or Modified | Ops Manager |
 | **Release** | Approved | Ops Manager |
 | **Estimate Cost** | Not Completed or Cancelled | Planner |
-| **Compute Capacity** | Always | Planner |
+| **Compute Capacity** | Always | **Administrator** — see the warning above |
 | **Start Loading** | Released | Warehouse |
 | **Loading Done** | Loading | Warehouse |
 | **Depart** | Ready to Depart | **Driver** or dispatcher |

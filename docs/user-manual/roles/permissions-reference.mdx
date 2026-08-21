@@ -67,10 +67,31 @@ SCOP is an overlay. Where a role performs Odoo's own work, it needs Odoo's own g
 | **Planner / Dispatcher** | **Fleet → Administrator** | The planning wizard reads every vehicle | `Access Error` on `Vehicle` when generating a plan |
 | **Planner / Dispatcher** | **Employees → Officer** | Assigning a driver reads the employee register | The **Driver** field on a trip never finishes loading its options |
 | **Planner / Dispatcher** | **Inventory → User** | Resolving ownership and marking a demand eligible refresh allocation against Odoo's reservations | **Validate** or **Mark Eligible** raises an access error |
-| **Warehouse User** | **Inventory → User** | Validating transfers is Odoo's own work | Cannot validate the delivery order |
+| **Warehouse User** | **Inventory → User** | Validating transfers is Odoo's own work — **and settling a loading task reads stock moves** | Cannot validate the delivery order; **Loading Done** raises an access error on `Stock Move` |
 | **Operations Manager** | All of the above | Inherits both Planner and Warehouse work | As above |
 | **Driver** | **None** | Reads quantities on the record's behalf | — |
 | **Anyone** | **No Sales permission, ever** | The source order's number is captured onto the demand | — |
+
+### Verified on `b2b`
+
+The demo role accounts carry exactly this, confirmed against the database:
+
+| Account | Fleet | Employees | Inventory |
+| --- | --- | --- | --- |
+| `qs.planner` | **Administrator** | **Officer** | **User** |
+| `qs.opsmgr` | **Administrator** | **Officer** | *(none)* |
+| `qs.warehouse` | — | — | **User** |
+| `qs.driver` | — | — | — |
+
+The Operations Manager's missing **Inventory → User** is visible in practice: they can
+approve and release a plan, but pressing **Done** on a loading task raises
+
+```text
+You are not allowed to access 'Stock Move' (stock.move) records.
+```
+
+That is correct — settling a loading task is warehouse work. It is recorded here so nobody
+mistakes it for a fault.
 
 :::warning[Fleet → Officer is not enough for a planner]
 
@@ -106,6 +127,11 @@ read every transfer in the company, does not need it at all.
 | Load | R | RW | RWC | RWC | **R (own)** | RWCU |
 | Exception | RWC | RWC | RWC | RWC | — | RWCU |
 | Planning Node | R | R | RW | RW | **R** | RWCU |
+| Capacity Snapshot | R | R | R | R | — | **RWCU** |
+
+**Capacity Snapshot** is the one model below Administrator that cannot be *created* by
+anybody else, which is why **Compute Capacity** on a trip is effectively an Administrator
+action. See [Trips](../execution/trips.mdx).
 
 A dash means **no access of any kind** — the record does not exist as far as that role is
 concerned.
