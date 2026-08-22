@@ -1,0 +1,145 @@
+---
+id: troubleshooting-index
+title: فهرس معالجة المشكلات
+description: كل عَرَض في جدول واحد — ما تراه، والسبب المعتاد، والصفحة التي تعالجه.
+sidebar_label: فهرس معالجة المشكلات
+sidebar_position: 1
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+
+# فهرس معالجة المشكلات
+
+<DocumentInfo
+  category="دليل المستخدم"
+  audience={['عمليات', 'تخطيط', 'مستودعات', 'سائقون', 'اختبار قبول المستخدم']}
+  status="Draft"
+  version="1.0"
+  owner="فريق المنتج"
+  updated="أغسطس 2026"
+  readingTime="5 دقائق"
+/>
+
+## ابدأ من هنا
+
+جِد ما **تراه**. والجدول يعطي السبب المعتاد والصفحة التي تعالجه على وجهه.
+
+:::warning[فحصان قبل أي شيء آخر]
+
+**أفرِغ شريط البحث.** فالسجل الذي يبدو مفقوداً يكون مُرشَّحاً عادةً لا غائباً. وهذا أشيع إنذار كاذب خلال اختبار القبول.
+
+**افحص الحالة.** فالزر الغائب يكون عادةً سجلاً ليس في الحالة التي تعرضه.
+
+:::
+
+## بحسب العَرَض
+
+### لم يظهر شيء في SCOP
+
+| ما تراه | السبب المعتاد | اذهب إلى |
+| --- | --- | --- |
+| لا طلب لأمر مؤكَّد | نوع العملية خارج نطاق التجربة | [مشكلات الطلبات](./demand-problems.mdx) |
+| لا طلب لبعض الوجهات فقط | عقدة تخطيط مفقودة | [مشكلات الطلبات](./demand-problems.mdx) |
+| لا طلبات إطلاقاً، أبداً | نطاق التجربة غير مطبَّق | [مشكلات الطلبات](./demand-problems.mdx) |
+| لا طلب للتحويلات الأقدم | سابقة للإطلاق. **متوقَّع** | [نطاق التجربة](../configuration/pilot-scope.mdx) |
+| لا شحنة بعد Mark Eligible | نادر — أخفق التكوين | [مشكلات الجاهزية والشحنات](./readiness-and-shipment-problems.mdx) |
+| لا مهام تحميل لرحلة مُطلَقة | الرحلة بلا شحنات | [مشكلات التنفيذ](./execution-problems.mdx) |
+
+### الطلب لا يتحرك
+
+| ما تراه | السبب المعتاد | اذهب إلى |
+| --- | --- | --- |
+| **Validate** يُرفض | `BR-INV-002` — الملكية غير محلولة | [مشكلات الطلبات](./demand-problems.mdx) |
+| **Validate** يثير خطأ وصول | تنقص **Inventory → User** في Odoo | [مرجع الصلاحيات](../roles/permissions-reference.mdx) |
+| **Mark Eligible** يُرفض | الجاهزية Not Ready أو Blocked | [مشكلات الطلبات](./demand-problems.mdx) |
+| مؤهَّل، ولا يُخطَّط أبداً | الجاهزية **Partially Ready** — مؤهَّل لا قابل للتخطيط | [مشكلات الجاهزية والشحنات](./readiness-and-shipment-problems.mdx) |
+| عالقٌ عند **In Execution** | تحويل Odoo لم يُتحقَّق منه | [مشكلات الطلبات](./demand-problems.mdx) |
+| عالقٌ عند **Partially Completed** | طلب المتابعة لم يُسلَّم | [مشكلات الطلبات](./demand-problems.mdx) |
+| طلبٌ قديم جداً عالق في منتصف الطريق | سجلات إصدار سابق لا يُعاد كتابتها | [نطاق الإصدار الأول](../about/release-1-scope.mdx) |
+
+### المستودع لا يستطيع تجهيزه
+
+| ما تراه | السبب المعتاد | اذهب إلى |
+| --- | --- | --- |
+| الجاهزية تبقى **Blocked** | الملكية غير محلولة على سطر | [مشكلات الجاهزية والشحنات](./readiness-and-shipment-problems.mdx) |
+| الجاهزية تبقى **Not Ready** | لا شيء محجوز في Odoo، أو لا أسطر | [مشكلات الجاهزية والشحنات](./readiness-and-shipment-problems.mdx) |
+| **Stage Everything** لا يفعل شيئاً ظاهراً | اضغط **Refresh Readiness** | [مشكلات الجاهزية والشحنات](./readiness-and-shipment-problems.mdx) |
+| **Stage Everything** غير معروض | لستَ مستخدم مستودع | [مرجع الصلاحيات](../roles/permissions-reference.mdx) |
+| نسبة التجهيز تعرض `10000%` | خلل عرض معروف | [نطاق الإصدار الأول](../about/release-1-scope.mdx) |
+| الجاهزية تراجعت | أُزيل حجز. **سلوك صحيح** | [جاهزية المستودع](../readiness/warehouse-readiness.mdx) |
+
+### التخطيط لا يعمل
+
+| ما تراه | السبب المعتاد | اذهب إلى |
+| --- | --- | --- |
+| `Access Error` على **Vehicle** | تنقص **Fleet → Administrator** في Odoo | [مشكلات التخطيط](./planning-problems.mdx) |
+| حقل **Driver** لا يُحمَّل أبداً | تنقص **Employees → Officer** في Odoo | [مشكلات التخطيط](./planning-problems.mdx) |
+| كل شيء يعود *No feasible vehicle* | لا مركبة تحمل ملف سعة | [مشكلات التخطيط](./planning-problems.mdx) |
+| كل شيء يعود *Missing required data* | العقد تنقصها إحداثيات أو منطقة زمنية أو نوافذ | [مشكلات التخطيط](./planning-problems.mdx) |
+| التشغيلة **Failed** | أثار المزوّد خطأً أو انقضت مهلته | [مشكلات التخطيط](./planning-problems.mdx) |
+| المسارات بلا معنى | عقدة غير محدَّدة إحداثياً | [مشكلات التخطيط](./planning-problems.mdx) |
+| الخطة بلا رحلات | لم يمكن وضع شيء. اقرأ الأسباب | [الطلبات غير المخطَّطة](../planning/unplanned-demand.mdx) |
+
+### الخطة لا تُعتمَد ولا تُطلَق
+
+| ما تراه | السبب المعتاد | اذهب إلى |
+| --- | --- | --- |
+| **Approve** غير معروض | الخطة ليست **Under Review** | [مشكلات التخطيط](./planning-problems.mdx) |
+| **Approve** مرفوض، فصل مهام | أنت أنشأت هذه الخطة — `BR-PLN-001` | [حوكمة الخطة](../planning/plan-governance.mdx) |
+| **Approve** مرفوض، غير مخوَّل | لستَ مدير عمليات | [مرجع الصلاحيات](../roles/permissions-reference.mdx) |
+| **Modify** يُرفض | لم يُختَر سبب تجاوز | [مشكلات التخطيط](./planning-problems.mdx) |
+| **Release** يُرفض | رحلةٌ تحمل نتيجةً حاجبة — `BR-PLN-002` | [مشكلات التخطيط](./planning-problems.mdx) |
+| الرحلة غير ممكنة سعوياً | `BR-RTE-001` | [مشكلات التخطيط](./planning-problems.mdx) |
+
+### التنفيذ لا يمضي
+
+| ما تراه | السبب المعتاد | اذهب إلى |
+| --- | --- | --- |
+| الرحلة لا تغادر | مهمة تحميل ما زالت مفتوحة | [مشكلات التنفيذ](./execution-problems.mdx) |
+| **Depart** غير معروض للسائق | نفسه، أو الرحلة ليست **Ready to Depart** | [مشكلات التنفيذ](./execution-problems.mdx) |
+| السائق لا يرى رحلات | لا رحلة مخصَّصة، أو غير مُطلَقة، أو الموظف غير مربوط بمستخدم | [مشكلات التنفيذ](./execution-problems.mdx) |
+| **Delivered** مرفوض والكميات صفر | تحويل Odoo لم يُتحقَّق منه. **وليس إخفاقاً** | [مشكلات التنفيذ](./execution-problems.mdx) |
+| **Delivered** مرفوض، ويحتاج سبباً | `BR-EXE-001` | [مشكلات التنفيذ](./execution-problems.mdx) |
+| المحطة لا تُغلق | أحد الأمرين أعلاه | [مشكلات التنفيذ](./execution-problems.mdx) |
+| الرحلة لا تكتمل | محطةٌ تنقصها نتيجة أو سبب | [مشكلات التنفيذ](./execution-problems.mdx) |
+| لا إحداثيات على إثبات التسليم | الموقع على `http` عادي | [إثبات التسليم](../execution/proof-of-delivery.mdx) |
+
+### الأرقام تبدو خاطئة
+
+| ما تراه | السبب المعتاد | اذهب إلى |
+| --- | --- | --- |
+| تسليم مفقود من OTIF | لا يحمل تعهداً | [مشكلات التقارير](./reporting-problems.mdx) |
+| OTIF تبدو جميلة أكثر مما ينبغي | مُرشِّح التعهد يخفي معظم التسليمات | [مشكلات التقارير](./reporting-problems.mdx) |
+| التغطية تبدو جميلة أكثر مما ينبغي | حركات يتيمة، أو طلبٌ لم يصر مؤهَّلاً قط | [مشكلات التقارير](./reporting-problems.mdx) |
+| تقرير فارغ | مُرشِّح افتراضي، أو لا بيانات منذ الإطلاق | [مشكلات التقارير](./reporting-problems.mdx) |
+| المخطَّط والفعلي يتباعدان في كل رحلة | التقديرات خاطئة لا السائقون | [مشكلات التقارير](./reporting-problems.mdx) |
+| استثناءٌ بلا موعد نهائي | فئته بلا ساعات اتفاقية مضبوطة | [تقادم الاستثناءات](../reporting/exception-ageing.mdx) |
+
+### مشكلات الوصول
+
+| ما تراه | السبب المعتاد | اذهب إلى |
+| --- | --- | --- |
+| لا قائمة `SCOP` إطلاقاً | لا مجموعة SCOP مخصَّصة | [الوصول إلى SCOP](../getting-started/accessing-scop.mdx) |
+| `SCOP` تظهر وهي فارغة | **Finance User** وحدها، وهي بلا قائمة | [نطاق الإصدار الأول](../about/release-1-scope.mdx) |
+| **Planning** مفقودة | لستَ مخطِّطاً | [التنقّل في SCOP](../getting-started/navigating-scop.mdx) |
+| **Technical** مفقودة | لستَ مسؤول نظام | [التنقّل في SCOP](../getting-started/navigating-scop.mdx) |
+| سائقٌ يرى عمل غيره | يحمل `SCOP User` كذلك | [نموذج أمن السائق](../execution/driver-security-model.mdx) |
+
+## الأسئلة الثلاثة التي تحلّ معظم المشكلات
+
+| # | السؤال | أين |
+| --- | --- | --- |
+| 1 | **هل رأت SCOP هذا أصلاً؟** | `Technical → Domain Events` |
+| 2 | **أي قاعدة رفضتني، ولماذا؟** | `Governance → Rule Evaluations` |
+| 3 | **ماذا حدث فعلاً، بالترتيب؟** | `Reporting → Operation Timeline` |
+
+## صفحات ذات صلة
+
+- [تشخيص الطلبات](../demand/demand-diagnostics.mdx)
+- [قواعد العمل](../reference/business-rules.mdx)
+- [الخط الزمني للعملية](../reporting/operation-timeline.mdx)
+- [تقارير جودة البيانات](../reporting/data-quality-reports.mdx)
+
+## التالي
+
+[مشكلات الطلبات](./demand-problems.mdx).

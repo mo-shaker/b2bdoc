@@ -62,6 +62,7 @@ But it is **not silent**. Every skip is recorded.
 | **Event Name** | `DemandGenerationSkipped` |
 | **Error Message** | The whole finding, in a sentence |
 | **Payload** | The unmapped stock location, the partner, and **which end** failed |
+| **State** | Processed — the skip itself was recorded successfully |
 
 Reproduced on `b2b` by delivering to a branch with no node:
 
@@ -83,10 +84,7 @@ and the payload alongside it:
 
 `missing_endpoint` is the field to read first: it says whether the **origin** or the
 **destination** failed, so you are not checking the wrong end.
-| **State** | Processed — the skip itself was recorded successfully |
 
-The payload is the useful part. It names the exact location that could not be resolved, so
-you are not guessing which end of the movement is at fault.
 <Screenshot
   src="user-manual/85-domain-events-skipped.png"
   alt="The SCOP Domain Events list showing DemandGenerated and DemandGenerationSkipped events with their subject, state and message."
