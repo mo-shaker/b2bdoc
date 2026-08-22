@@ -58,6 +58,13 @@ My Stops  ── لكل محطة، بالترتيب ──┐
   device="mobile"
 />
 
+<Screenshot
+  src="quick-start/25-driver-my-trips.png"
+  alt="بطاقات My Trips لدى السائق تعرض بطاقة رحلة واحدة بمركبتها وعدد محطاتها."
+  caption="My Trips. لا تظهر إلا رحلاتك أنت، ولا تظهر إلا بعد إطلاقها."
+  device="mobile"
+/>
+
 :::info[الرحلات المُطلَقة فقط، ورحلاتك أنت فقط]
 
 القائمة مُرشَّحة على الرحلات **المُطلَقة** فما بعد. فالخطة التي ما زالت محل نقاش ليست شأنك.
@@ -75,6 +82,14 @@ My Stops  ── لكل محطة، بالترتيب ──┐
 
 **ما يجب فعله**
 افتح الرحلة واضغط **Depart**.
+
+<Screenshot
+  src="quick-start/26-driver-trip-ready.png"
+  alt="نموذج رحلة السائق بحالة Ready to Depart، يعرض زر Depart."
+  caption="نموذج رحلة السائق. زرٌّ واحد، ولا يظهر إلا حين يكون مشروعاً."
+  device="mobile"
+/>
+
 
 <Screenshot
   src="user-manual/D03-driver-trip-form.png"
@@ -103,6 +118,14 @@ My Stops  ── لكل محطة، بالترتيب ──┐
 
 ## الخطوة 3 — اعمل على المحطات
 
+<Screenshot
+  src="quick-start/28-driver-my-stops.png"
+  alt="بطاقات My Stops لدى السائق تعرض بطاقات المحطات بالتسلسل مع حالاتها."
+  caption="My Stops. اعمل عليها بالتسلسل."
+  device="mobile"
+/>
+
+
 **انتقل إلى** `SCOP → My Work → My Stops`
 
 **ما تراه**
@@ -119,8 +142,24 @@ My Stops  ── لكل محطة، بالترتيب ──┐
 
 ### I have arrived
 
+<Screenshot
+  src="quick-start/29-driver-stop-planned.png"
+  alt="نموذج محطة السائق بحالة Planned، يعرض زر I have arrived."
+  caption="محطة في Planned. والشيء الوحيد الممكن هو تأكيد الوصول."
+  device="mobile"
+/>
+
+
 **متى** تكون عند الموقع.
 **ما تفعله SCOP** تسجّل وقت الوصول وتنقل المحطة إلى **Arrived**.
+
+<Screenshot
+  src="quick-start/30-driver-stop-arrived.png"
+  alt="نموذج محطة السائق بحالة Arrived، يعرض زر Start unloading."
+  caption="Arrived. ووقت الوصول يُسجَّل ويغذّي مقياس الالتزام بالوقت."
+  device="mobile"
+/>
+
 
 ووقت الوصول هو ما تقيس [OTIF](../reporting/otif.mdx) الالتزام بالوقت مقابله، فاضغطه حين تصل فعلاً.
 
@@ -128,6 +167,14 @@ My Stops  ── لكل محطة، بالترتيب ──┐
 
 **متى** تبدأ تسليم البضائع.
 **ما تفعله SCOP** تسجّل بدء الخدمة وتنقل المحطة إلى **Servicing**.
+
+<Screenshot
+  src="quick-start/31-driver-stop-unloading.png"
+  alt="نموذج محطة السائق بحالة Servicing، يعرض زرَّي Delivered و Could not deliver."
+  caption="Servicing. ومن هنا تنتهي المحطة بإحدى طريقتين."
+  device="mobile"
+/>
+
 
 <Screenshot
   src="user-manual/D04-driver-stop-servicing.png"
@@ -149,6 +196,14 @@ My Stops  ── لكل محطة، بالترتيب ──┐
 | تنقل المحطة إلى **Completed** | |
 | تُغلق الرحلة إن كانت هذه آخر محطة | |
 
+<Screenshot
+  src="quick-start/36-driver-stop-delivered.png"
+  alt="نموذج محطة السائق بحالة Completed."
+  caption="Completed. والنتيجة جاءت من الكميات لا من اختيار."
+  device="mobile"
+/>
+
+
 ### Could not deliver
 
 **متى** لم يحدث التسليم فعلاً.
@@ -158,6 +213,14 @@ My Stops  ── لكل محطة، بالترتيب ──┐
 ## تبويب Goods
 
 يعرض ما ينبغي تسليمه، وما سُلِّم فعلاً.
+
+<Screenshot
+  src="quick-start/33-driver-goods-quantities.png"
+  alt="تبويب Goods لدى السائق يعرض الأصناف بالكميات المخطَّطة والفعلية."
+  caption="المخطَّط مقابل الفعلي. وعمود الفعلي مقروء من تحويل Odoo."
+  device="mobile"
+/>
+
 
 :::warning[أنت لا تكتب الكمية المسلَّمة أبداً]
 
@@ -170,6 +233,14 @@ My Stops  ── لكل محطة، بالترتيب ──┐
 :::
 
 ### إن كانت الكميات صفراً
+
+<Screenshot
+  src="quick-start/39-awaiting-odoo-validation.png"
+  alt="رسالة تشرح أن لا كمية مسلَّمة سُجِّلت بعد وأن المحطة لا يمكن إغلاقها."
+  caption="ليس إخفاقاً. فالتحويل لم يُتحقَّق منه بعد."
+  device="mobile"
+/>
+
 
 :::danger[الكمية الصفرية ليست تسليماً فاشلاً]
 
@@ -189,6 +260,14 @@ reason.
 :::
 
 ## تبويب Proof of delivery
+
+<Screenshot
+  src="quick-start/32-driver-proof-of-delivery.png"
+  alt="تبويب Proof of delivery لدى السائق يعرض اسم المستلِم والتقاط التوقيع ومرفقات الصور."
+  caption="توقيعٌ واسمٌ وصور — وإحداثيات حيث يسمح الموقع."
+  device="mobile"
+/>
+
 
 | الحقل | ما تفعله |
 | --- | --- |

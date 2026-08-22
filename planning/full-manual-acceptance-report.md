@@ -14,10 +14,15 @@
 | Mermaid diagrams | 29 | 29 |
 | Pages carrying `DocumentInfo` | 91 | 91 |
 | Pages carrying **Related Pages** | 91 | 91 |
-| Screenshots referenced | 85 shared between both locales | |
+| Distinct screenshots referenced | **94** | **96** |
 
 Structural parity between the two trees is exact: identical file paths, identical frontmatter
 `id`s, identical `sidebar_position` values. Verified by diff, not by inspection.
+
+Screenshot parity was checked the same way and **22 images were found missing from 11 Arabic
+pages**; all were added. Every image the English manual shows, the Arabic manual now shows.
+The Arabic tree carries two additional images the English does not — pre-existing enrichment,
+left in place.
 
 ### The sixteen chapters
 
@@ -156,7 +161,25 @@ correctly. **The fix is one `sudo()`.**
 
 ---
 
-## 6 · Recommendation
+## 6 · RTL verification
+
+Every one of the 91 Arabic pages was loaded in a headless browser at 1280×900 and inspected
+programmatically, not by sampling.
+
+| Check | Result |
+| --- | --- |
+| `dir="rtl"` and `lang="ar"` on the document | **91 / 91** |
+| Horizontal page overflow | **0 pages** |
+| Elements painted outside the viewport | **0 pages** |
+| Wide code blocks | Contained — every `<pre>` has `overflow-x: auto` and scrolls in its own box |
+| Code direction inside RTL prose | `direction: ltr`, correct — identifiers stay readable |
+| Mermaid diagrams | Render correctly; the English pages carry the same wide blocks |
+
+Seventeen pages initially flagged for wide `<pre>` elements. All were false positives: the
+blocks scroll within their own container, the page itself never scrolls sideways, and the
+English pages behave identically. **No RTL defect was found.**
+
+## 7 · Recommendation
 
 **The manual is ready for review.** The documentation itself is complete and verified.
 
