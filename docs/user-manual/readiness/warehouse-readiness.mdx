@@ -66,6 +66,23 @@ beside the computation rather than replacing it.
 | **Not Ready** | The goods are not prepared, or the shipment has no lines | No |
 | **Blocked** | Something must be fixed first | No |
 
+<Screenshot
+  src="user-manual/97-readiness-all-states.png"
+  alt="The SCOP Warehouse Readiness list showing Ready, Conditionally Ready, Partially Ready and Blocked shipments with an Is Plannable column."
+  caption="Four states side by side on b2b. Is Plannable is unticked for Partially Ready and Blocked, and ticked for the other two — the whole rule, in one column."
+/>
+
+All five were reproduced on `b2b` for this manual, each with the evidence it wrote:
+
+| State | Evidence, verbatim | Plannable |
+| --- | --- | --- |
+| **Ready** | *"Everything is staged."* | **Yes** |
+| **Conditionally Ready** | *"Stock is reserved for the whole shipment but not yet staged, so it is expected to be available before execution."* | **Yes** |
+| **Partially Ready** | *"4.0 of 10.0 units are reserved or staged."* | No |
+| **Not Ready** | *"Nothing is reserved or staged yet."* | No |
+| **Blocked** — ownership | *"Ownership is unresolved on 1 line(s): [QS-DEMO-01] QS Demo Chilled Box 10kg."* | No |
+| **Blocked** — cancelled | *"Every transfer behind this shipment is cancelled."* | No |
+
 :::info[Why Conditionally Ready counts as plannable]
 
 Because that is what the value *means* — expected to become available before execution.
@@ -73,6 +90,18 @@ Excluding it would make the classification decorative, and would stop a warehous
 work it has every intention of preparing.
 
 :::
+
+<Screenshot
+  src="user-manual/98-readiness-blocked-form.png"
+  alt="A blocked SCOP warehouse readiness record showing the computed state, the evidence sentence, an unticked Is Plannable box and the empty override section."
+  caption="A Blocked record on b2b. The evidence names the cause, and the chatter below records readiness moving in both directions as the evidence changed."
+/>
+
+<Screenshot
+  src="user-manual/99-readiness-partial-form.png"
+  alt="A partially ready SCOP warehouse readiness record showing the evidence sentence counting reserved units against the total."
+  caption="Partially Ready counts the units. Is Plannable is unticked — the demand can be eligible while its shipment cannot be planned."
+/>
 
 ## The order the tests run in
 

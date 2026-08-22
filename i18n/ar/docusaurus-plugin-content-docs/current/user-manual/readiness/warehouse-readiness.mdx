@@ -61,11 +61,40 @@ import Screenshot from '@site/src/components/Screenshot';
 | **Not Ready** | البضائع غير مُجهَّزة، أو الشحنة بلا سطور | لا |
 | **Blocked** | يجب إصلاح شيء أولاً | لا |
 
+<Screenshot
+  src="user-manual/97-readiness-all-states.png"
+  alt="قائمة جاهزية المستودع في SCOP تعرض شحنات Ready و Conditionally Ready و Partially Ready و Blocked بعمود Is Plannable."
+  caption="أربع حالات جنباً إلى جنب على b2b. و«Is Plannable» غير مؤشَّر لـ Partially Ready و Blocked، ومؤشَّر للأخريين — القاعدة كلها في عمود واحد."
+/>
+
+وقد أُعيد إنتاج الخمس كلها على `b2b` لأجل هذا الدليل، كلٌّ بالدليل الذي كتبته:
+
+| الحالة | الدليل حرفياً | قابلة للتخطيط |
+| --- | --- | --- |
+| **Ready** | *"Everything is staged."* | **نعم** |
+| **Conditionally Ready** | *"Stock is reserved for the whole shipment but not yet staged, so it is expected to be available before execution."* | **نعم** |
+| **Partially Ready** | *"4.0 of 10.0 units are reserved or staged."* | لا |
+| **Not Ready** | *"Nothing is reserved or staged yet."* | لا |
+| **Blocked** — الملكية | *"Ownership is unresolved on 1 line(s): [QS-DEMO-01] QS Demo Chilled Box 10kg."* | لا |
+| **Blocked** — الإلغاء | *"Every transfer behind this shipment is cancelled."* | لا |
+
 :::info[لماذا تُعَد Conditionally Ready قابلة للتخطيط]
 
 لأن هذا ما تعنيه القيمة — يُتوقَّع توفّرها قبل التنفيذ. واستبعادها سيجعل التصنيف زخرفياً، وسيمنع مستودعاً من تخطيط عمل ينوي تجهيزه تماماً.
 
 :::
+
+<Screenshot
+  src="user-manual/98-readiness-blocked-form.png"
+  alt="سجل جاهزية مستودع محجوب في SCOP يعرض الحالة المحسوبة وجملة الدليل ومربع Is Plannable غير المؤشَّر وقسم التجاوز الفارغ."
+  caption="سجل Blocked على b2b. والدليل يسمّي السبب، والمحادثة أسفله تسجّل تحرّك الجاهزية في الاتجاهين بتغيّر الأدلة."
+/>
+
+<Screenshot
+  src="user-manual/99-readiness-partial-form.png"
+  alt="سجل جاهزية مستودع جاهز جزئياً في SCOP يعرض جملة الدليل تعدّ الوحدات المحجوزة مقابل الإجمالي."
+  caption="Partially Ready تعدّ الوحدات. و«Is Plannable» غير مؤشَّر — فالطلب يمكن أن يكون مؤهَّلاً بينما شحنته غير قابلة للتخطيط."
+/>
 
 ## الترتيب الذي تُجرى به الفحوص
 

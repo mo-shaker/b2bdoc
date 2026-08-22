@@ -444,6 +444,7 @@ sessions now exist for all five operational logins, so every row below was execu
 | Mixed outcomes at one shared stop | **Done.** `DMD-2026-000011` **completed**, `DMD-2026-000010` left partial, from the same arrival |
 | `BR-EXE-001` on a **partial**, not only a failure | **Done.** Refused verbatim, then accepted once a reason was set |
 | Stop status against stop outcome | **Done.** Status **completed**, outcome **partially_completed** — derived, not chosen |
+| **Blocked / Partially Ready / Not Ready** readiness states | **Done.** All five reproduced with their verbatim evidence, and captured — see below |
 
 ### What the run confirmed
 
@@ -577,3 +578,39 @@ complete failure loses the requirement.
 **Documentation response.** The manual describes the backorder mechanism as what actually
 carries a partial remainder, and states plainly that a total failure leaves nothing behind —
 rather than promising a follow-up demand that is never created.
+
+
+---
+
+## Readiness — all five states reproduced
+
+Driven on one clean fixture, `SHP-2026-000010`, so each state is the same shipment under
+different evidence. Screenshots `97`–`99`.
+
+| State | How it was produced | Evidence, verbatim | Plannable |
+| --- | --- | --- | --- |
+| **Ready** | Everything staged | *"Everything is staged."* | **Yes** |
+| **Conditionally Ready** | Reserved in full, not staged | *"Stock is reserved for the whole shipment but not yet staged, so it is expected to be available before execution."* | **Yes** |
+| **Not Ready** | `do_unreserve` on the transfer | *"Nothing is reserved or staged yet."* | No |
+| **Partially Ready** | Reservation cut to 4 of 10 | *"4.0 of 10.0 units are reserved or staged."* | **No** |
+| **Blocked** | Shipment-line ownership cleared | *"Ownership is unresolved on 1 line(s): [QS-DEMO-01] QS Demo Chilled Box 10kg."* | No |
+| **Blocked** | Every transfer cancelled | *"Every transfer behind this shipment is cancelled."* | No |
+
+Three documented claims confirmed in the process:
+
+| Claim | Confirmed by |
+| --- | --- |
+| **Partially Ready is eligible but not plannable** | `is_plannable` **false** at 4 of 10, while the demand stayed **Eligible for Planning** |
+| **Blocked is tested before any quantity** | The shipment sat at Partially Ready; clearing ownership took it straight to **Blocked**, not to a quantity state |
+| **Readiness moves in either direction** | The record's chatter shows Partially Ready → Blocked → Partially Ready as the evidence changed |
+
+One control found that the manual did not describe, now worth knowing:
+
+> Writing an owner onto a shipment line that disagrees with its demand line is refused:
+> *"Ownership on shipment line [QS-DEMO-01] QS Demo Chilled Box 10kg does not match the demand
+> line it serves."*
+
+Consolidation was also re-confirmed incidentally: three demands created for the same node, type,
+company and **required date** formed **one** shipment, `SHP-2026-000009` — even though their
+transfers carried three different scheduled dates, because the consolidation key uses the
+demand's **required date**, not the picking's schedule.
