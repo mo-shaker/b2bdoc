@@ -1,0 +1,237 @@
+---
+id: reason-codes
+title: رموز الأسباب
+description: كل رمز سبب في SCOP، بفئته — ماذا يعني كلٌّ منها، ومن يختاره، ولماذا يساوي السبب الصادق أكثر من السبب المريح.
+sidebar_label: رموز الأسباب
+sidebar_position: 3
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+import Screenshot from '@site/src/components/Screenshot';
+
+# رموز الأسباب
+
+<DocumentInfo
+  category="دليل المستخدم"
+  audience={['عمليات', 'تخطيط', 'مستودعات', 'سائقون', 'إدارة', 'اختبار قبول المستخدم']}
+  status="Draft"
+  version="1.0"
+  owner="فريق المنتج"
+  updated="أغسطس 2026"
+  readingTime="6 دقائق"
+/>
+
+**انتقل إلى**
+`SCOP → Governance → Reason Codes`
+
+<Screenshot
+  src="user-manual/28-reason-codes.png"
+  alt="قائمة رموز الأسباب في SCOP تعرض الأسباب المنضبطة مُجمَّعةً بالفئة."
+  caption="المفردات المنضبطة على b2b — 51 سبباً عبر ست فئات."
+/>
+
+## لماذا تستخدم SCOP قائمةً منضبطة
+
+حيثما سألت SCOP *لماذا*، عرضت قائمةً لا مربع نصّ حر.
+
+:::info[المفردات المنضبطة هي ما يجعل «لماذا نظل نُخفق في التسليمات» سؤالاً قابلاً للإجابة]
+
+فمئة تعليق حرّ لا يمكن تجميعها ولا عدّها ولا رسمها بيانياً. وواحدٌ وخمسون سبباً منضبطاً يمكن — وكل تقرير يُجمِّع بالسبب موجودٌ بفضل هذا القرار.
+
+:::
+
+## الفئات الست
+
+| الفئة | العدد | تصادفها حين |
+| --- | --- | --- |
+| **Unplanned Demand** | 12 | لماذا عجزت تشغيلة تخطيط عن وضع طلب |
+| **Override** | 9 | لماذا حاد شخصٌ عن التوصية، أو تجاوز جاهزيةً محسوبة |
+| **Exception Root Cause** | 11 | لماذا وقعت مشكلة تشغيلية |
+| **Stop Outcome** | 7 | لماذا أخفق تسليم أو تُخطّي |
+| **Next Action** | 7 | ماذا يُفعل بطلبٍ لم يُخطَّط، أو برفض |
+| **Return Disposition** | 5 | ماذا يحدث لبضائع عادت |
+
+**51 رمز سبب فعّالاً** في المجموع.
+
+---
+
+## الطلبات غير المخطَّطة
+
+لماذا عجزت تشغيلة تخطيط عن وضع طلب.
+
+يضبطها مزوّد التخطيط. فأنت تقرؤها ولا تختارها.
+
+| السبب | الرمز |
+| --- | --- |
+| **No available inventory** | `no_inventory` |
+| **Warehouse not ready** | `warehouse_not_ready` |
+| **No feasible vehicle** | `no_feasible_vehicle` |
+| **No qualified driver** | `no_qualified_driver` |
+| **Capacity shortage** | `capacity_shortage` |
+| **Time-window conflict** | `time_window_conflict` |
+| **Product incompatibility** | `product_incompatibility` |
+| **Route restriction** | `route_restriction` |
+| **Missing required data** | `missing_data` |
+| **Customer location unavailable** | `location_unavailable` |
+| **Planning horizon exceeded** | `horizon_exceeded` |
+| **Lower priority than available capacity permits** | `lower_priority` |
+
+→ [في سياقها](../planning/unplanned-demand.mdx)
+
+---
+
+## التجاوز
+
+لماذا حاد شخصٌ عن التوصية، أو تجاوز جاهزيةً محسوبة.
+
+**أنت تختار واحداً.** وهذه، إن اختيرت بصدق، صارت أنفع تقرير في النظام.
+
+| السبب | الرمز |
+| --- | --- |
+| **Operational information unavailable to the engine** | `info_unavailable_to_engine` |
+| **Customer instruction** | `customer_instruction` |
+| **Management instruction** | `management_instruction` |
+| **Incorrect master data** | `incorrect_master_data` |
+| **Unexpected warehouse condition** | `unexpected_warehouse_condition` |
+| **Driver or vehicle issue** | `driver_or_vehicle_issue` |
+| **Local route knowledge** | `local_route_knowledge` |
+| **Service-risk judgment** | `service_risk_judgment` |
+| **Emergency requirement** | `emergency_requirement` |
+
+→ [في سياقها](../reporting/decision-quality.mdx)
+
+---
+
+## السبب الجذري للاستثناء
+
+لماذا وقعت مشكلة تشغيلية.
+
+يُسجَّل على الاستثناء، فيمكن تحليل الطابور لا العمل عليه فقط.
+
+| السبب | الرمز |
+| --- | --- |
+| **Supplier delay** | `supplier_delay` |
+| **Customer time-window change** | `customer_window_change` |
+| **Inventory shortage** | `inventory_shortage` |
+| **Picking delay** | `picking_delay` |
+| **Invalid shipment composition** | `invalid_shipment_composition` |
+| **Vehicle breakdown** | `vehicle_breakdown` |
+| **Route restriction** | `route_restriction` |
+| **No feasible plan** | `no_feasible_plan` |
+| **Delivery rejection** | `delivery_rejection` |
+| **Invalid KPI result** | `invalid_kpi_result` |
+| **Unauthorized configuration** | `unauthorized_configuration` |
+
+→ [في سياقها](../exceptions/exception-management.mdx)
+
+---
+
+## نتيجة المحطة
+
+لماذا أخفق تسليم أو تُخطّي.
+
+**مطلوبة** بموجب `BR-EXE-001`. ويُسأل عنها عند الباب، حين يستطيع السائق الإجابة.
+
+| السبب | الرمز |
+| --- | --- |
+| **Customer location closed** | `customer_closed` |
+| **Customer refused the delivery** | `customer_refused` |
+| **Goods damaged in transit** | `goods_damaged` |
+| **Access to the location blocked** | `access_blocked` |
+| **Ran out of time on the route** | `time_exhausted` |
+| **Vehicle issue** | `vehicle_issue` |
+| **Rescheduled at the customer's request** | `rescheduled_by_customer` |
+
+→ [في سياقها](../execution/failed-delivery.mdx)
+
+---
+
+## الإجراء التالي
+
+ماذا يُفعل بطلبٍ لم يُخطَّط، أو برفض.
+
+يقترحه المزوّد على الطلبات غير المخطَّطة؛ ومطلوبٌ عند رفض طلب.
+
+| السبب | الرمز |
+| --- | --- |
+| **Replan for another date** | `replan_another_date` |
+| **Use another warehouse** | `use_another_warehouse` |
+| **Split the shipment** | `split_shipment` |
+| **Request additional capacity** | `request_capacity` |
+| **Resolve missing data** | `resolve_missing_data` |
+| **Change the time window with authorization** | `change_time_window` |
+| **Perform an inter-warehouse transfer** | `inter_warehouse_transfer` |
+
+→ [في سياقها](../planning/unplanned-demand.mdx)
+
+---
+
+## التصرّف في المرتجع
+
+ماذا يحدث لبضائع عادت.
+
+**مطلوب** قبل أن يمكن التصرّف في طلب مرتجع.
+
+| السبب | الرمز |
+| --- | --- |
+| **Restock** | `restock` |
+| **Scrap** | `scrap` |
+| **Return to supplier** | `return_to_supplier` |
+| **Customer credit** | `customer_credit` |
+| **Pending decision** | `pending` |
+
+---
+
+## اختيار السبب بصدق
+
+ثلاثٌ من الفئات الست يختارها **شخص**: التجاوز، ونتيجة المحطة، والإجراء التالي. وهذه الثلاث تحمل القيمة التحليلية كلها، والخطر كله.
+
+:::warning[السبب المريح والسبب الحقيقي قلّما يكونان واحداً]
+
+| المختار | الحقيقي | العاقبة |
+| --- | --- | --- |
+| *Local route knowledge* | *Incorrect master data* | مشكلة بيانات قابلة للإصلاح تختبئ وراء أخرى غير قابلة له |
+| *Customer location closed* | *Ran out of time on the route* | مشكلة رسم مسار تُسجَّل مشكلةَ عميل |
+| *Operational information unavailable to the engine* | *Unexpected warehouse condition* | مسألة مستودع لا تصل المستودع أبداً |
+
+والمخطِّط الذي يختار السبب نفسه دائماً يُنتج تقريراً لا يقول شيئاً.
+
+:::
+
+والعكس صحيح كذلك، وهو المقصد: فالسبب المُسجَّل بصدق أربعين مرة يصير مشكلةً مسمّاةً معدودة يستطيع أحدٌ إصلاحها فعلاً.
+
+## أين تُستخدَم كل فئة
+
+| الفئة | الشاشة | مطلوبة؟ |
+| --- | --- | --- |
+| Unplanned Demand | `Planning → Unplanned Demand` | يضبطها النظام |
+| Override | **Modify** في الخطة؛ و**Apply Override** في الجاهزية | **نعم** |
+| Exception Root Cause | نموذج الاستثناء | لا، لكنها جوهرية تحليلياً |
+| Stop Outcome | **Could not deliver** / **Skipped** لدى السائق | **نعم** — `BR-EXE-001` |
+| Next Action | الطلبات غير المخطَّطة؛ و**Reject** في الطلب | مقترَح؛ ومطلوب عند الرفض |
+| Return Disposition | **Set Disposition** في طلب المرتجع | **نعم** |
+
+## إضافة الأسباب أو تغييرها
+
+`SCOP → Governance → Reason Codes`
+
+يمكن تعطيل الأسباب وإضافة جديدة. وتحذيران:
+
+| التحذير | لماذا |
+| --- | --- |
+| تعطيل سبب لا يزيله من التاريخ | فالسجلات الماضية تحتفظ بالسبب الذي أُعطيته |
+| إضافة شبه المكررات تُتلِف القيمة | فسببان بمعنى واحد يقسمان إشارةً واحدة إلى ضعيفتين |
+
+والأسباب الموسومة بأنها من المخطط المعتمَد هي المفردات المتفَق عليها. وسِّعها عمداً لا عرضاً.
+
+## صفحات ذات صلة
+
+- [نموذج الحوكمة](../concepts/the-governance-model.mdx)
+- [الطلبات غير المخطَّطة](../planning/unplanned-demand.mdx)
+- [جودة القرار](../reporting/decision-quality.mdx)
+- [التسليم الفاشل](../execution/failed-delivery.mdx)
+- [إدارة الاستثناءات](../exceptions/exception-management.mdx)
+
+## التالي
+
+[مسرد الحالات](./status-glossary.mdx).
