@@ -431,19 +431,94 @@ Two field labels were also corrected: the demands list shows **Requesting Party*
 
 ---
 
-## Blocking dependency
+## Deferred work — now completed
 
-**Identity switching is not available to this session.** Two mechanisms were tried and both
-were refused by the environment's own guardrails: driving the ORM from a script holding
-another user's session, and the `mo_connect_as_user` impersonation route.
+The blocking dependency recorded in revision 2 (no identity switching) was resolved: live
+sessions now exist for all five operational logins, so every row below was executed against
+`b2b` rather than left open.
 
-That leaves these rows unfinished:
-
-| Blocked | Needs |
+| Previously blocked | Outcome |
 | --- | --- |
-| Plan **approve** and **release** on a plan this session created | A second person, because `BR-PLN-001` refuses the author |
-| Driver `My Work → My Trips` and `My Stops` captures | A Driver session — record rules mean the Administrator cannot see the driver's view |
-| Per-role menu-visibility captures | A session per role |
-| Loading, departure, stop completion and proof of delivery on a new trip | A released trip, which needs the approval above |
+| Validate Branch A's transfers, then complete that stop | **Done.** `QSD/OUT/00013` and `QSD/OUT/00015` validated in full; stop closed; `TRP-2026-000006` closed itself |
+| Partial delivery with a backorder | **Done.** `QSD/OUT/00010` validated 6 of 10; Odoo raised backorder `QSD/OUT/00017`; SCOP read 6.0 back on its own |
+| Mixed outcomes at one shared stop | **Done.** `DMD-2026-000011` **completed**, `DMD-2026-000010` left partial, from the same arrival |
+| `BR-EXE-001` on a **partial**, not only a failure | **Done.** Refused verbatim, then accepted once a reason was set |
+| Stop status against stop outcome | **Done.** Status **completed**, outcome **partially_completed** — derived, not chosen |
 
-Everything else reachable as the Administrator is done.
+### What the run confirmed
+
+| Documented claim | Verified on `b2b` |
+| --- | --- |
+| SCOP reads actual quantities with nobody pressing anything | Stop lines went 0.00 → 6/4/3 the moment the transfers were validated |
+| A stop cannot close before validation | *"Stop 1 has no delivered quantity recorded yet…"* — the message offers both paths |
+| `BR-EXE-001` covers partials | *"Stop 1 did not deliver everything planned, so it needs a reason before it can be closed."* |
+| A shared stop does not merge the demands | Two demands, one arrival, two different final states |
+| One demand may be fulfilled by several transfers | `DMD-2026-000010` shows **2** transfers after the backorder |
+| The chain closes itself | Stop → trip → shipment → demand → assignments, with no state pushed by hand |
+
+---
+
+## Defect register
+
+Recorded, not written around, per the brief.
+
+| # | Severity | Summary |
+| --- | --- | --- |
+| 1 | Low | **Compute Capacity** is offered to users who cannot use it — creating `scop.trip.capacity.snapshot` is SCOP/Administrator-only |
+| 2 | Cosmetic | `Capacity Feasible` reads `false` when capacity has merely never been computed. Distinguish by `First Breach Sequence = 0` with zero peaks |
+| 3 | High | Third-party ACL `stock_return_approval.user` grants **every internal user** RWCU on `stock.picking`. A Driver can list 21,181 transfer headers with customer names and dates. **Not SCOP's** — SCOP grants the Driver group nothing there, and `stock.move` stays protected. The fix is narrowing that module's ACL |
+| 4 | **High** | **No follow-up demand is ever created, and a demand that is not fully fulfilled never leaves `in_execution`** — see below |
+
+### Defect 4 — the follow-up demand is never created
+
+**Expected**, from `scop_base/data/state_machines.json`:
+
+| Transition | Promised side effect |
+| --- | --- |
+| trip `in_progress → partially_completed` | *"follow-up demand created per failed line"* |
+| demand `in_execution → partially_completed` | *"follow-up demand created"* |
+| demand `in_execution → failed` | *"follow-up demand created"* |
+
+**Actual.** None of the three fires.
+
+- `scop.trip._scop_cascade_complete` advances a demand only when
+  `qty_fulfilled > 0 and qty_remaining <= 0` — that is, **only complete fulfilment**. A demand
+  that is short, or that received nothing, is never moved.
+- Nothing anywhere writes `parent_demand_id`. The field, `root_demand_id`, `is_follow_up` and
+  the **Follow-Up and Returns** tab all exist and are all only ever read.
+- `scop.demand` has **0** records with `is_follow_up` set, across the whole database.
+
+**Reproduction** — two independent paths, both on `b2b`:
+
+| Path | Steps | Result |
+| --- | --- | --- |
+| Total failure | Stop 14 (Branch B) failed with *Customer location closed*; `TRP-2026-000006` closed **partially_completed** | `DMD-2026-000013` stayed `in_execution`, remaining 5.0, no follow-up. Cancelling its transfer `QSD/OUT/00014` changed nothing |
+| Partial delivery | `QSD/OUT/00010` validated 6 of 10; backorder raised; stop closed with a reason; `TRP-2026-000005` closed **partially_completed** | `DMD-2026-000010` stayed `in_execution`, fulfilled 6.0 / remaining 4.0, no follow-up |
+
+A third instance predates this session: `TRP-2026-000002` closed partially_completed and left
+`DMD-2026-000004` and `DMD-2026-000005` at `in_execution` with nothing delivered.
+
+**Perfect correlation observed:** every demand whose Odoo transfer is `done` reached
+`completed`; every demand whose transfer is `assigned` or `cancel` is stuck at `in_execution`.
+
+**Affected roles** Planner, Operations Manager, Customer Service.
+
+**Affected chapters** Demand Completion · Demand Lifecycle · Partial Deliveries and Backorders ·
+Failed Delivery · Trip Lifecycle · Status Glossary · Lifecycle Reference · both affected
+scenarios · Demand Problems.
+
+**Consequences**
+
+| | |
+| --- | --- |
+| The customer's remaining requirement is **silently lost** | Nobody is told to re-raise it |
+| Those demands never reach a finished state | So they never appear in [OTIF](../docs/user-manual/reporting/otif.mdx) at all — the measure is quietly narrowed to deliveries that went well |
+| `partially_completed → completed` is unreachable | Its trigger is *"follow-up fulfils remainder"*, and no follow-up exists |
+| Plan Coverage is unaffected | Those demands are not eligible, so they are not offered |
+
+**Operational workaround until it is fixed.** Watch
+`Operations → Demands` filtered to **In Execution** after every trip closes. Any row there
+whose trip has finished is a remaining requirement that must be raised by hand.
+
+**Documentation response.** The manual states the behaviour as designed *and* carries this
+finding beside it, in English and Arabic, rather than describing a follow-up nobody will see.

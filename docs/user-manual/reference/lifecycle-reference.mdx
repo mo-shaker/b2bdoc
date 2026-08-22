@@ -35,6 +35,22 @@ So these diagrams are not a description of the system — they are the same sour
 
 :::
 
+:::warning[The drift test covers states and transitions, not side effects]
+
+The **Transitions with downstream effects** tables below are prose from the same
+specification, and prose is not what the drift test compares. A side effect can therefore be
+specified and not implemented, and the build still passes.
+
+One is, and it matters: **"follow-up demand created"** — on the trip's
+`in_progress → partially_completed`, and on the demand's `in_execution → partially_completed`
+and `in_execution → failed` — **does not happen in Release 1**. Nothing writes
+`parent_demand_id`, and a demand that is not fully fulfilled never leaves `in_execution`.
+
+Read the side-effect tables on this page as **what is specified**, and
+[Demand Completion](../demand/demand-completion.mdx) for what is verified.
+
+:::
+
 ## How to read them
 
 | On the diagram | Means |

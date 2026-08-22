@@ -118,7 +118,7 @@ import DocumentInfo from '@site/src/components/DocumentInfo';
 | المحطة | الحالة **Failed**، والنتيجة **Failed**، مع السبب |
 | الرحلة | **Partially Completed** حين تُغلق |
 | الطلب | **Failed** |
-| **طلب متابعة** | يُنشأ — فالمتطلب لا يضيع |
+| **طلب متابعة** | ينبغي أن يُنشأ فلا يضيع المتطلب. **ولا يُنشأ في الإصدار الأول** |
 | الحمولات والموارد | تُغلق طبيعياً |
 
 **تحقّق**
@@ -128,7 +128,7 @@ import DocumentInfo from '@site/src/components/DocumentInfo';
 | أن المحطة فشلت بسبب | المحطة | الحالة و**Outcome Reason** |
 | أن الرحلة أُغلقت | الرحلة | **Partially Completed** |
 | الطلب | `Operations → Demands` | **Failed** |
-| وجود متابعة | تبويب **Follow-Up and Returns** في الطلب | طلبٌ ابن |
+| وجود متابعة | تبويب **Follow-Up and Returns** في الطلب | **فارغ في الإصدار الأول** |
 | الدليل | تبويب **Proof of Delivery** | الصورة |
 
 ---
@@ -150,7 +150,15 @@ import DocumentInfo from '@site/src/components/DocumentInfo';
 
 **الدور** المخطِّط
 
-خطّط طلب المتابعة ليوم آخر.
+خطّط طلب المتابعة ليوم آخر — **وفي الإصدار الأول عليك رفعه يدوياً أولاً**.
+:::danger[عيبٌ مُتحقَّق منه — هذه الخطوة لا تحدث في الإصدار الأول]
+
+فلا يُنشأ طلب متابعة، ولا يغادر الطلب **In Execution**. وكل ما قبل هذه الخطوة يتصرّف كما وُصِف.
+
+→ [استكمال الطلب](../demand/demand-completion.mdx)
+
+:::
+
 
 ---
 
@@ -173,7 +181,7 @@ import DocumentInfo from '@site/src/components/DocumentInfo';
 | --- | --- | --- |
 | الطلب | **Failed** | **Completed** |
 | الرحلة | Partially Completed | Completed |
-| طلب المتابعة | يُنشأ | لا شيء |
+| طلب المتابعة | ينبغي أن يُنشأ؛ **ولا يُنشأ** في الإصدار الأول | لا شيء |
 | OTIF | ليس بالكامل ولا في الوقت | في الوقت وبالكامل |
 
 قرارٌ واحد من سائق، يُتَّخذ في عشر ثوانٍ عند باب عميل، يقرّر ذلك كله.

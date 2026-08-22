@@ -74,24 +74,53 @@ When a delivery is short:
 | 1 | The warehouse validates the transfer with the quantity that actually moved | **Odoo** |
 | 2 | Odoo creates a **backorder** for the remainder | **Odoo** |
 | 3 | The stop outcome becomes **Partially Completed** | SCOP |
-| 4 | The demand becomes **Partially Completed** | SCOP |
-| 5 | A **follow-up demand** is created for the remainder | SCOP |
+| 4 | The demand *should* become **Partially Completed** | SCOP — **does not happen in Release 1** |
+| 5 | A **follow-up demand** *should* be created for the remainder | SCOP — **does not happen in Release 1** |
 
-The follow-up carries the chain back to the original:
+:::danger[Verified defect — steps 4 and 5 do not happen]
 
-| Field | Meaning |
-| --- | --- |
-| **Parent Demand** | The demand this one follows up |
-| **Is Follow-Up** | Set on the new demand |
-| **Root Demand** | The original requirement at the head of the chain |
+Reproduced on `b2b`. A demand that is **not fully** fulfilled never leaves **In Execution**,
+and **no follow-up demand is created** — there is not one record with **Is Follow-Up** set
+anywhere in the database.
+
+`QSD/OUT/00010` was validated at 6 of 10. Odoo raised the backorder, SCOP read the 6.0 back
+onto the stop and demand lines, the stop closed **Partially Completed**, and the trip closed
+**Partially Completed** — and `DMD-2026-000010` is still **In Execution** with 4.0 remaining
+and no child demand.
+
+The same happens on a total failure: `DMD-2026-000013` behind a failed stop is still
+**In Execution** with nothing delivered, and cancelling its transfer changed nothing.
+
+**What this costs you.** The remaining requirement is not raised by anybody, and because the
+demand never reaches a finished state it never appears in [OTIF](../reporting/otif.mdx) at
+all — so short and failed deliveries are quietly absent from the service measure rather than
+counting against it.
+
+**Until it is fixed:** after every trip closes, read `Operations → Demands` filtered to
+**In Execution**. Any row whose trip has finished is a remaining requirement that has to be
+raised by hand.
+
+:::
+
+The chain back to the original is carried by three fields. They exist, and the
+**Follow-Up and Returns** tab displays them — but nothing populates them in Release 1:
+
+| Field | Meaning | Release 1 |
+| --- | --- | --- |
+| **Parent Demand** | The demand this one follows up | Always empty |
+| **Is Follow-Up** | Set on the new demand | Never set |
+| **Root Demand** | The original requirement at the head of the chain | Always empty |
 
 :::info[The original demand is not replaced]
 
-`DMD-2026-000010` stays the customer's original requirement. It reaches **Completed** only
-when the follow-up fulfils the remainder.
+`DMD-2026-000010` stays the customer's original requirement. By design it reaches
+**Completed** only when the follow-up fulfils the remainder.
 
 That is what keeps the promise measurable: OTIF asks whether the *original* requirement was
 met, not whether the last backorder eventually arrived.
+
+**In Release 1 that transition is unreachable**, because its trigger is *"follow-up fulfils
+remainder"* and no follow-up is created. The demand stays at **In Execution** instead.
 
 :::
 
@@ -99,10 +128,16 @@ met, not whether the last backorder eventually arrived.
 
 ## Failure
 
-A demand reaches **Failed** when nothing was delivered at all. A follow-up demand is created
-so the requirement is not simply lost.
+By design a demand reaches **Failed** when nothing was delivered at all, and a follow-up
+demand is created so the requirement is not simply lost. **Failed** is terminal for that
+demand, and the follow-up is where the second attempt lives.
 
-**Failed** is terminal for that demand. The follow-up is where the second attempt lives.
+:::danger[Verified defect — neither half happens in Release 1]
+
+A demand behind a failed stop stays at **In Execution**. It does not reach **Failed**, and no
+follow-up is created. Raise the second attempt by hand.
+
+:::
 
 :::warning[Zero quantity is not always a failure]
 
@@ -199,7 +234,7 @@ stateDiagram-v2
 | --- | --- | --- |
 | Stuck at **In Execution** with zero fulfilled | The Odoo transfer is not validated | Validate it |
 | Stuck at **In Execution** with the trip finished | The stop was never completed | Complete the stop |
-| **Partially Completed** and staying that way | The follow-up demand has not been delivered yet | Plan the follow-up |
+| **In Execution** after its trip closed | The demand was short or failed — **it will never move on its own** | Raise the remaining requirement by hand |
 | **Completed** but missing from OTIF | It carries no commitment | See [OTIF](../reporting/otif.mdx) |
 | A very old demand stuck mid-flight | Records left mid-flight by an earlier release are not rewritten | See [Release 1 Scope](../about/release-1-scope.mdx) |
 

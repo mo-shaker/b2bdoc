@@ -80,7 +80,7 @@ stateDiagram-v2
 | **Planned** | وُضع على خطة يومية لم تُطلَق بعد | إطلاق الخطة |
 | **Released** | على خطة مُصرَّح بها. مُلتزَم به لليوم | مغادرة الرحلة |
 | **In Execution** | على مركبة غادرت | قراءة الكميات |
-| **Partially Completed** | سُلِّم بعضه وبقي بعضه | طلب متابعة |
+| **Partially Completed** | سُلِّم بعضه وبقي بعضه | طلب متابعة — **لا يُنشأ في الإصدار الأول** |
 | **Completed** | سُلِّم كل شيء. **نهائية** | — |
 | **Failed** | لم يُسلَّم شيء. **نهائية** | — |
 | **Rejected** | رُفض كمتطلب. **نهائية** | — |
@@ -218,9 +218,9 @@ This action is blocked by 1 business rule(s):
 | Planned ← **Released** | إطلاق الخطة |
 | Released ← **In Execution** | مغادرة الرحلة |
 | In Execution ← **Completed** | تسليم كل ما طُلب |
-| In Execution ← **Partially Completed** | تسليم بعضه. **ويُنشأ طلب متابعة** |
-| In Execution ← **Failed** | عدم تسليم شيء. **ويُنشأ طلب متابعة** |
-| Partially Completed ← **Completed** | متابعة تُكمل الباقي |
+| In Execution ← **Partially Completed** | تسليم بعضه. **ولا الانتقال ولا المتابعة يحدثان في الإصدار الأول** |
+| In Execution ← **Failed** | عدم تسليم شيء. **ولا الانتقال ولا المتابعة يحدثان في الإصدار الأول** |
+| Partially Completed ← **Completed** | متابعة تُكمل الباقي. **غير قابل للبلوغ في الإصدار الأول** — فلا تُنشأ متابعة |
 
 :::info[النتيجة النهائية حساب لا حكم]
 

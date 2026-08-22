@@ -125,7 +125,7 @@ cost a moment.
 | The stop | Status **Failed**, outcome **Failed**, with the reason |
 | The trip | **Partially Completed** when it closes |
 | The demand | **Failed** |
-| **A follow-up demand** | Created — the requirement is not lost |
+| **A follow-up demand** | Should be created so the requirement is not lost. **Not created in Release 1** |
 | Loads and resources | Close normally |
 
 **Verify**
@@ -135,7 +135,7 @@ cost a moment.
 | The stop failed with a reason | The stop | Status and **Outcome Reason** |
 | The trip closed | The trip | **Partially Completed** |
 | The demand | `Operations → Demands` | **Failed** |
-| A follow-up exists | The demand's **Follow-Up and Returns** tab | A child demand |
+| A follow-up exists | The demand's **Follow-Up and Returns** tab | **Empty in Release 1** |
 | The evidence | The **Proof of Delivery** tab | The photograph |
 
 ---
@@ -158,7 +158,16 @@ the failure needs owning beyond replanning.
 
 **Role** Planner
 
-Plan the follow-up demand for another day.
+Plan the follow-up demand for another day — **in Release 1 you must raise it by hand first**.
+:::danger[Verified defect — this step does not happen in Release 1]
+
+No follow-up demand is created, and the demand does not leave **In Execution**. Everything
+before this step behaves as described.
+
+→ [Demand Completion](../demand/demand-completion.mdx)
+
+:::
+
 
 ---
 
@@ -182,7 +191,7 @@ validated the transfer.
 | --- | --- | --- |
 | Demand | **Failed** | **Completed** |
 | Trip | Partially Completed | Completed |
-| Follow-up demand | Created | None |
+| Follow-up demand | Should be created; **is not** in Release 1 | None |
 | OTIF | Not in full, not on time | On time, in full |
 
 One driver decision, made in ten seconds at a customer's door, decides all of that.
@@ -204,7 +213,8 @@ One driver decision, made in ten seconds at a customer's door, decides all of th
 :::warning[A closed stop is terminal]
 
 Failed, Skipped and Completed cannot be reopened. If a failure was recorded in error, the
-correction is made through the **follow-up demand**, not by rewriting history.
+correction is made through a **new demand for the remaining requirement**, not by
+rewriting history. By design that is the follow-up demand; in Release 1 you raise it by hand.
 
 Inventing transitions would put states in the audit trail that nobody performed.
 

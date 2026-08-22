@@ -31,6 +31,8 @@ For how the states connect, see [Lifecycle Reference](./lifecycle-reference.mdx)
 
 A **terminal** status is the end of that record's life. Where a requirement still needs
 fulfilling, it continues in a **follow-up demand** rather than by reopening the closed one.
+**Release 1 does not create that follow-up** — see
+[Demand Completion](../demand/demand-completion.mdx).
 
 :::
 
@@ -46,9 +48,9 @@ fulfilling, it continues in a **follow-up demand** rather than by reopening the 
 | **Planned** | Placed on a daily plan that is not yet released. | No |
 | **Released** | On an authorised plan. Committed to today. | No |
 | **In Execution** | On a vehicle that has departed. | No |
-| **Partially Completed** | Some delivered, some remaining. A follow-up exists. | No |
+| **Partially Completed** | Some delivered, some remaining. A follow-up should exist; **Release 1 creates none, and does not reach this state**. | No |
 | **Completed** | Everything requested was delivered. | **Yes** |
-| **Failed** | Nothing was delivered. A follow-up exists. | **Yes** |
+| **Failed** | Nothing was delivered. A follow-up should exist; **Release 1 creates none, and does not reach this state**. | **Yes** |
 | **Rejected** | Refused as a requirement, with a reason. | **Yes** |
 | **Cancelled** | Withdrawn. | **Yes** |
 

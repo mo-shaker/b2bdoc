@@ -80,7 +80,7 @@ stateDiagram-v2
 | **Planned** | Placed on a daily plan that is not yet released | Plan release |
 | **Released** | On an authorised plan. Committed to today | Trip departure |
 | **In Execution** | On a vehicle that has departed | Quantities read back |
-| **Partially Completed** | Some delivered, some remaining | A follow-up demand |
+| **Partially Completed** | Some delivered, some remaining | A follow-up demand — **not created in Release 1** |
 | **Completed** | Everything delivered. **Terminal** | — |
 | **Failed** | Nothing delivered. **Terminal** | — |
 | **Rejected** | Refused as a requirement. **Terminal** | — |
@@ -231,9 +231,9 @@ These happen because something else happened. Nobody presses a button.
 | Planned → **Released** | The plan is released |
 | Released → **In Execution** | The trip departs |
 | In Execution → **Completed** | Everything requested has been delivered |
-| In Execution → **Partially Completed** | Some but not all has been delivered. **A follow-up demand is created** |
-| In Execution → **Failed** | Nothing was delivered. **A follow-up demand is created** |
-| Partially Completed → **Completed** | A follow-up fulfils the remainder |
+| In Execution → **Partially Completed** | Some but not all has been delivered. **Neither the transition nor the follow-up happens in Release 1** |
+| In Execution → **Failed** | Nothing was delivered. **Neither the transition nor the follow-up happens in Release 1** |
+| Partially Completed → **Completed** | A follow-up fulfils the remainder. **Unreachable in Release 1** — no follow-up is created |
 
 :::info[The final outcome is arithmetic, not a judgement]
 

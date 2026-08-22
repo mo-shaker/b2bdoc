@@ -78,7 +78,7 @@ Nobody presses anything.
 | Demand B's stop line | Actual **less than** planned |
 | Demand A | **Completed** |
 | Demand B | **Partially Completed** |
-| A **follow-up demand** | Created for Demand B's remainder |
+| A **follow-up demand** | Should be created for Demand B's remainder. **Not created in Release 1** |
 
 **Verify**
 
@@ -86,7 +86,7 @@ Nobody presses anything.
 | --- | --- | --- |
 | Two different states from one visit | `Operations → Demands` | **Completed** and **Partially Completed** |
 | Each from its own transfer | Each demand's **Transfers** button | Different transfers |
-| The follow-up exists | Demand B's **Follow-Up and Returns** tab | A child demand |
+| The follow-up exists | Demand B's **Follow-Up and Returns** tab | **Empty in Release 1** |
 | The chain | The follow-up's **Root Demand** | Demand B |
 
 ---
@@ -132,7 +132,16 @@ Completed — not everything was delivered.
 
 **Role** Planner
 
-The follow-up demand is a demand like any other.
+By design the follow-up demand is a demand like any other.
+:::danger[Verified defect — this step does not happen in Release 1]
+
+No follow-up demand is created, and the demand does not leave **In Execution**. Everything
+before this step behaves as described.
+
+→ [Demand Completion](../demand/demand-completion.mdx)
+
+:::
+
 
 | # | Step |
 | --- | --- |
@@ -189,7 +198,7 @@ when it was, so **On Time** is judged on that.
 | Both demands show the same state | Both transfers were validated the same way. Check each |
 | Demand B shows **Completed** | Its transfer was validated with the **ordered** quantity |
 | No backorder | Odoo was told not to create one |
-| No follow-up demand | The backorder may be outside pilot scope |
+| No follow-up demand | **Expected in Release 1** — none is ever created |
 | The stop will not close | `BR-EXE-001` — give a reason |
 
 ## Related Pages
