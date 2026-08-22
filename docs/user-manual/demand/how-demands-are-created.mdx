@@ -1,0 +1,203 @@
+---
+id: how-demands-are-created
+title: How Demands Are Created
+description: Demand generation from in-scope Odoo transfers — the three conditions, how type and origin are classified, and why generation can never block a warehouse operator.
+sidebar_label: How Demands Are Created
+sidebar_position: 2
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+import Screenshot from '@site/src/components/Screenshot';
+
+# How Demands Are Created
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Operations', 'Planning', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="7 min"
+/>
+
+**Role**
+Nobody. SCOP does this.
+
+## Purpose
+
+:::warning[You do not create demands by hand]
+
+Normal customer-delivery demands are created **automatically** from in-scope Odoo transfers.
+There is no "new demand" step in daily operation, and you should not look for one.
+
+:::
+
+The demand register is only meaningful if every entry in it came from a real movement Odoo
+is going to perform. A hand-typed demand would be a plan for something nobody agreed to move.
+
+## The three conditions
+
+A demand appears when **all three** hold. If any fails, no demand is created.
+
+| # | Condition | Where it is set | If it fails |
+| --- | --- | --- | --- |
+| 1 | The **operation type** is switched on for demand generation | [Pilot Scope](../configuration/pilot-scope.mdx) | Nothing happens. This is the intended filter |
+| 2 | The transfer was created **after** the pilot go-live moment | [Pilot Scope](../configuration/pilot-scope.mdx) | Nothing happens. There is deliberately no backfill |
+| 3 | **Both** endpoints resolve to a planning node | [Planning Nodes](../configuration/planning-nodes.mdx) | No demand, but a `DemandGenerationSkipped` event is recorded |
+
+:::info[Why there is no historical backfill]
+
+SCOP starts at the pilot go-live cut-off. Generating demands for transfers that happened
+before SCOP existed would produce a planning history nobody planned — a record of decisions
+that were never made, presented as evidence.
+
+The rule is enforced in the generation itself, not left to nobody re-running it, because
+re-running it over history is exactly the thing somebody does while investigating something
+else.
+
+:::
+
+## What SCOP does
+
+When the conditions hold, SCOP creates:
+
+| Created | Contents |
+| --- | --- |
+| One **Demand** | Customer, origin and destination nodes, required date, type, origin type, source document |
+| One **Demand Line** per uncovered move | Product, requested quantity, unit of measure, lot where tracked |
+| **Derived ownership** on every line | From the five approved sources — [Inventory Ownership](../ownership/inventory-ownership.mdx) |
+| A **Service Commitment**, if there is one | Seeded from the sales order's delivery date |
+| A `DemandGenerated` domain event | So the act is on the record |
+
+All of it under **one correlation reference**, opened before anything is written, so the
+demand and the event that records it belong to the same story.
+
+<Screenshot
+  src="quick-start/02-odoo-delivery-order.png"
+  alt="An Odoo delivery order in the ready state, showing the customer, scheduled date and product lines."
+  caption="The Odoo transfer. Nobody typed anything into SCOP — creating this is what produced the demand."
+/>
+
+## How the demand is classified
+
+SCOP classifies every demand twice, from Odoo's own evidence.
+
+### Demand Type — the kind of movement
+
+| Odoo operation type | Demand Type |
+| --- | --- |
+| Outgoing | **Delivery** |
+| Incoming | **Inbound** |
+| Internal | **Transfer** |
+| Any transfer whose moves link back to an earlier move | **Return** |
+
+### Origin Type — where the requirement came from
+
+Evaluated in order; the first match wins.
+
+| Evidence on the transfer | Origin Type |
+| --- | --- |
+| Moves link back to an earlier move | **Return** |
+| A sales order is behind it | **Customer Order** |
+| A purchase order is behind it | **Procurement Requirement** |
+| Internal, and the two warehouses differ | **Inter-Warehouse Movement** |
+| Internal, same warehouse | **Internal Replenishment** |
+| Incoming, no purchase order | **Supplier Collection** |
+| Outgoing, no sales order | **Branch Request** |
+
+:::note[One value is an honest guess]
+
+**Branch Request** is what an outgoing transfer with no sales order is treated as, because
+that is what it is in this deployment. It stays editable while the demand is in **Draft**,
+and getting it wrong costs a report grouping rather than a wrong movement.
+
+Three further origin types — **Customer-Owned Movement**, **Urgent Request** and
+**Corrective Follow-Up** — are never inferred. Set them by hand in Draft if they apply.
+
+:::
+
+## Generation runs more than once
+
+SCOP re-runs generation when moves are added to an existing transfer — which is exactly what
+Odoo's own backorder path does.
+
+Generation is **idempotent**: running it again on a transfer that already has demands writes
+nothing. That is why a backorder does not produce a duplicate demand.
+
+## Generation can never block a warehouse operator
+
+:::info[Demand generation is non-blocking by design]
+
+If generation fails for any reason, it rolls back on its own and **the transfer still
+saves**. A warehouse operator must never be unable to record a movement because a planning
+projection has a problem.
+
+The failure is recorded as a queryable event and appears at
+`SCOP → Reporting → Failed Projections`.
+
+:::
+
+The cost of that guarantee is that a failure is quiet at the moment it happens. During a
+pilot, that screen deserves a daily glance.
+
+## Expected result
+
+A demand exists in state **Draft**, with lines matching the transfer's moves, and — usually —
+ownership still unresolved.
+
+:::note[Unresolved ownership at creation is normal, not a fault]
+
+At the moment a transfer is created it often has no move lines yet, so there is nothing to
+read an owner from. Almost every outbound demand starts unresolved.
+
+Ownership is **re-derived when the demand is validated**, by which point the transfer is
+usually reserved and the owner is available. That is what turns "unresolved" from a
+permanent verdict into a transient one.
+
+:::
+
+## Verify
+
+`SCOP → Operations → Demands` — search the source order number, for example `S09520`.
+
+An Administrator can confirm the act itself at `SCOP → Technical → Domain Events`, filtering
+for `DemandGenerated`.
+
+## If no demand appears
+
+| Check | How | Fix |
+| --- | --- | --- |
+| Is the operation type in scope? | `SCOP → Technical → Pilot Scope` | Add the operation type and **Apply** |
+| Was the pilot applied at all? | Same screen — status must be **Applied** | Apply it |
+| Was the transfer created before go-live? | Compare the transfer's creation date | Expected. There is no backfill |
+| Do both endpoints have planning nodes? | `SCOP → Technical → Domain Events`, filter `DemandGenerationSkipped` | Map the node, then re-save the transfer |
+| Did generation fail? | `SCOP → Reporting → Failed Projections` | Read the error, fix the cause, re-save the transfer |
+| Is the list simply filtered? | Clear the search bar completely | — |
+
+Full treatment: [No Demand Created](../troubleshooting/demand-problems.mdx).
+
+## Are there any manual demands?
+
+The demand model does allow creation by a Planner or Administrator, and the form works. It
+exists for correction and for movements SCOP cannot see, not for daily operation.
+
+:::warning[Do not teach manual creation as a normal step]
+
+If demands are being created by hand routinely, something is wrong with pilot scope or with
+the planning nodes. Fix that instead — a hand-typed demand has no transfer behind it, so it
+can never be fulfilled or measured.
+
+:::
+
+## Related Pages
+
+- [Demand Management](./demand-management.mdx)
+- [Pilot Scope](../configuration/pilot-scope.mdx)
+- [Planning Nodes](../configuration/planning-nodes.mdx)
+- [Missing Node Diagnostics](../configuration/missing-node-diagnostics.mdx)
+- [SCOP and Odoo](../about/scop-and-odoo.mdx)
+
+## Next
+
+[Demand Lifecycle](./demand-lifecycle.mdx).

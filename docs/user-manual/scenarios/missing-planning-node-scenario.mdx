@@ -1,0 +1,197 @@
+---
+id: missing-planning-node-scenario
+title: Missing Planning Node
+description: A delivery order that produces no demand at all — finding the recorded skip, fixing the node, and making the demand appear.
+sidebar_label: Missing Planning Node
+sidebar_position: 7
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+
+# Missing Planning Node
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Operations', 'Planning', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="5 min"
+/>
+
+## The situation
+
+A delivery order exists in Odoo. The operation type is in pilot scope. The transfer was
+created after go-live.
+
+**And there is no demand.**
+
+## Reproducing it
+
+| # | Do |
+| --- | --- |
+| 1 | Use **SCOP Manual Branch C**, which deliberately has **no planning node** |
+| 2 | Confirm a sales order delivering to it |
+| 3 | Look for the demand in `SCOP → Operations → Demands` |
+
+**Result** No demand.
+
+---
+
+## Step 1 — Confirm it is not something simpler
+
+Before investigating, rule out the ordinary causes.
+
+| # | Check | Distinguishing signal |
+| --- | --- | --- |
+| 1 | Clear the search bar completely | The demand exists after all |
+| 2 | `Technical → Pilot Scope` — is the operation type listed? | **No event at all** |
+| 3 | Is the scope record **Applied**? | **No event at all**, for anything |
+| 4 | Was the transfer created before go-live? | **No event at all**, older transfers only |
+
+:::info[The distinguishing signal is whether an event exists]
+
+**No event** — SCOP never considered the transfer.
+**A skip event** — SCOP considered it and deliberately declined.
+**A failed event** — SCOP tried and something went wrong.
+
+:::
+
+---
+
+## Step 2 — Find the recorded skip
+
+**Role** Administrator
+**Where** `SCOP → Technical → Domain Events` → filter **Event Name** = `DemandGenerationSkipped`
+
+| Field | What it tells you |
+| --- | --- |
+| **Subject** | Which transfer |
+| **Payload** | The **unmapped stock location**, the **partner**, and **which end** of the movement failed |
+
+:::info[This is deliberate, and it is not silent]
+
+A demand SCOP cannot route or measure is worse than no demand — it would sit in the register
+forever, drag coverage down, and never be plannable.
+
+So SCOP declines. But it **records the decline**, with enough detail to fix it.
+
+:::
+
+---
+
+## Step 3 — Create the planning node
+
+**Where** `SCOP → Master Data → Locations`
+
+| # | Set | Or else |
+| --- | --- | --- |
+| 1 | **Name** and **Location Type** = Customer Branch | It cannot be saved |
+| 2 | **Partner** = the partner named in the payload | Transfers will not resolve to it |
+| 3 | **Latitude** and **Longitude** | Routes make no sense |
+| 4 | **Timezone** | Windows are interpreted wrongly |
+| 5 | At least one **opening window** | Nothing can ever be scheduled here |
+| 6 | **Service duration** | Route timing is wrong |
+
+:::warning[A node that exists but is incomplete fails differently]
+
+An incomplete node lets the demand be **created** and then makes it **unplannable**, coming
+back as *Missing required data* or *Customer location unavailable*.
+
+Complete all six before moving on.
+
+:::
+
+→ [Planning Nodes](../configuration/planning-nodes.mdx)
+
+---
+
+## Step 4 — Re-save the transfer
+
+**Where** **Odoo** — the delivery order
+
+Open it and save it. That is all.
+
+:::info[Why re-saving works]
+
+The skip marker is kept **separate** from the success marker.
+
+If a skip were recorded as *"handled"*, mapping the node later and re-saving would do nothing
+— SCOP would believe the work was already done.
+
+Keeping the two apart is what makes the problem recoverable.
+
+:::
+
+You do not need to cancel and recreate the transfer.
+
+---
+
+## Step 5 — Verify
+
+| Check | Where | Expect |
+| --- | --- | --- |
+| The demand appeared | `Operations → Demands` | One demand |
+| Its destination is the new node | The demand | **SCOP Manual Branch C** |
+| Generation was recorded | `Technical → Domain Events` | A `DemandGenerated` event |
+| No new skips | Same screen, filtered | None after the fix |
+| Coverage is no longer understated | `Reporting → Orphan Moves` | Empty |
+
+Then take the demand through the normal cycle to confirm the node is genuinely complete.
+
+---
+
+## Fixing it for good
+
+One skipped transfer is a data gap. Twenty is a process gap.
+
+| Pattern | Root cause | Fix |
+| --- | --- | --- |
+| Every delivery to one customer | That branch has no node | Create it |
+| Every delivery from one warehouse | The warehouse node is missing or unlinked | Create or link it |
+| A whole region | Nobody created nodes for those branches | `Master Data → Import Locations` |
+| Sporadic, various customers | Nodes are created reactively | **Make node creation part of customer onboarding** |
+
+:::danger[Creating a customer in Odoo does not create a planning node]
+
+If new customers appear regularly, somebody has to create their node — or their first
+delivery silently produces nothing.
+
+Build it into the onboarding process, not into the incident queue.
+
+:::
+
+---
+
+## The related failure — Failed Projections
+
+`SCOP → Reporting → Failed Projections`
+
+Demand generation is **non-blocking by design**: if it fails, it rolls back on its own and
+**the transfer still saves**. A warehouse operator must never be unable to record a movement
+because a planning projection has a problem.
+
+The cost is that failures are quiet at the moment they happen. During a pilot, that screen
+deserves a daily glance.
+
+## What this proves
+
+| Property | Demonstrated by |
+| --- | --- |
+| SCOP declines rather than creating unusable demand | Step 2 |
+| The decline is recorded, not silent | Step 2 |
+| The record names exactly what to fix | Step 2 |
+| The problem is recoverable by re-saving | Step 4 |
+| Skip and success markers are kept apart on purpose | Step 4 |
+
+## Related Pages
+
+- [Missing Node Diagnostics](../configuration/missing-node-diagnostics.mdx)
+- [Planning Nodes](../configuration/planning-nodes.mdx)
+- [Pilot Scope](../configuration/pilot-scope.mdx)
+- [Demand Problems](../troubleshooting/demand-problems.mdx)
+
+## Next
+
+[No Feasible Vehicle](./no-feasible-vehicle-scenario.mdx).

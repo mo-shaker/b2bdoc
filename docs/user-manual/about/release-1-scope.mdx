@@ -1,0 +1,163 @@
+---
+id: release-1-scope
+title: Release 1 Scope
+description: What is available now, what belongs to a later release, and the prerequisites SCOP depends on but does not enforce.
+sidebar_label: Release 1 Scope
+sidebar_position: 4
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+import Screenshot from '@site/src/components/Screenshot';
+
+# Release 1 Scope
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Operations', 'Management', 'Planning', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="6 min"
+/>
+
+## Why this page exists
+
+A manual that describes capability the system does not have wastes a reader's afternoon and
+damages trust in everything else it says. This page draws the line.
+
+The [Quick Start Guide's Release 1 Boundaries](../../quick-start/release-1-boundaries.mdx)
+page remains the shorter statement of the same thing, and is the version to hand to a
+tester. This page adds the detail an operational reference needs.
+
+## Available now
+
+Everything in this manual, except what is listed under *Not in Release 1* below.
+
+Concretely, Release 1 ships:
+
+| Capability | Chapter |
+| --- | --- |
+| Automatic demand generation from in-scope Odoo transfers | [Demand Management](../demand/demand-management.mdx) |
+| Ownership derivation from five approved sources, never defaulted | [Inventory Ownership](../ownership/inventory-ownership.mdx) |
+| Automatic shipment formation and consolidation | [Shipment Management](../shipments/shipment-management.mdx) |
+| Warehouse readiness computed from evidence, in five states | [Warehouse Readiness](../readiness/warehouse-readiness.mdx) |
+| Deterministic daily planning with a replayable planning run | [Planning](../planning/planning-overview.mdx) |
+| Plan governance with enforced separation of duties | [Plan Governance](../planning/plan-governance.mdx) |
+| Trips, stops, loads and a validated capacity curve | [Execution](../execution/trips.mdx) |
+| Loading tasks with a departure gate and measured duration | [Loading Operations](../execution/loading-operations.mdx) |
+| A driver surface with proof of delivery | [Driver Delivery](../execution/driver-delivery.mdx) |
+| Exceptions with a ten-state lifecycle, SLA and escalation | [Exception Management](../exceptions/exception-management.mdx) |
+| Eleven reports plus a dashboard | [Reporting](../reporting/reporting-overview.mdx) |
+| Six enforced business rules | [Business Rules](../reference/business-rules.mdx) |
+
+## Not in Release 1
+
+These are sometimes assumed to be present. They are not.
+
+| Not available | What Release 1 does instead |
+| --- | --- |
+| **Live vehicle tracking** | Location is captured **once**, at the point of delivery, as part of proof of delivery. SCOP does not follow the vehicle between stops |
+| **Real-time telematics** | No telematics integration exists. Vehicle data is master data plus what the driver records |
+| **AI route optimisation** | Two decision providers ship: a **deterministic baseline** recommender, and a **manual** provider that validates a person's own assignments. Neither is an AI optimiser |
+| **Predicted travel times and arrival risk** | Travel estimates come from the travel matrix and node service durations. There is no prediction model |
+| **Accounting reconciliation** | Vehicle cost rates are operational estimates for comparing plans. They are explicitly not accounting figures, and nothing reconciles to the ledger |
+| **Historical backfill** | There is deliberately **no demand backfill**. SCOP starts at the pilot go-live moment. A reconstructed planning history would be fiction presented as evidence |
+| **Purchase-order consignment terms** | Not modelled. Consignment ownership comes from a flagged partner, not from order terms |
+| **A Dashboard Ninja board** | Built but deliberately not installable, pending a commercial licence decision. Every measure it would show is already available in the standard reports |
+| **A Finance menu** | The **Finance User** group exists but has no menu of its own in Release 1. See the note below |
+
+:::info[Prediction and forecasting belong to the AI Platform roadmap]
+
+The wider SCOP vision includes predicted travel times, arrival estimates and risk
+detection. Those are roadmap items, not Release 1. What ships today is service durations
+and travel estimates from master data, plus a deterministic recommendation whose inputs and
+outputs are kept so the decision can be re-examined later.
+
+:::
+
+:::note[The Finance User group]
+
+`Finance User` is a seeded SCOP group with no menu entries in Release 1. A user given only
+that group sees the `SCOP` application but no items beneath it. It is a placeholder for a
+later release; do not assign it expecting a finance surface. Assign
+[Management](../roles/management.mdx) for read-only oversight instead.
+
+:::
+
+## Prerequisites SCOP depends on but does not enforce
+
+Each of these will let you proceed and then fail later, which is why they are listed
+together.
+
+| Requirement | Consequence if missed |
+| --- | --- |
+| Odoo **Fleet → Administrator** on planners | The planning wizard raises `Access Error` on `Vehicle`. Fleet → *Officer* is not enough |
+| Odoo **Employees → Officer** on planners | The **Driver** field on a trip never finishes loading its options, so no driver can be assigned — and a trip with no driver never appears in anyone's **My Trips** |
+| A pilot-scope record, **applied** | No demand is created at all |
+| A SCOP planning node for **every** origin and destination | Deliveries to that destination produce no demand. The skip is recorded — see [Missing Node Diagnostics](../configuration/missing-node-diagnostics.mdx) |
+| Coordinates, timezone and opening hours on each node | The demand becomes unplannable with reason *Missing required data* |
+| A vehicle whose capacity can actually carry the shipment | The demand becomes unplannable with reason *No feasible vehicle* |
+| An **HTTPS** deployment | Delivery coordinates record as null, with a reason. Signature and photographs still work |
+| A **second user** to approve a plan | The plan's author cannot approve it. A solo tester cannot complete a cycle |
+
+## Known display issue
+
+| Item | Effect | What to do |
+| --- | --- | --- |
+| **Staged % renders a hundred times too large** | Rows on `SCOP → Operations → Shipments`, and the same field on the shipment form, show `10000%` where they mean `100%`. The stored value is correct — only the column is scaled twice | Read it as a hundredth, or use **Readiness** instead, which is computed from the same evidence and is unaffected. Plan Coverage is unaffected |
+
+This is cosmetic. Readiness, planning and every measure downstream use the underlying
+value, which is right.
+<Screenshot
+  src="user-manual/96-shipments-staged-pct.png"
+  alt="The SCOP Shipments list showing a Staged Pct column reading 10000% on fully staged shipments and 0% on unstaged ones."
+  caption="Re-verified on b2b. A fully staged shipment reads 10000% where it means 100%; an unstaged one reads 0% correctly. Readiness beside it is unaffected and is the column to trust."
+/>
+
+
+## Defects found while writing this manual
+
+Both were reproduced on `b2b` and are recorded here rather than written around.
+
+| # | Defect | Severity | Effect | What to do meanwhile |
+| --- | --- | --- | --- | --- |
+| 1 | **Compute Capacity is offered to users who cannot use it** | Low | The button appears on the trip form for anyone who can open it, but creating a capacity snapshot is restricted to the SCOP Administrator group. An Operations Manager or Planner pressing it gets an `AccessError` naming `scop.trip.capacity.snapshot` | Have an Administrator compute the capacity, or ignore the button |
+| 2 | **Capacity Feasible reads `false` when capacity has merely never been computed** | Cosmetic | A trip with no materialised capacity curve displays **Capacity Feasible = false**, which reads as *infeasible*. `BR-RTE-001` evaluates the same trip and correctly passes | Read **First Breach Sequence** and the peak percentages beside it. A zero breach sequence with zero peaks means *not computed*, not *infeasible* |
+| 3 | **Every internal user, including a Driver, can read Odoo transfer headers** | **High** | The access rule `stock_return_approval.user`, from a third-party module, grants **every internal user** read, write, create and delete on `stock.picking`. On `b2b` a Driver can therefore list 21,181 transfers with their customer names and scheduled dates | Narrow that module's access rule to the Inventory groups. **The fix is outside SCOP** |
+
+:::danger[Defect 3 is a real access-control gap, and it is not SCOP's]
+
+SCOP grants the Driver group nothing at all on `stock.picking`. The transfer **lines**
+(`stock.move`) remain protected by standard Odoo access rules, so products and quantities are
+not exposed — but the headers are.
+
+It is recorded here because the [Driver Security Model](../execution/driver-security-model.mdx)
+would otherwise claim a boundary this deployment does not actually hold. Until that module's
+access rule is narrowed, treat transfer headers as visible to every internal user.
+
+:::
+
+Defects 1 and 2 change no business logic. Defect 3 is a configuration fix in Odoo, not a
+change to SCOP.
+
+## Records left mid-flight by an earlier release
+
+:::warning[History is not rewritten]
+
+Records left mid-flight by an earlier Release 1 build — for example a demand still showing
+**Eligible for Planning** for a trip that has already run — are **not** rewritten by an
+upgrade. Inventing transitions for them would put states in the audit trail that nobody
+performed.
+
+Expect an upgraded pilot database to show those older operations as incomplete, and to
+measure OTIF from the first cycle run after the upgrade. Do not treat them as defects.
+
+:::
+
+## Related Pages
+
+- [Quick Start — Release 1 Boundaries](../../quick-start/release-1-boundaries.mdx)
+- [SCOP and Odoo](./scop-and-odoo.mdx)
+- [Pilot Scope](../configuration/pilot-scope.mdx)
+- [Permissions Reference](../roles/permissions-reference.mdx)

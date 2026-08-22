@@ -1,0 +1,210 @@
+---
+id: loading-delay-scenario
+title: Loading Delay
+description: A vehicle held at the gate by an open loading task — how the gate works, what it measures, and what a persistent delay is telling you.
+sidebar_label: Loading Delay
+sidebar_position: 10
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+
+# Loading Delay
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Warehouse', 'Driver', 'Operations', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="4 min"
+/>
+
+## The situation
+
+A trip is released. The driver is standing by the vehicle. **Depart** is not there.
+
+## Setup
+
+Take a trip carrying **two** shipments through to release — for example a consolidated trip
+from [Two Orders, One Visit](./two-orders-one-visit.mdx), plus a second shipment for another
+node.
+
+---
+
+## Step 1 — Confirm the tasks were created
+
+**Role** Warehouse
+**Where** `SCOP → Operations → Loading Tasks`
+
+**Expect one task per shipment on the trip.** Two shipments, two tasks.
+
+:::info[Loading tasks are created when the trip is released]
+
+Nobody creates them. If they are missing, the trip is not released, or it has no shipments.
+
+:::
+
+---
+
+## Step 2 — Start the first task
+
+Press **Start**.
+
+| Effect | Detail |
+| --- | --- |
+| The task | **In Progress**, **Started At** stamped |
+| **The trip** | Moves from **Released** to **Loading** |
+
+**Verify** the trip's status changed on its own.
+
+---
+
+## Step 3 — The driver tries to depart
+
+**Role** Driver
+**Where** `SCOP → My Work → My Trips`
+
+**Depart** is **not offered**.
+
+:::info[This is the departure gate, working]
+
+**Depart** is offered only in **Ready to Depart**. Until **every** loading task is settled,
+the trip stays in **Loading**.
+
+An open loading task holds the vehicle at the gate. That is the design, not a fault.
+
+:::
+
+---
+
+## Step 4 — Settle the first task
+
+Press **Done** on the first task.
+
+| Effect | Detail |
+| --- | --- |
+| The task | **Done**, **Completed At** and **Actual Duration** stamped |
+| The trip | **Still Loading** — one task remains |
+
+**Depart** is still not offered. That is correct.
+
+---
+
+## Step 5 — Settle the last task
+
+Press **Done** on the second task.
+
+| Effect | Detail |
+| --- | --- |
+| The trip | Moves to **Ready to Depart** |
+| Its loads | Become **Loaded** |
+| **Depart** | Now offered to the driver |
+
+**Verify**
+
+| Check | Where | Expect |
+| --- | --- | --- |
+| Both tasks are **Done** | `Operations → Loading Tasks` | Two |
+| The trip | The trip | **Ready to Depart** |
+| Loads | `Operations → Loads` | **Loaded** |
+| The driver can depart | `My Work → My Trips` | **Depart** offered |
+
+---
+
+## What was measured
+
+| Field | Meaning |
+| --- | --- |
+| **Started At** | When loading began |
+| **Completed At** | When it finished |
+| **Actual Duration (min)** | Computed from the two |
+| **Planned Duration (min)** | The estimate |
+
+:::warning[Press Start when you start, not when you remember]
+
+Actual duration is only meaningful if **Start** is pressed at the moment loading begins.
+
+Starting all the tasks at once and settling them later produces a measurement of nothing —
+and it also releases the gate before the work is done.
+
+:::
+
+---
+
+## Step 6 — Read it afterwards
+
+**Where** `SCOP → Reporting → Trip Planned vs Actual`
+
+Loading duration contributes to the trip's actual duration.
+
+| Pattern | Meaning |
+| --- | --- |
+| One long load | Ordinary variation |
+| Every load over its estimate | The planned durations are too low |
+| One node's loads always over | That node's service duration is wrong |
+| Trips over on duration with normal travel | **A loading problem, not a routing one** |
+
+:::info[This is the check people forget]
+
+A trip consistently running long is usually assumed to be a routing or traffic problem.
+
+Check the loading tasks first. It is frequently the dock.
+
+:::
+
+→ [Trip Planned vs Actual](../reporting/trip-planned-vs-actual.mdx)
+
+---
+
+## When loading genuinely fails
+
+If loading cannot be completed — the goods are not there, the vehicle is wrong — do not leave
+the task open indefinitely.
+
+| Option | When |
+| --- | --- |
+| **Cancel** the loading task | That shipment is not going |
+| **Raise Exception** on the trip | The problem needs owning and resolving |
+| **Cancel** the trip | Nothing is going |
+
+Raising an exception moves the trip to **Exception**, where it waits until the problem is
+resolved and somebody presses **Resume**.
+
+→ [Exception Management](../exceptions/exception-management.mdx)
+
+---
+
+## What this proves
+
+| Property | Demonstrated by |
+| --- | --- |
+| One loading task per shipment | Step 1 |
+| Tasks are created automatically at release | Step 1 |
+| Starting the first moves the trip to Loading | Step 2 |
+| An open task holds the vehicle | Steps 3 and 4 |
+| Settling the last releases the gate | Step 5 |
+| Loading is measured, not merely recorded | Step 6 |
+
+## If it does not work
+
+| Symptom | Cause |
+| --- | --- |
+| No tasks for a released trip | The trip has no shipments |
+| The trip stays **Released** | No task has been started |
+| The trip stays **Loading** | A task is still open |
+| **Depart** missing after all tasks are Done | The driver is not assigned to the trip |
+| Actual duration is absurd | **Start** was pressed long before loading began |
+| A load will not reach **Loaded** | Actual loaded quantities are not recorded |
+
+## Related Pages
+
+- [Loading Operations](../execution/loading-operations.mdx)
+- [Trip Lifecycle](../execution/trip-lifecycle.mdx)
+- [Execution Problems](../troubleshooting/execution-problems.mdx)
+- [Trip Planned vs Actual](../reporting/trip-planned-vs-actual.mdx)
+
+## Next
+
+Return to the [Troubleshooting Index](../troubleshooting/troubleshooting-index.mdx), or the
+[Scenarios Overview](./scenarios-overview.mdx).

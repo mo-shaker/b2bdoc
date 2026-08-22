@@ -1,0 +1,224 @@
+---
+id: data-quality-reports
+title: Data Quality Reports
+description: Failed Projections, Orphan Moves and Ownership Data Quality — the three reports that say whether the others can be trusted.
+sidebar_label: Data Quality Reports
+sidebar_position: 11
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+
+# Data Quality Reports
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Operations', 'Management', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="6 min"
+/>
+
+:::warning[Read these before trusting any other report]
+
+If SCOP is not seeing everything that moves, every measurement built on top is wrong in the
+same direction — and wrong **optimistically**.
+
+:::
+
+Three reports. Two are Administrator-only; the third is visible to everyone.
+
+---
+
+## Failed Projections
+
+**Purpose** — where SCOP tried to record something and failed.
+**Audience** — Administrator.
+**Navigate to** `SCOP → Reporting → Failed Projections`
+**Filter** — failed events only.
+
+### Why it matters
+
+Demand generation is **non-blocking by design**. If it fails, it rolls back on its own and
+**the transfer still saves** — a warehouse operator must never be unable to record a movement
+because a planning projection has a problem.
+
+The cost of that guarantee is that failures are **quiet at the moment they happen**.
+
+### Dimensions and measures
+
+| Field | Use |
+| --- | --- |
+| **Event Name** | What was being attempted |
+| **Subject** | Which record |
+| **Error Class** | What kind of failure |
+| **Error Message** | The detail |
+| **Attempts** | How many times it has been tried |
+| **First Failure At** / **Last Attempt At** | The window |
+
+### How to read it
+
+| What you see | Meaning | Action |
+| --- | --- | --- |
+| Empty | Nothing failed | Nothing |
+| A few, all the same error | One systematic cause | Fix it, re-save the transfers |
+| Rising attempt counts | Something is retrying and still failing | Fix the cause |
+| Various errors | Investigate individually | — |
+
+### Example
+
+```text
+Event              Error Class        Attempts   Message
+DemandGenerated    ValidationError       3       Origin location resolves to no planning node
+```
+
+Three attempts, one cause. Map the node, re-save the transfer.
+
+### Common mistakes
+
+| Mistake | Why it is wrong |
+| --- | --- |
+| Checking it monthly | During a pilot it deserves a daily glance |
+| Treating an empty report as proof nothing is missing | It shows failures, not skips. Check `DemandGenerationSkipped` separately |
+
+---
+
+## Orphan Moves
+
+**Purpose** — stock moves on a demand-generating transfer that **no demand line covers**.
+**Audience** — Administrator.
+**Navigate to** `SCOP → Reporting → Orphan Moves`
+**Filter** — moves outside demand coverage.
+
+### Why it matters
+
+:::danger[A non-zero count means demand coverage is understated]
+
+These moves are on transfers SCOP **is** reacting to, but no demand line covers them.
+
+The stock moved. SCOP did not plan it, did not measure it, and — critically — **did not count
+it against Plan Coverage**.
+
+So [Plan Coverage](./plan-coverage.mdx) reads better than reality.
+
+:::
+
+### Dimensions and measures
+
+| Field | Use |
+| --- | --- |
+| **Date** | When |
+| **Transfer** | Which transfer |
+| **Product** | What moved |
+| **Quantity** | How much |
+| **Source** / **Destination** | Between which locations |
+| **Status** | The move's state |
+
+### How to read it
+
+| What you see | Meaning | Action |
+| --- | --- | --- |
+| Empty | Coverage is honest | Nothing |
+| A few, one transfer | Moves were added after demand generation | Re-save the transfer |
+| Many, one product | That product is being added outside the normal flow | Investigate the process |
+| Many, one operation type | Demand generation is partially failing for it | Check Failed Projections |
+
+### Common mistakes
+
+| Mistake | Why it is wrong |
+| --- | --- |
+| Ignoring it because the count is small | Every orphan move is demand that was never planned |
+| Assuming re-saving always fixes it | It usually does. If it does not, check Failed Projections |
+| Reading Plan Coverage without checking this first | Coverage is overstated by exactly this much |
+
+---
+
+## Ownership Data Quality
+
+**Purpose** — how much ownership is resolved, and how.
+**Audience** — everyone.
+**Navigate to** `SCOP → Reporting → Ownership Data Quality`
+**Filter** — grouped by resolution.
+
+### Why it matters
+
+Unresolved ownership **blocks a demand at validation** under `BR-INV-002`. A large unresolved
+population means planning is refusing work you may not realise is being refused.
+
+→ [Inventory Ownership](../ownership/inventory-ownership.mdx)
+
+### Dimensions
+
+| Dimension | Use |
+| --- | --- |
+| **Resolution** | The default row dimension — resolved against not |
+| **Demand Type** | The default column dimension |
+| **Ownership Source** | Which of the five sources did the work |
+| **Customer** | Whose goods |
+| **Product** | Which goods |
+| **Is Outbound** | Deliveries against receipts |
+
+### Measures
+
+| Measure | Meaning |
+| --- | --- |
+| **Requested Quantity** | How much is affected |
+| Row count | How many demand lines |
+
+### How to read it
+
+| Pattern | Root cause | Fix |
+| --- | --- | --- |
+| Unresolved concentrated on **one customer** | A missing consignment flag | `Onboarding → 1 · Consignment Partners` |
+| Unresolved concentrated on **one product** | It is held on consignment | Same |
+| Unresolved spread across **outbound** movements | The warehouse is not recording owners on reserved stock | An Odoo process change |
+| Unresolved on **inbound** only | Consignment partners are not flagged | Flag them |
+| Everything resolved by **Governed Company Default** | Only receipts should use it. On outbound it would be wrong | Investigate |
+| Nothing resolved at all | Ownership migration was never run | `Onboarding → 2 · Inventory Ownership` |
+
+### Example
+
+```text
+Resolution      Delivery   Inbound   Transfer
+Resolved            142        38        11
+Not resolved         3         27         0
+```
+
+Reading: outbound is healthy. **Inbound is not** — 27 of 65 receipts cannot resolve ownership.
+
+Grouping the unresolved rows by customer will almost certainly show one or two suppliers.
+They need the consignment flag.
+
+### Common mistakes
+
+| Mistake | Why it is wrong |
+| --- | --- |
+| Fixing demands one at a time | A pattern needs a configuration fix, not a hundred clicks |
+| Reading the count without the quantity | Three unresolved lines carrying most of the volume matter more than thirty small ones |
+| Treating **Governed Company Default** as always safe | It is approved for **receipts**. On a delivery it would be an invented legal fact |
+
+---
+
+## Using the three together
+
+| # | Check | Establishes |
+| --- | --- | --- |
+| 1 | **Failed Projections** empty | SCOP recorded everything it tried to |
+| 2 | Domain events — no unresolved `DemandGenerationSkipped` | SCOP saw every transfer it should have |
+| 3 | **Orphan Moves** empty | Every move is covered by a demand |
+| 4 | **Ownership Data Quality** mostly resolved | Demand can actually be planned |
+
+Only then are Plan Coverage and OTIF worth reading.
+
+## Related Pages
+
+- [Missing Node Diagnostics](../configuration/missing-node-diagnostics.mdx)
+- [Inventory Ownership](../ownership/inventory-ownership.mdx)
+- [Correcting Ownership](../ownership/correcting-ownership.mdx)
+- [Plan Coverage](./plan-coverage.mdx)
+- [Administrator](../roles/administrator.mdx)
+
+## Next
+
+[Business Rules](../reference/business-rules.mdx).

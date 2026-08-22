@@ -1,0 +1,143 @@
+---
+id: operations-manager
+title: Operations Manager
+description: What the Operations Manager does in SCOP — approving and releasing the plan, owning exceptions, and why they cannot approve a plan they created.
+sidebar_label: Operations Manager
+sidebar_position: 5
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+
+# Operations Manager
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Operations', 'Management', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="5 min"
+/>
+
+## Your responsibility
+
+You are the **authorising** role. You decide that a proposed operating day is acceptable,
+and you carry the consequence of releasing it.
+
+You inherit everything a **Planner** and a **Warehouse** user can do, so you can do the work
+as well as authorise it — with one crucial limit.
+
+## The one thing you cannot do
+
+:::danger[You cannot approve a plan you created]
+
+`BR-PLN-001` refuses approval and release by the plan's own author, and it outranks every
+administrative right in the system.
+
+If you build a plan yourself, a **different** Operations Manager must approve it.
+
+:::
+
+This is the reason a team of one cannot complete a SCOP cycle, and it is intentional.
+
+## Your day
+
+| # | Task | Where |
+| --- | --- | --- |
+| 1 | Review plans waiting for you | `Planning → Daily Plans`, filtered to **Under Review** |
+| 2 | Read the recommendation and any modifications | The plan's **Recommendation** and **Trips** tabs |
+| 3 | Check what was left unplanned | The plan's **Unplanned Demand** tab |
+| 4 | **Approve** or **Reject** | The plan header |
+| 5 | **Release** | The plan header, once approved |
+| 6 | Work the exception queue | `Operations → Exceptions` |
+
+## Approving
+
+Before approving, three things are worth reading.
+
+| Read | Question it answers |
+| --- | --- |
+| **Trips** tab | Is any trip flagged as not capacity-feasible? |
+| **Unplanned Demand** tab | What are we choosing not to do today, and why? |
+| **Recommendation** tab | Did the planner change the recommendation, and for what stated reason? |
+
+**Approve** records who approved it and when. From that moment the plan is **frozen** —
+its content is the authorised version of the day.
+
+## Releasing
+
+**Release** is the moment the plan becomes real work:
+
+| Release does | Effect |
+| --- | --- |
+| Trips → **Released** | They become visible to their drivers |
+| Demands → **Released** | The requirement is committed to today |
+| Resource assignments → **reserved** | The vehicle and driver are held |
+| Loading tasks created | One per shipment on each trip |
+
+:::info[BR-PLN-002 — a blocked trip is not released with its plan]
+
+If a trip on the plan carries a blocking finding — most often a capacity breach under
+`BR-RTE-001` — release is refused and the offending trip is named. Fix the trip or remove it
+from the plan, then release again.
+
+:::
+
+## Exceptions
+
+You own the exception queue. `SCOP → Operations → Exceptions` opens filtered to open
+problems.
+
+| Step | Button | What it needs |
+| --- | --- | --- |
+| Classify | **Classify** | A category and a severity — this starts the SLA clock |
+| Assign | **Assign** | An owner. Creates an activity for them |
+| Investigate | **Investigate** | — |
+| Plan the fix | **Define Resolution** | At least one resolution action |
+| Do it | **Start Resolution** | — |
+| Confirm | **Resolve** | Every resolution action done |
+| Close | **Close** | — |
+
+An exception that breaches its SLA **escalates automatically** and notifies the responsible
+group. Watch [Exception Ageing](../reporting/exception-ageing.mdx) for what is overdue.
+
+## Your menus
+
+Everything a Planner and a Warehouse user sees, plus the authority to act on:
+
+| Menu | Your specific use |
+| --- | --- |
+| `Planning → Daily Plans` | Approve, release, reject |
+| `Operations → Trips` | Approve and release individual trips |
+| `Operations → Exceptions` | Own the queue |
+| `Reporting → Plan Coverage` | Did we plan what could be planned? |
+| `Reporting → OTIF` | Did we keep our promises? |
+| `Reporting → Decision Quality` | How often are we overriding the recommendation? |
+| `Reporting → Exception Ageing` | What is overdue? |
+
+## What you may not do
+
+| Not permitted | Who does it |
+| --- | --- |
+| Approve or release **your own** plan | A different Operations Manager |
+| Change pilot scope, approval authorities or feature flags | Administrator |
+| Delete SCOP records | Administrator |
+| Type a delivered quantity | Nobody |
+
+## If something is wrong
+
+| Symptom | Check |
+| --- | --- |
+| **Approve** is refused with a separation-of-duties message | You created this plan. Someone else must approve it |
+| **Approve** is not offered at all | The plan is not **Under Review** — the planner has not submitted it |
+| **Release** is refused | A trip carries a blocking finding — `BR-PLN-002` |
+| An exception will not resolve | A resolution action is still open |
+| Exception Ageing is empty | No exceptions have been raised yet |
+
+## Related Pages
+
+- [Plan Governance](../planning/plan-governance.mdx)
+- [The Daily Plan](../planning/the-daily-plan.mdx)
+- [Exception Management](../exceptions/exception-management.mdx)
+- [Business Rules](../reference/business-rules.mdx)

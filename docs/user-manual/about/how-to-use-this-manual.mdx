@@ -1,0 +1,150 @@
+---
+id: how-to-use-this-manual
+title: How to Use This Manual
+description: The page pattern, the notation for menu paths and states, what each callout means, and how cross-links are used.
+sidebar_label: How to Use This Manual
+sidebar_position: 2
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+
+# How to Use This Manual
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Operations', 'Warehouse', 'Planning', 'Management', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="4 min"
+/>
+
+## The pattern every action page follows
+
+Pages that describe something you *do* are written to the same shape, so that once you
+have read one you can skim the rest. Not every page needs every heading, but the order
+never changes.
+
+| Heading | What it tells you |
+| --- | --- |
+| **Role** | Who normally performs this |
+| **Navigate to** | The exact menu path |
+| **Purpose** | Why the step exists at all |
+| **Before you start** | What must already be true |
+| **What you see** | The screen, field by field where it matters |
+| **What to do** | The click, in one instruction |
+| **What SCOP does** | What happens behind the button |
+| **Expected result** | What the screen should look like afterwards |
+| **Verify** | Where to go to prove it worked |
+| **Business rules** | Which rules can refuse this action |
+| **If it does not work** | Symptom and check, as a table |
+| **Related actions** | Neighbouring pages |
+| **Next** | The following step in the flow |
+
+Two questions must always be answerable from an action page: **what do I click now**, and
+**how do I know it worked**. If a page ever leaves you unsure of either, that is a defect
+in the manual — please report it.
+
+## Notation
+
+### Menu paths
+
+Menu paths are written with arrows and always start from the application menu:
+
+```text
+SCOP → Operations → Demands
+```
+
+The labels are the **English Odoo interface labels**, unchanged, including in the Arabic
+edition. That is deliberate: the interface is in English, so a path you can search for on
+screen is more useful than a translated one you cannot.
+
+### Record references
+
+Business identifiers appear exactly as SCOP prints them.
+
+| Prefix | Object |
+| --- | --- |
+| `DMD-` | Demand |
+| `SHP-` | Shipment |
+| `PLN-` | Daily Plan |
+| `TRP-` | Trip |
+
+### States
+
+State names are written in **bold** and use SCOP's own label, not a paraphrase — for
+example **Eligible for Planning**, not *"ready to plan"*. Where a page discusses the
+stored technical value, it is written in `code style`, for example `eligible`.
+
+### Buttons and fields
+
+Buttons and field labels are written in **bold** exactly as they appear: **Mark Eligible**,
+**Stage Everything**, **Override Readiness**.
+
+## What the callouts mean
+
+:::info[Information]
+
+Background that explains *why* the system behaves as it does. Safe to skip on a first
+read; useful when something surprises you.
+
+:::
+
+:::note[Note]
+
+A detail that is easy to miss and occasionally matters.
+
+:::
+
+:::warning[Warning]
+
+Something that will cost you time or produce a wrong result if you get it wrong. Read
+these.
+
+:::
+
+:::danger[Refusal]
+
+A business rule will stop you here. The page names the rule and tells you how to satisfy it.
+
+:::
+
+## Cross-links, and why explanations are not repeated
+
+Some ideas in SCOP are met in five different places — ownership, the readiness states, the
+separation of approval from creation. Each of those is explained **once**, in full, on one
+page. Every other page links to it.
+
+This keeps the explanations consistent, and it means that when a rule changes there is
+exactly one page to update. The pages that own an idea are:
+
+| Idea | Explained in full at |
+| --- | --- |
+| Odoo owns the transaction, SCOP owns the operation | [SCOP and Odoo](./scop-and-odoo.mdx) |
+| Actual quantities come from the Odoo transfer | [Odoo Delivery Validation](../execution/odoo-delivery-validation.mdx) |
+| What a Demand is | [Demand Management](../demand/demand-management.mdx) |
+| Ownership and `BR-INV-002` | [Inventory Ownership](../ownership/inventory-ownership.mdx) |
+| One Demand ≠ one Shipment | [Formation and Consolidation](../shipments/formation-and-consolidation.mdx) |
+| The five readiness states | [Warehouse Readiness](../readiness/warehouse-readiness.mdx) |
+| Separation of duties and `BR-PLN-001` | [Plan Governance](../planning/plan-governance.mdx) |
+| What a Driver can reach | [Driver Security Model](../execution/driver-security-model.mdx) |
+| OTIF | [OTIF](../reporting/otif.mdx) |
+| Business rules, gates and approval authority | [The Governance Model](../concepts/the-governance-model.mdx) |
+
+If you find the same explanation written out twice, one of them is stale. Trust the
+canonical page.
+
+## Screenshots
+
+Every screenshot in this manual was captured from the Release 1 application. Screens
+change; if a capture disagrees with what you see, **the application is right and the
+manual is wrong** — please report it.
+
+Driver screens are captured at phone width, because that is how they are used.
+
+## Related Pages
+
+- [Introduction](./introduction.mdx)
+- [Terminology](./terminology.mdx)
+- [Troubleshooting Index](../troubleshooting/troubleshooting-index.mdx)

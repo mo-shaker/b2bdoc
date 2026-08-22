@@ -1,0 +1,319 @@
+---
+id: driver-delivery
+title: Driver Delivery
+description: The driver's complete workflow — My Trips, depart, arrive, unload, deliver or fail — with the screens they actually see.
+sidebar_label: Driver Delivery
+sidebar_position: 5
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+import Screenshot from '@site/src/components/Screenshot';
+
+# Driver Delivery
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Driver', 'Operations', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="7 min"
+/>
+
+**Role**
+Driver
+
+**Navigate to**
+`SCOP → My Work`
+
+## Purpose
+
+Everything a driver does, in the order they do it. The screens are built for a phone and
+carry only what is needed at the door.
+
+## Your whole day
+
+```text
+My Trips
+   │  Depart
+   ▼
+My Stops  ── for each stop, in sequence ──┐
+   │  I have arrived                      │
+   │  Start unloading                     │
+   │  Delivered  ── or ──  Could not deliver
+   └──────────────────────────────────────┘
+```
+
+## Step 1 — Find your trip
+
+**Navigate to** `SCOP → My Work → My Trips`
+
+**What you see**
+Cards, one per trip, showing the vehicle, the date and how many stops.
+<Screenshot
+  src="user-manual/D01-driver-my-trips.png"
+  alt="The driver's My Trips card view on a phone-width screen, showing trips with their vehicle, planned time and stop progress."
+  caption="My Trips on b2b at phone width. Each card carries the vehicle, the time and how many stops are done."
+  device="mobile"
+/>
+
+
+<Screenshot
+  src="quick-start/25-driver-my-trips.png"
+  alt="The driver's My Trips kanban showing one trip card with its vehicle and stop count."
+  caption="My Trips. Only your own trips appear, and only once they are released."
+  device="mobile"
+/>
+
+:::info[Only released trips, and only yours]
+
+The list is filtered to trips that are **Released** or later. A plan still being argued over
+is not your concern.
+
+And it shows only trips where **you** are the driver — enforced on your account, not by
+hiding a menu.
+
+→ [Driver Security Model](./driver-security-model.mdx)
+
+:::
+
+## Step 2 — Depart
+
+**Before you start**
+The trip must be **Ready to Depart** — which means the warehouse has finished loading.
+
+**What to do**
+Open the trip and press **Depart**.
+
+<Screenshot
+  src="quick-start/26-driver-trip-ready.png"
+  alt="The driver's trip form in state Ready to Depart, showing the Depart button."
+  caption="The driver's trip form. One button, and only when it is legal."
+  device="mobile"
+/>
+
+**What SCOP does**
+
+| Effect | Detail |
+| --- | --- |
+| Records the departure time | |
+<Screenshot
+  src="user-manual/D03-driver-trip-form.png"
+  alt="The driver's simplified trip form on a phone-width screen, showing the trip status and its action button."
+  caption="The driver's trip form. At phone width the lifecycle buttons collapse into a single Action menu."
+  device="mobile"
+/>
+
+| The trip becomes **In Progress** | |
+| Everything downstream follows | Shipments and demands move into execution on the system's behalf |
+
+:::note[If Depart is not there]
+
+The trip is not **Ready to Depart** yet. A loading task is still open — ask the warehouse.
+
+→ [Loading Operations](./loading-operations.mdx)
+
+:::
+
+## Step 3 — Work the stops
+
+**Navigate to** `SCOP → My Work → My Stops`
+
+**What you see**
+Cards, one per stop, in route sequence.
+<Screenshot
+  src="user-manual/D02-driver-my-stops.png"
+  alt="The driver's My Stops card view on a phone-width screen, showing stops in sequence with their status."
+  caption="My Stops, in route sequence. Work them top to bottom."
+  device="mobile"
+/>
+
+
+<Screenshot
+  src="quick-start/28-driver-my-stops.png"
+  alt="The driver's My Stops kanban showing stop cards in sequence with their status."
+  caption="My Stops. Work them in sequence."
+  device="mobile"
+/>
+
+Open the first stop.
+
+<Screenshot
+  src="quick-start/29-driver-stop-planned.png"
+  alt="The driver's stop form in status Planned, showing the I have arrived button."
+  caption="A stop in Planned. The only thing to do is confirm arrival."
+  device="mobile"
+/>
+
+### I have arrived
+
+**When** You are at the location.
+**What SCOP does** Records the arrival time and moves the stop to **Arrived**.
+
+<Screenshot
+  src="quick-start/30-driver-stop-arrived.png"
+  alt="The driver's stop form in status Arrived, showing the Start unloading button."
+  caption="Arrived. Arrival time is recorded and feeds the on-time measure."
+  device="mobile"
+/>
+
+Arrival time is what [OTIF](../reporting/otif.mdx) measures on-time against, so press it
+when you actually arrive.
+
+### Start unloading
+
+**When** You begin handing over the goods.
+**What SCOP does** Records the service start and moves the stop to **Servicing**.
+
+<Screenshot
+  src="quick-start/31-driver-stop-unloading.png"
+  alt="The driver's stop form in status Servicing, showing the Delivered and Could not deliver buttons."
+  caption="Servicing. From here the stop ends one of two ways."
+  device="mobile"
+/>
+
+### Delivered
+
+**When** The goods are handed over and the warehouse has validated the transfer.
+
+**What SCOP does**
+
+| Effect | Detail |
+| --- | --- |
+| Records the departure time and the service duration | |
+| Derives the **outcome** from the quantities that actually moved | |
+| Moves the stop to **Completed** | |
+| Closes the trip if this was the last stop | |
+
+<Screenshot
+  src="quick-start/36-driver-stop-delivered.png"
+  alt="The driver's stop form in status Completed."
+  caption="Completed. The outcome came from the quantities, not from a choice."
+  device="mobile"
+/>
+
+### Could not deliver
+
+**When** The delivery genuinely did not happen.
+
+**A reason is required.** See [Failed Delivery](./failed-delivery.mdx).
+
+## The Goods tab
+
+Shows what should be delivered, and what actually was.
+
+<Screenshot
+  src="quick-start/33-driver-goods-quantities.png"
+  alt="The driver's Goods tab showing products with planned and actual quantities."
+  caption="Planned against actual. The actual column is read from the Odoo transfer."
+  device="mobile"
+/>
+
+:::warning[You never type the delivered quantity]
+
+The actual column is read from the **Odoo transfer the warehouse validates**. There is no
+field for you to fill in.
+
+Your job is to report what happened. The warehouse records it.
+
+→ [Odoo Delivery Validation](./odoo-delivery-validation.mdx)
+
+:::
+
+### If the quantities are zero
+
+<Screenshot
+  src="quick-start/39-awaiting-odoo-validation.png"
+  alt="A message explaining that no delivered quantity has been recorded yet and the stop cannot be closed."
+  caption="Not a failure. The transfer has not been validated yet."
+  device="mobile"
+/>
+
+:::danger[Zero quantity is not a failed delivery]
+
+If the transfer has not been validated yet, quantities show zero. **Do not record a failure
+for this reason.**
+
+Wait for the warehouse to validate, then press **Delivered**. A failure recorded here would
+have to be unpicked from every service measure afterwards.
+
+:::
+
+## The Proof of delivery tab
+
+<Screenshot
+  src="quick-start/32-driver-proof-of-delivery.png"
+  alt="The driver's Proof of delivery tab showing signed-by, signature capture and photo attachments."
+  caption="Signature, name, photographs — and coordinates where the site allows it."
+  device="mobile"
+/>
+
+| Field | What to do |
+| --- | --- |
+| **Signed by** | Type the name of the person who received the goods |
+| **Signature** | Capture it on screen |
+| **Photos** | Attach as many as needed |
+| **Coordinates** | Captured automatically. Nothing for you to do |
+
+→ [Proof of Delivery](./proof-of-delivery.mdx)
+
+## Working on a phone
+
+The driver screens are built for phone width. The cards are the primary view; the form opens
+from a card.
+
+Practical points:
+
+| Point | Why |
+| --- | --- |
+| Press each button **when the thing happens** | The times are measurements, not paperwork |
+| A double tap is harmless | A closed stop stays closed and is not re-stamped |
+| Coordinates need `https` | On plain `http` they record as unavailable, with a reason. Signature and photographs still work |
+| You cannot reach anything else | By design — see below |
+
+## What you cannot see
+
+| Not available to you | Why |
+| --- | --- |
+| Other drivers' trips | You see only trips assigned to you |
+| Demands, shipments, plans | Not part of your work |
+| Warehouse readiness, loading tasks | Not part of your work |
+| Inventory transfers | You would be able to read every movement in the company |
+| Governance and reports | Not part of your work |
+
+→ [Driver Security Model](./driver-security-model.mdx)
+
+## Verify
+
+| Check | Where |
+| --- | --- |
+| The trip departed | The trip card shows **In Progress** |
+| Each stop was closed | The stop cards show **Completed** |
+| Quantities came back | The **Goods** tab |
+| Proof was captured | The **Proof of delivery** tab |
+| The trip closed | The trip card |
+
+## If it does not work
+
+| Symptom | Cause | What to do |
+| --- | --- | --- |
+| **My Trips** is empty | No trip assigned to you, or none released | Ask dispatch |
+| **Depart** is missing | The trip is not **Ready to Depart** | A loading task is open — ask the warehouse |
+| **Delivered** is refused | The transfer is not validated | Wait, then try again |
+| Quantities are zero | Same cause | **Do not** record a failure |
+| **Could not deliver** is refused | No reason chosen | Choose one |
+| Coordinates were not captured | The site is on plain `http` | Nothing — it is recorded as unavailable, with a reason |
+| A stop you already closed reopened | It did not. A closed stop stays closed | — |
+
+## Related Pages
+
+- [Driver Security Model](./driver-security-model.mdx)
+- [Proof of Delivery](./proof-of-delivery.mdx)
+- [Failed Delivery](./failed-delivery.mdx)
+- [Odoo Delivery Validation](./odoo-delivery-validation.mdx)
+- [Stops](./stops.mdx)
+
+## Next
+
+[Driver Security Model](./driver-security-model.mdx).

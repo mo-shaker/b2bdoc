@@ -1,0 +1,8 @@
+{
+  "label": "03 · SCOP Core Concepts",
+  "position": 4,
+  "link": {
+    "type": "generated-index",
+    "description": "The objects SCOP works with, how they relate, and the governance model behind them."
+  }
+}

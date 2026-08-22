@@ -1,0 +1,190 @@
+---
+id: navigating-scop
+title: التنقّل في SCOP
+description: خريطة قوائم SCOP الكاملة — كل قسم وكل عنصر، وأي دور يراه، وأي فصل يوثّقه.
+sidebar_label: التنقّل في SCOP
+sidebar_position: 2
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+import Screenshot from '@site/src/components/Screenshot';
+
+# التنقّل في SCOP
+
+<DocumentInfo
+  category="دليل المستخدم"
+  audience={['عمليات', 'مستودعات', 'تخطيط', 'إدارة', 'سائقون', 'اختبار قبول المستخدم']}
+  status="Draft"
+  version="1.0"
+  owner="فريق المنتج"
+  updated="أغسطس 2026"
+  readingTime="8 دقائق"
+/>
+
+**الدور**
+الجميع.
+
+**انتقل إلى**
+`SCOP`
+
+## الغرض
+
+هذه هي الخريطة. كل عنصر قائمة موجود في الإصدار الأول مذكور أدناه، مع الدور الذي يراه والفصل الذي يوثّقه.
+
+## كيف نُظِّمت القائمة
+
+تجمّع SCOP شاشاتها بحسب **ما تفعله**، لا بحسب نوع السجل.
+
+| القسم | يحتوي | من يراه |
+| --- | --- | --- |
+| **Dashboard** | ملخّص عملية اليوم | المخطِّط والإدارة |
+| **My Work** | رحلات السائق ومحطاته وحدها | السائق |
+| **Operations** | عمل اليوم — الطلبات والشحنات والجاهزية والتحميل والرحلات والمحطات والاستثناءات | مستخدم SCOP |
+| **Planning** | بناء الخطة اليومية وحوكمتها | المخطِّط |
+| **Master Data** | الإعدادات التي تعتمد عليها العمليات | مستخدم SCOP |
+| **Governance** | القواعد والأسباب والصلاحيات | مستخدم SCOP |
+| **Reporting** | كل المقاييس | مستخدم SCOP |
+| **Technical** | التشخيص والنطاق | مسؤول النظام |
+
+## Dashboard
+
+| العنصر | ما يعرض | الدور | الفصل |
+| --- | --- | --- | --- |
+| **Dashboard** | عملية اليوم في لمحة | المخطِّط والإدارة | [لوحة المعلومات](../reporting/the-dashboard.mdx) |
+
+## My Work
+
+تظهر للسائق وحده، وهي القسم الوحيد الذي يراه السائق.
+
+| العنصر | ما يعرض | الفصل |
+| --- | --- | --- |
+| **My Trips** | رحلات السائق المسجَّل دخوله، كبطاقات | [تسليم السائق](../execution/driver-delivery.mdx) |
+| **My Stops** | محطات تلك الرحلات، كبطاقات | [تسليم السائق](../execution/driver-delivery.mdx) |
+
+وكلاهما مُرشَّح على الرحلات **المُطلَقة فما بعد** — فالسائق لا يرى خطة ما زالت محل نقاش.
+
+## Operations
+
+| العنصر | الكائن | الدور | الفصل |
+| --- | --- | --- | --- |
+| **Demands** | ما يجب أن يتحرك | مستخدم SCOP | [إدارة الطلب](../demand/demand-management.mdx) |
+| **Shipments** | الوحدة القابلة للتخطيط | مستخدم SCOP | [إدارة الشحنات](../shipments/shipment-management.mdx) |
+| **Warehouse Readiness** | هل يمكن أن يتحرك ولماذا | المستودع | [جاهزية المستودع](../readiness/warehouse-readiness.mdx) |
+| **Loading Tasks** | عمل المستودع لتحميل المركبة | المستودع | [عمليات التحميل](../execution/loading-operations.mdx) |
+| **Allocations** | المخزون المحجوز للطلب | مستخدم SCOP | [أهلية التخطيط](../demand/planning-eligibility.mdx) |
+| **Trips** | مركبة وسائق وسلسلة محطات | مستخدم SCOP *(مخفية عن السائق)* | [الرحلات](../execution/trips.mdx) |
+| **Stops** | الزيارات الفعلية المفردة | مستخدم SCOP *(مخفية عن السائق)* | [المحطات](../execution/stops.mdx) |
+| **Loads** | ما هو على المركبة فعلياً | مستخدم SCOP | [عمليات التحميل](../execution/loading-operations.mdx) |
+| **Resource Assignments** | المركبات والسائقون المحجوزون للرحلات | المخطِّط | [الأسطول والمركبات](../configuration/fleet-and-vehicles.mdx) |
+| **Exceptions** | المشكلات التشغيلية المُسجَّلة | مستخدم SCOP | [إدارة الاستثناءات](../exceptions/exception-management.mdx) |
+
+:::note[Trips و Stops مخفيتان عن السائقين عمداً]
+
+يصل السائق إلى رحلاته عبر **My Work**، التي تقدّم نموذجاً مبسَّطاً مصمَّماً للهاتف. أما `Operations → Trips` فيقدّم نموذج المُوزِّع الكامل، وهو مخفي عن مجموعة السائق كي لا يُخلط بينهما.
+
+وإخفاء القائمة تسهيل. أما الأمان فهو قاعدة السجلات تحته — راجع [نموذج أمان السائق](../execution/driver-security-model.mdx).
+
+:::
+
+## Planning
+
+تظهر للمخطِّط / المُوزِّع فما فوق.
+
+| العنصر | ما يفعل | الفصل |
+| --- | --- | --- |
+| **Generate a Plan** | يفتح معالج التخطيط | [توليد خطة](../planning/generate-a-plan.mdx) |
+| **Daily Plans** | الخطط نفسها في دورة حياتها | [الخطة اليومية](../planning/the-daily-plan.mdx) |
+| **Planning Runs** | كل محاولة، بمدخلاتها وجوابها | [دورات التخطيط](../planning/planning-runs.mdx) |
+| **Unplanned Demand** | ما تعذّر إدراجه، ولماذا | [الطلب غير المخطَّط](../planning/unplanned-demand.mdx) |
+
+## Master Data
+
+| العنصر | ما يُعِدّ | الدور | الفصل |
+| --- | --- | --- | --- |
+| **Locations** | عقد التخطيط | مستخدم SCOP | [عقد التخطيط](../configuration/planning-nodes.mdx) |
+| **Import Locations** | إنشاء العقد بالجملة | مسؤول النظام | [عقد التخطيط](../configuration/planning-nodes.mdx) |
+| **Routes** | تسلسلات مُسمّاة ومتكررة | المخطِّط | [المسارات وأنشطة المحطات](../configuration/routes-and-stop-activities.mdx) |
+| **Stop Activities** | أنواع العمل في المحطة | المخطِّط | [المسارات وأنشطة المحطات](../configuration/routes-and-stop-activities.mdx) |
+| **Service Commitments** | ما وُعِد به العميل | مستخدم SCOP | [التزامات الخدمة](../configuration/service-commitments.mdx) |
+| **Supplier Commitments** | ما وعدنا به المورّد | المشتريات | [التزامات الخدمة](../configuration/service-commitments.mdx) |
+| **Capacity Profiles** | الأبعاد التي تُقاس بها المركبات | مستخدم SCOP | [الكتالوجات](../configuration/catalogues.mdx) |
+| **Handling Profiles** | كيف تُناوَل البضائع | مستخدم SCOP | [الكتالوجات](../configuration/catalogues.mdx) |
+| **Compatibility Groups** | ما لا يجوز أن يسافر معاً | مستخدم SCOP | [الكتالوجات](../configuration/catalogues.mdx) |
+| **Shelf-Life Profiles** | قواعد العمر المتبقي | مستخدم SCOP | [الكتالوجات](../configuration/catalogues.mdx) |
+| **Qualification Types** | أنواع مؤهلات السائقين | مستخدم SCOP | [السائقون](../configuration/drivers.mdx) |
+| **Driver Qualifications** | من يحمل ماذا | مستخدم SCOP | [السائقون](../configuration/drivers.mdx) |
+| **Vehicle Availability** | متى تتوفر المركبة | المخطِّط | [الأسطول والمركبات](../configuration/fleet-and-vehicles.mdx) |
+| **Driver Availability** | متى يتوفر السائق | المخطِّط | [السائقون](../configuration/drivers.mdx) |
+| **Onboarding** | معالجات الإطلاق الثلاثة، بالترتيب | مسؤول النظام | [التهيئة والترحيل](../configuration/onboarding-and-migration.mdx) |
+
+وقائمة **Onboarding** الفرعية مرقَّمة لأن الترتيب يهم:
+
+```text
+1 · Consignment Partners   →   2 · Inventory Ownership   →   3 · Pilot Readiness
+```
+
+## Governance
+
+| العنصر | ما يحوي | الدور | الفصل |
+| --- | --- | --- | --- |
+| **Business Rules** | القواعد الست المُلزَمة، بإصداراتها | مستخدم SCOP | [قواعد العمل](../reference/business-rules.mdx) |
+| **Rule Evaluations** | كل فحص أُجري وجوابه | مستخدم SCOP | [نموذج الحوكمة](../concepts/the-governance-model.mdx) |
+| **Rule Exemptions** | تنازلات مُصرَّح بها ومحدَّدة المدة | المخطِّط | [نموذج الحوكمة](../concepts/the-governance-model.mdx) |
+| **Reason Codes** | الأسباب المضبوطة الواحد والخمسون | مستخدم SCOP | [رموز الأسباب](../reference/reason-codes.mdx) |
+| **Objective Profiles** | ما يُحسِّن التخطيط تجاهه | المخطِّط | [نظرة عامة على التخطيط](../planning/planning-overview.mdx) |
+| **Approval Authorities** | من يجوز له ماذا على أي كائن | مسؤول النظام | [نموذج الحوكمة](../concepts/the-governance-model.mdx) |
+| **Feature Flags** | مفاتيح السلوك الاختياري | مسؤول النظام | [مسؤول النظام](../roles/administrator.mdx) |
+| **Exception Categories** | الفئات الاثنتا عشرة، بشدّتها واتفاقية خدمتها | مستخدم SCOP | [إدارة الاستثناءات](../exceptions/exception-management.mdx) |
+
+## Reporting
+
+| العنصر | السؤال الذي يجيب عنه | الدور | الفصل |
+| --- | --- | --- | --- |
+| **Plan Coverage** | هل خطّطنا كل ما كان قابلاً للتخطيط؟ | المخطِّط | [تغطية الخطة](../reporting/plan-coverage.mdx) |
+| **Unplanned Demand** | ماذا فاتنا، ولماذا؟ | المخطِّط | [تقرير الطلب غير المخطَّط](../reporting/unplanned-demand-report.mdx) |
+| **Vehicle Utilization** | كم كانت المركبات ممتلئة؟ | المخطِّط | [استغلال المركبات](../reporting/vehicle-utilization.mdx) |
+| **OTIF** | هل سلّمنا في الوقت وبالكامل؟ | مستخدم SCOP | [OTIF](../reporting/otif.mdx) |
+| **Trip Planned vs Actual** | كم كانت الخطة قريبة من الواقع؟ | مستخدم SCOP | [المخطَّط مقابل الفعلي للرحلة](../reporting/trip-planned-vs-actual.mdx) |
+| **Exception Ageing** | ما الذي تجاوز موعده؟ | مستخدم SCOP | [تقادم الاستثناءات](../reporting/exception-ageing.mdx) |
+| **Decision Quality** | كم مرة تجاوزنا التوصية؟ | المخطِّط | [جودة القرار](../reporting/decision-quality.mdx) |
+| **Operation Timeline** | ماذا حدث، بالترتيب، لهذه العملية؟ | مستخدم SCOP | [الخط الزمني للعملية](../reporting/operation-timeline.mdx) |
+| **Failed Projections** | ماذا أخفقت SCOP في تسجيله؟ | مسؤول النظام | [تقارير جودة البيانات](../reporting/data-quality-reports.mdx) |
+| **Orphan Moves** | ماذا تحرك دون أن يغطيه طلب؟ | مسؤول النظام | [تقارير جودة البيانات](../reporting/data-quality-reports.mdx) |
+| **Ownership Data Quality** | كم من الملكية غير محلولة؟ | مستخدم SCOP | [تقارير جودة البيانات](../reporting/data-quality-reports.mdx) |
+
+## Technical
+
+لمسؤول النظام وحده. وهذه أدوات تشخيص، لا عمل يومي.
+
+| العنصر | ما هو | الفصل |
+| --- | --- | --- |
+| **Domain Events** | كل حقيقة سجّلتها SCOP عمّا فعلته أو امتنعت عنه | [الهوية والتتبّع](../concepts/identity-and-traceability.mdx) |
+| **Sequence Counters** | العدّادات خلف المعرِّفات التجارية | [مسؤول النظام](../roles/administrator.mdx) |
+| **Execution Events** | ما حدث فعلياً أثناء الرحلة | [الهوية والتتبّع](../concepts/identity-and-traceability.mdx) |
+| **Capacity Snapshots** | حمولة المركبة عند كل نقطة من كل مسار | [الرحلات](../execution/trips.mdx) |
+| **Travel Matrix** | المسافات والمدد المخزَّنة بين العقد | [عقد التخطيط](../configuration/planning-nodes.mdx) |
+| **Pilot Scope** | أي أنواع عمليات تتفاعل معها SCOP، ومن متى | [نطاق التجربة](../configuration/pilot-scope.mdx) |
+| **Releases** | سجلات الإصدارات لهذا التنصيب | [نطاق التجربة](../configuration/pilot-scope.mdx) |
+
+## إن كانت قائمة تتوقعها غير موجودة
+
+| المفقود | السبب |
+| --- | --- |
+| **Planning** | لست مخطِّطاً ولا مدير عمليات |
+| **Technical** | لست مسؤول نظام |
+| **Warehouse Readiness** و**Loading Tasks** | لست مستخدم مستودع |
+| **Supplier Commitments** | لست مستخدم مشتريات |
+| **Rule Exemptions** و**Objective Profiles** و**Vehicle/Driver Availability** و**Routes** و**Stop Activities** و**Resource Assignments** | لست مخطِّطاً |
+| **Approval Authorities** و**Feature Flags** و**Import Locations** و**Onboarding** | لست مسؤول نظام |
+| **Trips** و**Stops** | أنت سائق — استخدم **My Work** |
+| كل ما تحت `SCOP` | تحمل **Finance User** وحدها، وهي بلا قائمة في الإصدار الأول |
+
+## صفحات ذات صلة
+
+- [الوصول إلى SCOP](./accessing-scop.mdx)
+- [العمل مع القوائم والنماذج](./working-with-lists-and-forms.mdx)
+- [نظرة عامة على الأدوار](../roles/roles-overview.mdx)
+
+## التالي
+
+[العمل مع القوائم والنماذج](./working-with-lists-and-forms.mdx).

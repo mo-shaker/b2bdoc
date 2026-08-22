@@ -1,0 +1,157 @@
+---
+id: vehicle-utilization
+title: Vehicle Utilization
+description: How full the vehicles actually were at every point of every route, and what a low or high figure is really telling you.
+sidebar_label: Vehicle Utilization
+sidebar_position: 5
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+import Screenshot from '@site/src/components/Screenshot';
+
+# Vehicle Utilization
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Planning', 'Management', 'Operations', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="5 min"
+/>
+
+## Purpose
+
+Answers **how full the vehicles were** — not on average over a trip, but **at every point of
+every route**.
+
+## Audience
+
+Planner / Dispatcher and Management.
+
+## Navigate to
+
+`SCOP → Reporting → Vehicle Utilization`
+
+An Administrator can read the same underlying rows at
+`SCOP → Technical → Capacity Snapshots`.
+
+## Filters
+
+Opens **grouped by vehicle**. Filter by date range or trip.
+
+## Dimensions
+<Screenshot
+  src="user-manual/62-report-vehicle-utilization.png"
+  alt="The SCOP Vehicle Utilization report showing capacity snapshots per vehicle with weight and volume percentages."
+  caption="One row per point of the route, not one per trip. The peak is what constrains the vehicle."
+/>
+
+
+| Dimension | Use |
+| --- | --- |
+| **Vehicle** | The default row dimension |
+| **Trip** | One route at a time |
+| **Stop** | The point on the route |
+| **Sequence** | Position in the route |
+
+## Measures
+
+| Measure | Meaning |
+| --- | --- |
+| **Weight %** | How full by weight at this point |
+| **Volume %** | How full by volume at this point |
+
+The underlying rows also carry **Used Weight**, **Remaining Weight**, **Used Volume**,
+**Remaining Volume**, **Feasible**, **Limiting Dimension** and **Breached Dimensions**.
+
+:::info[There is one row per point of the route, not one per trip]
+
+A mixed pickup-and-delivery trip changes load after each stop. A vehicle that leaves the
+depot at 80% may be at 110% after a collection in the middle.
+
+Measuring only at departure would miss exactly the case that matters.
+
+:::
+
+## How to read it
+
+The figure that matters operationally is the **peak** — the fullest the vehicle gets at any
+point. The trip form carries it directly as **Peak Weight %** and **Peak Volume %**.
+
+| Peak | Reading |
+| --- | --- |
+| **Above 100%** | Infeasible. `BR-RTE-001` blocks it |
+| **85–100%** | Well used |
+| **60–85%** | Reasonable |
+| **30–60%** | Under-used — sometimes correct, sometimes not |
+| **Below 30%** | Something is wrong, or the day was genuinely light |
+
+### Weight against volume
+
+Compare the two. The **limiting dimension** tells you what kind of fleet problem you have.
+
+| Pattern | Meaning |
+| --- | --- |
+| Weight high, volume low | Dense goods. You need payload, not space |
+| Volume high, weight low | Bulky goods. You need space, not payload |
+| Both moderate | Well matched |
+| Both low | Too much vehicle for the work, or not enough work |
+
+## Example
+
+```text
+Vehicle              Peak Weight %   Peak Volume %
+SCOP Manual Vehicle       92%             41%
+Van 2                     34%             38%
+Van 3                     88%             35%
+```
+
+Two readings:
+
+| Observation | Reading |
+| --- | --- |
+| Weight consistently far above volume | The fleet is volume-rich and payload-poor for these goods |
+| Van 2 at a third on both | Either it should not have gone out, or its work should have been consolidated |
+
+## Common interpretation mistakes
+
+:::warning[A low figure is not automatically waste]
+
+Utilisation is **rank 7** in the objective profile. Customer commitments are **rank 3**.
+
+SCOP will send a half-empty vehicle rather than break a promise, and that is the ranking
+working correctly.
+
+→ [Planning Overview](../planning/planning-overview.mdx)
+
+:::
+
+| Mistake | Why it is wrong |
+| --- | --- |
+| Averaging across every point of a route | The **peak** is what constrains the vehicle, not the mean |
+| Averaging across trips | A full trip and an empty one do not average to a meaningful figure |
+| Treating a `BR-RTE-002` warning as an error | It is a warning by design |
+| Reading it without the limiting dimension | You cannot tell whether you need payload or space |
+| Concluding the fleet is too big from one week | Seasonality is real |
+
+## What to do about a persistent finding
+
+| Finding | Action |
+| --- | --- |
+| Consistently low peaks across the fleet | Consider smaller vehicles, or consolidating more work per trip |
+| One vehicle always low | Check whether its capacity profile is wrong, or its availability is limiting it |
+| Weight always the limiting dimension | The fleet's payload is the constraint |
+| Frequent `BR-RTE-001` breaches | Vehicles are too small for the loads being planned |
+
+## Related Pages
+
+- [Trips](../execution/trips.mdx)
+- [Fleet and Vehicles](../configuration/fleet-and-vehicles.mdx)
+- [Planning Overview](../planning/planning-overview.mdx)
+- [Unplanned Demand Report](./unplanned-demand-report.mdx)
+
+## Next
+
+[OTIF](./otif.mdx).

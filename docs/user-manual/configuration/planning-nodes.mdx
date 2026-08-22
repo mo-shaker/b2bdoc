@@ -1,0 +1,293 @@
+---
+id: planning-nodes
+title: Planning Nodes
+description: What a planning node is, every field on it, opening windows, service duration, access constraints, and why a missing node stops demand being created.
+sidebar_label: Planning Nodes
+sidebar_position: 1
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+import Screenshot from '@site/src/components/Screenshot';
+
+# Planning Nodes
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Operations', 'Planning', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="8 min"
+/>
+
+:::info[This is the canonical page for planning nodes]
+
+Other chapters refer here rather than restating it.
+
+:::
+
+**Role**
+Administrator creates and maintains. Planner reads and may edit.
+
+**Navigate to**
+`SCOP → Master Data → Locations`
+
+## What a planning node is
+
+A **physical place SCOP can route to**: a warehouse, a customer branch, a supplier site.
+
+It carries what routing actually needs — coordinates, a timezone, opening hours and a
+service duration — none of which live on an Odoo partner or stock location.
+
+:::warning[A planning node is not an Odoo address]
+
+It is a **standalone record linked to** partners, warehouses and stock locations, not derived
+from any of them.
+
+Creating a customer in Odoo does **not** create a planning node. Somebody has to do it, and
+until they do, deliveries to that customer produce no demand.
+
+:::
+
+## Why a missing node stops everything
+
+Demand generation resolves **both endpoints** of a transfer to planning nodes. If either
+cannot be resolved, **no demand is created**.
+
+That is deliberate: a demand nobody can route or measure is worse than no demand. But it is
+not silent — a `DemandGenerationSkipped` event is recorded naming the transfer, the unmapped
+location, the partner, and which end failed.
+
+→ [Missing Node Diagnostics](./missing-node-diagnostics.mdx)
+
+## The node form
+<Screenshot
+  src="user-manual/49-planning-node-form.png"
+  alt="A SCOP planning node form showing identity, links, coordinates, timezone, service duration, opening windows and access constraints."
+  caption="SCOP Manual Branch A on b2b, with coordinates, an IANA timezone, a per-line service duration, opening windows and two access constraints."
+/>
+
+
+### Identity
+
+| Field | Meaning | Required |
+| --- | --- | --- |
+| **Name** | What it is called | **Yes** |
+| **Code** | A short reference, e.g. `QSD-WH` | Recommended |
+| **Location Type** | What kind of place | **Yes** |
+
+| Location Type | Use for |
+| --- | --- |
+| **Warehouse** | A place goods leave from |
+| **Customer Branch** | A place goods are delivered to |
+| **Supplier Location** | A place goods are collected from |
+| **Cross-Dock Facility** | A transfer point |
+| **Return Point** | Where returns are received |
+| **Other** | Anything else |
+
+### Links
+
+| Field | Links to | Purpose |
+| --- | --- | --- |
+| **Partner** | An Odoo contact | How a customer transfer resolves to this node |
+| **Warehouse** | An Odoo warehouse | How a warehouse transfer resolves to this node |
+| **Stock Location** | An Odoo stock location | The precise physical origin |
+
+:::info[The links are how resolution works]
+
+When a transfer is created, SCOP asks its stock locations and its partner which node they
+correspond to. If nothing here points at them, resolution fails.
+
+A **customer branch** node normally links to the partner. A **warehouse** node normally links
+to the warehouse and its stock location.
+
+:::
+
+### Geography
+
+| Field | Meaning | Required for planning |
+| --- | --- | --- |
+| **Street**, **City**, **Country** | The address | No |
+| **Latitude**, **Longitude** | Coordinates, to seven decimal places | **Yes** |
+| **Is Geocoded** | Computed — whether coordinates exist | — |
+| **Geocode Source** | Manual · Provider · Copied from the partner · Synthetic | — |
+| **Geocoded On** | When | — |
+
+:::warning[A node without coordinates produces strange routes]
+
+Where the travel matrix has no distance for a pair of nodes, the planner treats it as **very
+large** rather than zero — because an unknown distance must never make two nodes look
+adjacent and sort first into every route.
+
+The visible symptom is not an error. It is a route that makes no sense.
+
+:::
+
+### Time
+
+| Field | Meaning | Required |
+| --- | --- | --- |
+| **Timezone** | The IANA timezone, e.g. `Asia/Riyadh` | **Yes** |
+
+:::danger[Every time window is interpreted in the node's own timezone]
+
+Not the server's, not the reader's. A node with the wrong timezone will be visited at the
+wrong hour, and [OTIF](../reporting/otif.mdx) will measure on-time against the wrong window.
+
+:::
+
+### Service duration
+
+How long a visit takes, before travel.
+
+| Field | Meaning |
+| --- | --- |
+| **Service Duration Mode** | Fixed · Per line · Per unit |
+| **Service Duration (min)** | The base figure |
+| **Service Duration Variable (min)** | The per-line or per-unit addition |
+
+| Mode | Duration is |
+| --- | --- |
+| **Fixed** | The base figure, whatever the visit carries |
+| **Per line** | Base plus variable × number of lines |
+| **Per unit** | Base plus variable × number of units |
+
+:::info[This is what makes a merged visit cost less than two separate ones]
+
+When two requirements share a stop, the node is asked for the duration of **one visit
+carrying both**. The fixed set-up time is charged once.
+
+Summing the two separate figures would make the merged visit look longer than the visits it
+replaced.
+
+→ [The Physical Visit](../shipments/the-physical-visit.mdx)
+
+:::
+
+### Access
+
+| Field | Meaning |
+| --- | --- |
+| **Dock Count** | How many vehicles can be served at once |
+| **Requires Appointment** | Whether arrival must be booked |
+| **Plannable** | Whether planning may route here at all |
+
+## Opening windows
+
+The **Windows** tab. One row per day-and-time band the node is open.
+
+| Field | Meaning |
+| --- | --- |
+| **Day of Week** | Which day |
+| **Time From** / **Time To** | Local hours, in the node's own timezone |
+| **Mandatory** | Whether the window must be honoured, or is a preference |
+| **Valid From** / **Valid To** | Optional seasonal validity |
+| **Spans Midnight** | Computed, where the band crosses a day boundary |
+
+:::warning[A node with no windows is never open]
+
+Planning cannot schedule a visit into a window that does not exist. The demand comes back
+unplanned with *Customer location unavailable* or *Missing required data*.
+
+Every node needs at least one window.
+
+:::
+
+### Windows against commitments
+
+A [service commitment](./service-commitments.mdx) **outranks** the node's own opening hours.
+A promise is more specific than an opening time.
+
+The same precedence decides whether two requirements share a physical visit — see
+[The Physical Visit](../shipments/the-physical-visit.mdx).
+
+## Access constraints
+
+The **Constraints** tab. What a vehicle must satisfy to serve this node.
+
+| Constraint Type | Value |
+| --- | --- |
+| **Maximum vehicle length (m)** | A limit |
+| **Maximum vehicle height (m)** | A limit |
+| **Maximum vehicle weight (kg)** | A limit |
+| **Requires a tail lift** | A capability |
+| **Requires a forklift on site** | A capability |
+| **One-way access** | A routing property |
+
+| Field | Meaning |
+| --- | --- |
+| **Hard** | Whether the constraint blocks, or only warns |
+| **Rule** | The business rule that enforces it, where one applies |
+| **Note** | Free text |
+
+A demand that no available vehicle can satisfy comes back unplanned with *Route restriction*.
+
+## Importing nodes in bulk
+
+`SCOP → Master Data → Import Locations` *(Administrator)*
+
+For a pilot with many customer branches, this is faster than creating each by hand. Press
+**Run** to execute, and read the result before closing.
+
+## The travel matrix
+
+`SCOP → Technical → Travel Matrix` *(Administrator)*
+
+Stored distances and durations between pairs of nodes. Planning reads it for travel
+estimates.
+
+:::note[Ungeocoded nodes are skipped, not defaulted]
+
+A node with no coordinates gets no matrix entries, rather than entries of zero. That is the
+same reasoning the planner applies to unknown distances — a default of zero would make two
+nodes look adjacent.
+
+:::
+
+## Creating a node — the checklist
+
+| # | Set | Or else |
+| --- | --- | --- |
+| 1 | **Name** and **Location Type** | It cannot be saved |
+| 2 | The **partner**, **warehouse** or **stock location** link | Transfers will not resolve to it |
+| 3 | **Latitude** and **Longitude** | Routes make no sense |
+| 4 | **Timezone** | Windows are interpreted wrongly |
+| 5 | At least one **opening window** | Nothing can ever be scheduled here |
+| 6 | **Service duration** | Route timing is wrong |
+| 7 | Any **access constraints** | Vehicles that cannot serve it will be sent |
+
+## Verify
+
+| Check | Where | Expect |
+| --- | --- | --- |
+| The node exists | `Master Data → Locations` | One row |
+| It is geocoded | **Is Geocoded** | True |
+| It has a timezone | **Timezone** | An IANA zone |
+| It has windows | The **Windows** tab | At least one |
+| Transfers resolve to it | Create a test transfer | A demand appears |
+| No skip events remain | `Technical → Domain Events` | No new `DemandGenerationSkipped` |
+
+## If it does not work
+
+| Symptom | Cause | Fix |
+| --- | --- | --- |
+| No demand for deliveries to this customer | No node, or the partner is not linked | Create or link the node, re-save the transfer |
+| `DemandGenerationSkipped` naming a stock location | That location resolves to no node | Link it |
+| Demands appear but come back *Missing required data* | Coordinates, timezone or windows missing | Complete the node |
+| Demands come back *Customer location unavailable* | No window covers the planned date | Add a window |
+| Routes are nonsensical | The node is not geocoded | Set coordinates |
+| Deliveries arrive at the wrong hour | The timezone is wrong | Correct it |
+| A vehicle cannot serve the node | An access constraint excludes it | Check the **Constraints** tab |
+
+## Related Pages
+
+- [Missing Node Diagnostics](./missing-node-diagnostics.mdx)
+- [Pilot Scope](./pilot-scope.mdx)
+- [Service Commitments](./service-commitments.mdx)
+- [How Demands Are Created](../demand/how-demands-are-created.mdx)
+- [Unplanned Demand](../planning/unplanned-demand.mdx)
+
+## Next
+
+[Missing Node Diagnostics](./missing-node-diagnostics.mdx).

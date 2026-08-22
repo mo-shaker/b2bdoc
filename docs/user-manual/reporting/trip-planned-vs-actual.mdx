@@ -1,0 +1,136 @@
+---
+id: trip-planned-vs-actual
+title: Trip Planned vs Actual
+description: How close the plan was to reality — duration, distance and cost variance, and what a persistent gap is telling you.
+sidebar_label: Trip Planned vs Actual
+sidebar_position: 7
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+import Screenshot from '@site/src/components/Screenshot';
+
+# Trip Planned vs Actual
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Operations', 'Planning', 'Management', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="4 min"
+/>
+
+## Purpose
+
+Answers **how good the estimates were**. If planned and actual diverge consistently, the
+master data behind the estimates is wrong — and every plan built on it is wrong in the same
+direction.
+
+## Audience
+
+Operations and Planning.
+
+## Navigate to
+
+`SCOP → Reporting → Trip Planned vs Actual`
+
+## Filters
+
+Opens filtered to **Completed** and **Partially Completed** trips. A trip still running has
+no actuals.
+
+## Dimensions
+<Screenshot
+  src="user-manual/64-report-trip-planned-vs-actual.png"
+  alt="The SCOP Trip Planned vs Actual report showing duration, distance and cost measures against their planned values."
+  caption="Look for consistency across trips, not for one bad trip."
+/>
+
+
+| Dimension | Use |
+| --- | --- |
+| **Vehicle** | The default row dimension |
+| **Driver** | Whether a gap follows a person |
+| **Planned Start** | Over time |
+| **Status** | Completed against partially completed |
+
+## Measures
+
+| Measure | Meaning |
+| --- | --- |
+| **Planned Duration (min)** / **Actual Duration (min)** / **Duration Variance** | Time |
+| **Planned Distance (km)** / **Actual Distance (km)** / **Distance Variance** | Distance |
+| **Planned Cost Estimate** / **Execution Cost Estimate** / **Cost Variance** | Cost |
+
+A **positive variance** means actual exceeded planned.
+
+## How to read it
+
+Look for **consistency**, not individual variances. One long trip is traffic. Every trip
+running 30% long is a data problem.
+
+| Pattern | Likely cause | Fix |
+| --- | --- | --- |
+| Duration consistently over | Service durations or travel estimates too optimistic | [Planning Nodes](../configuration/planning-nodes.mdx), the travel matrix |
+| Duration consistently under | Estimates too pessimistic. You are under-using the day | Same |
+| Distance consistently over | Travel matrix distances are short, or drivers deviate | The travel matrix |
+| Variance concentrated on one vehicle | Its average speed is wrong | [Fleet and Vehicles](../configuration/fleet-and-vehicles.mdx) |
+| Variance concentrated on one node | Its service duration is wrong | The node |
+| Cost variance without duration or distance variance | The cost rates are wrong | The vehicle |
+
+## Example
+
+```text
+Vehicle              Planned min   Actual min   Variance
+SCOP Manual Vehicle       240          312         +72
+Van 2                     180          235         +55
+Van 3                     300          388         +88
+```
+
+Every vehicle roughly 30% over. That is not three driver problems — it is one **estimate**
+problem, most likely service durations set too low on the nodes.
+
+Correcting the master data makes every future plan more realistic, and improves
+[OTIF](./otif.mdx) as a side effect: a plan that allows enough time arrives inside its
+window.
+
+## Common interpretation mistakes
+
+:::warning[Cost variance is not a financial figure]
+
+Cost rates are **operational estimates for comparing plans**. Nothing reconciles them to the
+ledger, and they must never be quoted as a cost of sale.
+
+→ [Release 1 Scope](../about/release-1-scope.mdx)
+
+:::
+
+| Mistake | Why it is wrong |
+| --- | --- |
+| Reading a single trip's variance as performance | One trip is weather, traffic and luck |
+| Blaming drivers for a fleet-wide pattern | A consistent gap is an estimate problem |
+| Ignoring negative variance | Consistently early means the day is under-planned |
+| Comparing before and after a master-data change | Different estimates are not comparable |
+| Using the cost figures for financial reporting | They are planning estimates |
+
+## Loading duration
+
+Actual loading duration is measured per shipment on the loading task, and contributes to the
+trip's actual duration.
+
+A trip consistently over on duration with normal travel is often a **loading** problem rather
+than a routing one — check the loading tasks.
+
+→ [Loading Operations](../execution/loading-operations.mdx)
+
+## Related Pages
+
+- [Trips](../execution/trips.mdx)
+- [Loading Operations](../execution/loading-operations.mdx)
+- [Planning Nodes](../configuration/planning-nodes.mdx)
+- [OTIF](./otif.mdx)
+
+## Next
+
+[Exception Ageing](./exception-ageing.mdx).

@@ -1,0 +1,113 @@
+---
+id: introduction
+title: Introduction
+description: What the SCOP Full End User Manual covers, who it is for, and how it relates to the Quick Start Guide.
+sidebar_label: Introduction
+sidebar_position: 1
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+
+# Introduction
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Operations', 'Warehouse', 'Planning', 'Management', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="4 min"
+/>
+
+## What this manual is
+
+This is the complete operational reference for **SCOP Release 1**.
+
+It is written so that a properly authorised user can operate the platform without
+needing to ask a developer how something works. For every capability that exists in
+Release 1 it answers the same set of questions:
+
+- What does this feature do, and who uses it?
+- Where is it in the system, and what does the screen show?
+- What should you enter, and what does SCOP work out for itself?
+- What happens after each action, and how do you check that it worked?
+- Which business rules can block you, and what do you do about it?
+- What downstream records and reports are affected?
+
+## What it is not
+
+**It is not the Quick Start Guide.** The [Quick Start Guide](../../quick-start/overview.mdx)
+takes a new user through one complete operating cycle in about half an hour. It remains
+the fastest way to learn SCOP, and nothing here replaces it.
+
+| Use the Quick Start when | Use this manual when |
+| --- | --- |
+| You are new and want one cycle to work | You need the detail behind a screen |
+| You are demonstrating SCOP | You are troubleshooting |
+| You are running first-day UAT | You are writing an SOP or training material |
+| You want the shortest path | You want the complete answer |
+
+**It is not an Odoo manual.** SCOP sits on top of Odoo. Standard Odoo behaviour is
+explained only where it materially changes how SCOP is used — for example, that
+delivered quantities always come from a validated Odoo transfer.
+
+**It is not a roadmap.** Every capability described here was checked against the running
+Release 1 application. Where something is planned but not built, it is named in
+[Release 1 Scope](./release-1-scope.mdx) and nowhere else.
+
+## Who it is for
+
+| Role | Start at |
+| --- | --- |
+| Customer Service / Sales | [Customer Service](../roles/customer-service.mdx) |
+| Warehouse | [Warehouse](../roles/warehouse.mdx) |
+| Planner / Dispatcher | [Planner / Dispatcher](../roles/planner-dispatcher.mdx) |
+| Operations Manager | [Operations Manager](../roles/operations-manager.mdx) |
+| Driver | [Driver](../roles/driver.mdx) |
+| Procurement | [Procurement](../roles/procurement.mdx) |
+| Management | [Management](../roles/management.mdx) |
+| SCOP Administrator | [Administrator](../roles/administrator.mdx) |
+
+Each role page names the menus that role uses, the objects it owns, the actions it may
+take, and — just as important — the actions it may not.
+
+## The one idea to carry through the whole manual
+
+:::info[Odoo drives. SCOP listens.]
+
+**Odoo performs the warehouse transaction.** The delivery order, the reservation, the
+picking, the validated quantities — that stays exactly where it is today.
+
+**SCOP plans, controls, records and measures the operation around it.** It adds
+readiness, planning, approval, execution visibility, governance and measurement.
+
+:::
+
+Almost every question that begins *"why did SCOP do that?"* is answered by that division
+of authority. It is set out in full in [SCOP and Odoo](./scop-and-odoo.mdx), and every
+other chapter refers back to it rather than repeating it.
+
+## How the manual is organised
+
+| Part | Chapters | What it gives you |
+| --- | --- | --- |
+| **Orientation** | 00 – 03 | The vocabulary, the menu map, the roles, the object model |
+| **Operations** | 04 – 10 | Demand, ownership, shipments, readiness, planning, execution, exceptions |
+| **Configuration** | 11 | The master data operational users depend on |
+| **Measurement** | 12 | Every Release 1 report |
+| **Reference** | 13 | Business rules, lifecycles, reason codes, status labels |
+| **Recovery** | 14 – 15 | Troubleshooting by symptom, and complete worked scenarios |
+
+If you are looking for something specific, the two fastest entry points are the
+[Troubleshooting Index](../troubleshooting/troubleshooting-index.mdx), organised by what
+you are seeing on screen, and the [Status Glossary](../reference/status-glossary.mdx),
+which explains every state label in one line.
+
+## Related Pages
+
+- [How to Use This Manual](./how-to-use-this-manual.mdx)
+- [SCOP and Odoo](./scop-and-odoo.mdx)
+- [Release 1 Scope](./release-1-scope.mdx)
+- [Terminology](./terminology.mdx)
+- [SCOP Quick Start Guide](../../quick-start/overview.mdx)

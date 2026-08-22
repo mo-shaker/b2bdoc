@@ -1,0 +1,247 @@
+---
+id: execution-problems
+title: Execution Problems
+description: Missing loading tasks, trips that will not depart, drivers who see nothing, stops that will not close — cause, verification and correct action.
+sidebar_label: Execution Problems
+sidebar_position: 5
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+
+# Execution Problems
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Warehouse', 'Driver', 'Operations', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="7 min"
+/>
+
+---
+
+## Loading tasks missing
+
+**How to verify** `Operations → Loading Tasks`, filtered to the trip; or the trip's
+**Loading** tab.
+
+| Cause | Verify | Action |
+| --- | --- | --- |
+| The trip is not released | The trip's status | Release the plan, or the trip |
+| The trip has no shipments | The trip's **Stops** tab | An empty trip has nothing to load |
+| Release did not complete | The trip's chatter | Read the message |
+
+:::info[One loading task per shipment on the trip]
+
+A trip carrying three shipments should have three tasks. A count that does not match the
+shipment count is the signal.
+
+:::
+
+---
+
+## Trip cannot depart
+
+### 1 · A loading task is still open
+
+**How to verify** `Operations → Loading Tasks` — any task not **Done**.
+**Distinguishing signal** The trip is stuck in **Loading**, not **Ready to Depart**.
+**Correct action** Settle every task with **Done**.
+
+:::info[This is the departure gate working]
+
+An open loading task holds the vehicle. That is the design, not a fault.
+
+:::
+
+### 2 · Loading was never started
+
+**How to verify** The trip is in **Released**, not **Loading**.
+**Correct action** Press **Start** on the first loading task.
+
+### 3 · The person pressing Depart is not entitled
+
+**How to verify** The refusal names authorisation.
+**Cause** Only the **assigned driver** and a **Planner / Dispatcher** may depart a trip.
+**Correct action** One of those two departs it.
+
+:::note[A warehouse user cannot depart a vehicle]
+
+Even one who happens to hold write access on trips. Reachability is not authorisation.
+
+:::
+
+---
+
+## Driver sees no trips
+
+Work down in order.
+
+| # | Cause | Verify | Action |
+| --- | --- | --- | --- |
+| 1 | No trip is assigned to them | The trip's **Driver** field | Assign one |
+| 2 | The trip is not released | The trip's status | Release the plan |
+| 3 | **The employee is not linked to a user account** | Odoo Employees | Link it |
+| 4 | The employee is not flagged **Is Driver** | Odoo Employees | Flag it |
+| 5 | The user does not hold the **Driver** SCOP role | The user's SCOP category | Assign it |
+
+:::danger[Cause 3 is the one that is missed]
+
+The record rules match on the **employee's linked user account**, not the employee alone.
+
+An employee flagged as a driver but not linked to a user can be assigned a trip that **nobody
+will ever see**.
+
+:::
+
+→ [Drivers](../configuration/drivers.mdx)
+
+---
+
+## Driver sees other people's work
+
+**Cause** The user holds `SCOP User` in addition to `Driver`.
+**Correct action** Remove `SCOP User`.
+
+:::warning[Driver deliberately does not inherit SCOP User]
+
+`SCOP User` grants read access across the whole operation. Adding it to a driver silently
+undoes the driver security model.
+
+:::
+
+→ [Driver Security Model](../execution/driver-security-model.mdx)
+
+---
+
+## Actual quantity is zero
+
+**How to verify** The stop's **Quantities** tab, or the driver's **Goods** tab.
+**Cause** **The Odoo transfer has not been validated.**
+
+:::danger[This is not a failed delivery]
+
+The goods may be at the customer and the paperwork simply behind.
+
+**Do not press Could not deliver.** A failure recorded here has to be unpicked from every
+service measure afterwards.
+
+:::
+
+**Correct action** The warehouse validates the transfer in Odoo with the quantity that
+actually moved. SCOP reads it back. Then close the stop.
+
+→ [Odoo Delivery Validation](../execution/odoo-delivery-validation.mdx)
+
+---
+
+## Stop cannot complete
+
+### 1 · No delivered quantity recorded yet
+
+**How to verify** The refusal says so explicitly, and tells you to wait.
+**Correct action** Wait for validation. Then press **Delivered**.
+
+### 2 · Something was short and no reason was given
+
+**How to verify** The refusal reads *"did not deliver everything planned, so it needs a
+reason"*.
+**Cause** `BR-EXE-001`.
+**Correct action** Choose one of the seven stop-outcome reasons.
+
+### 3 · The stop is already closed
+
+**How to verify** Its status is Completed, Failed or Skipped.
+**Correct action** None. A closed stop stays closed, and pressing again does nothing.
+
+:::note[This is deliberate]
+
+A double tap, or a reconnecting phone replaying the call, would otherwise re-stamp the
+departure time and silently rewrite a measurement of something that happened once.
+
+:::
+
+---
+
+## Could not deliver is refused
+
+**Cause** No **outcome reason** was chosen.
+**Correct action** Choose one. `BR-EXE-001` requires it, and you are asked at the door because
+that is when you can answer.
+
+---
+
+## Trip cannot complete
+
+| Cause | Verify | Action |
+| --- | --- | --- |
+| A stop has no outcome | The trip's **Stops** tab | Close every stop |
+| A failed or partial stop has no reason | `BR-EXE-001` | Give it one |
+| The trip is not **In Progress** or **Exception** | The status bar | — |
+
+---
+
+## Trip closed as Partially Completed unexpectedly
+
+**Cause** At least one stop's outcome was not **Completed** — it was partial, failed or
+skipped.
+**How to verify** The trip's **Stops** tab, **Outcome** column.
+**Correct action** None. It is an accurate record. The requirement continues in the follow-up
+demands.
+
+---
+
+## Demands still In Execution after the trip closed
+
+**Cause** Their Odoo transfers were not validated.
+**Correct action** Validate them. SCOP reads the quantities back and the demands close.
+
+---
+
+## No coordinates on proof of delivery
+
+**How to verify** **Has Location** is false; **Capture Failed Reason** states why.
+**Cause** Browsers refuse to give a page a location on a plain `http` origin.
+**Correct action** Deploy on `https`. Signature and photographs are unaffected.
+
+:::note[The failure is recorded honestly]
+
+Latitude zero, longitude zero is a real place. Recording it without a reason would put a
+plausible-looking coordinate into the evidence chain, so SCOP records the reason instead.
+
+:::
+
+---
+
+## A load is stuck
+
+| State | Cause | Action |
+| --- | --- | --- |
+| **Proposed**, will not confirm | `BR-RTE-001` — capacity breached | Fix the trip's capacity |
+| **Confirmed**, will not stage | Not every shipment line is staged | Stage them |
+| **Staged**, will not load | Actual loaded quantities are not recorded | Complete the loading tasks |
+
+---
+
+## A trip is stuck in Exception
+
+**Cause** **Resume** requires the originating exception to be **resolved** or **closed**.
+**How to verify** `Operations → Exceptions` — find the exception on this trip.
+**Correct action** Work the exception to resolution, then **Resume**. Or **Complete** the trip
+as partially completed, once every stop has an outcome.
+
+→ [Exception Management](../exceptions/exception-management.mdx)
+
+## Related Pages
+
+- [Loading Operations](../execution/loading-operations.mdx)
+- [Trip Lifecycle](../execution/trip-lifecycle.mdx)
+- [Driver Delivery](../execution/driver-delivery.mdx)
+- [Failed Delivery](../execution/failed-delivery.mdx)
+- [Drivers](../configuration/drivers.mdx)
+
+## Next
+
+[Reporting Problems](./reporting-problems.mdx).

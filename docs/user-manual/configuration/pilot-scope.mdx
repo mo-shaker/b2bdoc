@@ -1,0 +1,207 @@
+---
+id: pilot-scope
+title: Pilot Scope
+description: The single setting that decides what SCOP reacts to — operation types, the go-live moment, applying it, and why there is no historical backfill.
+sidebar_label: Pilot Scope
+sidebar_position: 3
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+import Screenshot from '@site/src/components/Screenshot';
+
+# Pilot Scope
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Operations', 'Management', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="5 min"
+/>
+
+**Role**
+Administrator
+
+**Navigate to**
+`SCOP → Technical → Pilot Scope`
+
+## The one-line summary
+
+:::warning[SCOP only reacts to configured in-scope operations]
+
+If an Odoo operation type is not switched on here, SCOP does nothing when a transfer of that
+type is created. No demand, no event, nothing.
+
+This is the first thing to check when *"SCOP is not doing anything"*.
+
+:::
+
+## Why it exists
+
+A platform that reacted to every warehouse movement in the business would fill its demand
+register with movements nobody intends to plan — internal shuffles, adjustments, scrap.
+
+Pilot scope makes reacting a **deliberate choice**, one operation type at a time.
+
+## The form
+<Screenshot
+  src="user-manual/50-pilot-scope-form.png"
+  alt="The SCOP Pilot Scope form showing the warehouse, the operation types in scope, the go-live moment and the Applied status."
+  caption="The pilot scope record on b2b. Four operation types are switched on, and the record is Applied — without that, SCOP reacts to nothing."
+/>
+
+
+| Field | Meaning |
+| --- | --- |
+| **Name** | What this scope record is called |
+| **Warehouse** | The warehouse being piloted |
+| **Operation Types** | **Which Odoo operation types generate demand** |
+| **Partners** | Optionally, which partners are in scope |
+| **Named Routes** | Optionally, which routes are in scope |
+| **Go-Live** | **The moment SCOP starts reacting** |
+| **Parallel Run Days** | How long the pilot runs alongside existing practice |
+| **Notes** | Free text |
+| **Status** | Draft · Applied · Closed |
+
+## Operation types
+
+The list of Odoo operation types — Delivery Orders, Receipts, Internal Transfers, and any
+custom types — that should generate SCOP demand.
+
+| Operation type code | Produces demand type |
+| --- | --- |
+| Outgoing | **Delivery** |
+| Incoming | **Inbound** |
+| Internal | **Transfer** |
+
+A transfer whose moves link back to an earlier move produces a **Return** regardless of type.
+
+:::note[Adding an operation type is not retroactive]
+
+Switching a type on affects transfers created **after** the change. Existing transfers of
+that type do not suddenly acquire demands.
+
+:::
+
+## Go-live and the absence of backfill
+
+The **Go-Live** moment is the cut-off. Transfers created before it produce nothing.
+
+:::danger[There is deliberately no demand backfill]
+
+Generating demands for transfers that happened before SCOP existed would produce a planning
+history nobody planned — a record of decisions that were never made, presented as evidence.
+
+The rule is enforced inside generation itself, not left to nobody re-running it — because
+re-running it over history is exactly the thing somebody does while investigating something
+else.
+
+:::
+
+The practical consequence: a pilot's measurements start at go-live. Expect
+[OTIF](../reporting/otif.mdx) and [Plan Coverage](../reporting/plan-coverage.mdx) to be
+meaningless for the first cycle and honest from the second.
+
+## The three states
+
+```text
+Draft  →  Applied  →  Closed
+```
+
+| State | Meaning | Buttons |
+| --- | --- | --- |
+| **Draft** | Being configured. **SCOP is not reacting yet** | **Apply** |
+| **Applied** | Live. SCOP reacts to the configured operations | **Close Pilot** |
+| **Closed** | The pilot has ended | — |
+
+:::warning[A scope record in Draft does nothing]
+
+Configuring the operation types is not enough. **Apply** is what switches SCOP on.
+
+A pilot that "was set up but nothing happened" is very often a scope record still sitting in
+Draft.
+
+:::
+
+## Applying it
+
+| # | Step |
+| --- | --- |
+| 1 | Set the warehouse |
+| 2 | Add the operation types that should generate demand |
+| 3 | Set the go-live moment |
+| 4 | Press **Apply** |
+| 5 | Create a test transfer of an in-scope type |
+| 6 | Confirm a demand appeared |
+
+## Closing a pilot
+
+**Close Pilot** ends it. Use it when the pilot has finished and a wider rollout replaces it,
+or when the pilot is being stopped.
+
+Closing does not delete anything. Records created during the pilot remain.
+
+## Releases
+
+`SCOP → Technical → Releases` *(Administrator)*
+
+A record of what was deployed, when, and how it could be reversed.
+
+| Field | Meaning |
+| --- | --- |
+| **Name** | The release reference |
+| **Released On** / **Released By** | When and by whom |
+| **Modules** | What was deployed |
+| **Summary** | What changed. **Required** |
+| **Recovery Tier** | How a reversal would be done |
+| **Reverse Script** | The reversal, where one exists |
+| **Rehearsed On** | When the reversal was last practised |
+
+| Recovery Tier | Meaning |
+| --- | --- |
+| **Tier 1** | Feature deactivation |
+| **Tier 2** | Module downgrade |
+| **Tier 3** | Module uninstall |
+| **Tier 4** | Database restore |
+
+:::note[Rehearsed On is the field that matters]
+
+A recovery plan nobody has practised is a hope, not a plan. The field exists to make that
+visible.
+
+:::
+
+## Verify
+
+| Check | Where | Expect |
+| --- | --- | --- |
+| The scope record is **Applied** | `Technical → Pilot Scope` | Status Applied |
+| The right operation types are in scope | The **Operation Types** field | Your list |
+| Go-live is set correctly | **Go-Live** | The intended moment |
+| A test transfer produces a demand | `Operations → Demands` | The demand |
+| The generation was recorded | `Technical → Domain Events` | `DemandGenerated` |
+
+## If it does not work
+
+| Symptom | Cause | Fix |
+| --- | --- | --- |
+| No demands at all, no events at all | The scope record is in **Draft** | Press **Apply** |
+| Same | The operation type is not in scope | Add it, apply again |
+| Same, for older transfers only | They predate go-live | Expected. There is no backfill |
+| Demands for some destinations only | A planning node is missing | [Missing Node Diagnostics](./missing-node-diagnostics.mdx) |
+| Demands appear but for the wrong operations | Too many operation types in scope | Remove the ones you do not intend to plan |
+| Demands stopped appearing | The pilot was closed | Check the status |
+
+## Related Pages
+
+- [Planning Nodes](./planning-nodes.mdx)
+- [Missing Node Diagnostics](./missing-node-diagnostics.mdx)
+- [How Demands Are Created](../demand/how-demands-are-created.mdx)
+- [Onboarding and Migration](./onboarding-and-migration.mdx)
+- [Release 1 Scope](../about/release-1-scope.mdx)
+
+## Next
+
+[Fleet and Vehicles](./fleet-and-vehicles.mdx).

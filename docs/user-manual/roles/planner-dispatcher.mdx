@@ -1,0 +1,178 @@
+---
+id: planner-dispatcher
+title: Planner / Dispatcher
+description: What the Planner role does in SCOP — validating demand, generating and reviewing the plan, assigning vehicles and drivers, and handling what could not be planned.
+sidebar_label: Planner / Dispatcher
+sidebar_position: 4
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+
+# Planner / Dispatcher
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Planning', 'Operations', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="7 min"
+/>
+
+## Your responsibility
+
+You turn a pile of requirements into **one coordinated operating day**, and you answer for
+what did not fit.
+
+You are the busiest role in SCOP and the one with the most screens.
+
+:::warning[You need three Odoo groups SCOP does not grant]
+
+**Fleet → Administrator**, **Employees → Officer** and **Inventory → User**.
+
+Without them the planning wizard cannot read vehicles, the **Driver** field never loads,
+and **Validate** fails. See [Permissions Reference](./permissions-reference.mdx).
+
+:::
+
+## Your day, in order
+
+| # | Task | Where |
+| --- | --- | --- |
+| 1 | Check what arrived overnight | `Operations → Demands`, grouped by Status |
+| 2 | Resolve any unresolved ownership | The demand → **Resolve Ownership** |
+| 3 | Validate the demands | **Validate** |
+| 4 | Mark them eligible | **Mark Eligible** |
+| 5 | Check readiness with the warehouse | `Operations → Warehouse Readiness` |
+| 6 | Generate the plan | `Planning → Generate a Plan` |
+| 7 | Review the recommendation | `Planning → Daily Plans` |
+| 8 | Adjust it if you must, with a reason | **Modify** |
+| 9 | Submit it for approval | **Submit** |
+| 10 | Deal with what did not fit | `Planning → Unplanned Demand` |
+
+Note step 9. **You do not approve your own plan** — see below.
+
+## Your menus
+
+| Menu | What you use it for |
+| --- | --- |
+| `Planning → Generate a Plan` | The wizard that requests a recommendation |
+| `Planning → Daily Plans` | Reviewing, modifying and submitting |
+| `Planning → Planning Runs` | What the provider was asked, and answered |
+| `Planning → Unplanned Demand` | What could not be placed, and why |
+| `Operations → Demands` | Validate, mark eligible, resolve ownership, replan |
+| `Operations → Shipments` | Check consolidation and readiness |
+| `Operations → Trips`, `→ Stops` | The full dispatcher's view |
+| `Operations → Resource Assignments` | Which vehicle and driver is held for what |
+| `Master Data → Vehicle / Driver Availability` | Who and what is available |
+| `Master Data → Routes`, `→ Stop Activities` | Repeatable sequences and activity types |
+| `Governance → Rule Exemptions` | Authorised, time-boxed waivers |
+| `Reporting → Plan Coverage`, `→ Decision Quality`, `→ Vehicle Utilization` | How well you planned |
+
+## Moving a demand forward
+
+| Button | From → To | What it checks |
+| --- | --- | --- |
+| **Validate** | Submitted → Validated | `BR-INV-002` — ownership resolved on every line |
+| **Mark Eligible** | Validated → Eligible for Planning | Readiness is Ready, Conditionally Ready or Partially Ready |
+| **Resolve Ownership** | — | Re-derives the owner from the five approved sources |
+| **Reject** | Submitted → Rejected | A reason is required |
+| **Replan** | Released → Planned | An authorised change before execution |
+
+Marking a demand **Eligible for Planning** also **forms its shipment automatically**. There
+is no separate create step in normal operation.
+
+## Generating a plan
+
+The wizard asks for a **planning date** and an **objective profile**, and offers the
+eligible demands for that date.
+
+What it produces is a **recommendation**, not a decision:
+
+```text
+Planning Run   the request, the answer, and the timing — kept for replay
+     ↓
+Daily Plan     state Generated
+     ↓
+Trips          state Recommended, each with stops, a vehicle and a driver
+     ↓
+Unplanned Demand  everything the run could not place, with a reason
+```
+
+Full detail: [Generate a Plan](../planning/generate-a-plan.mdx).
+
+:::info[The provider is deterministic, not an AI optimiser]
+
+Release 1 ships a **deterministic baseline** recommender and a **manual** provider that
+validates your own assignments. Neither learns, and neither is an AI route optimiser. The
+same inputs produce the same plan, which is what makes a run replayable.
+
+:::
+
+## Reviewing and modifying
+
+| Button | Effect |
+| --- | --- |
+| **Submit** | Generated or Modified → Under Review |
+| **Modify** | Under Review → Modified. **An override reason is required** |
+| **Reject** | Under Review → Rejected. A reason is required |
+| **Replan** | Rejected → Generated, requesting a new run |
+
+Every modification is counted and attributed, and the original recommendation is preserved
+alongside your change. That is what [Decision Quality](../reporting/decision-quality.mdx)
+measures — not to police you, but to show where the recommendation is consistently wrong.
+
+## What you may not do
+
+:::danger[You cannot approve or release your own plan]
+
+`BR-PLN-001` refuses approval and release by the plan's author. Approval and release belong
+to an **Operations Manager** who did not create it.
+
+This holds even if you also hold Operations Manager or Administrator rights.
+
+:::
+
+| Not permitted | Who does it |
+| --- | --- |
+| Approve or release a plan you created | A different Operations Manager |
+| Stage goods | Warehouse |
+| Validate an Odoo transfer | Warehouse |
+| Type a delivered quantity | Nobody |
+| Change pilot scope or approval authorities | Administrator |
+
+## Handling what did not fit
+
+`Planning → Unplanned Demand` lists every demand the run could not place, with one of
+twelve reasons and a suggested next action.
+
+| Common reason | Usual fix |
+| --- | --- |
+| **Warehouse not ready** | Ask the warehouse to stage |
+| **No feasible vehicle** | Nothing available can carry it — split the shipment or add capacity |
+| **Missing required data** | A node is missing coordinates, timezone or opening hours |
+| **Capacity shortage** | More work than fleet — replan for another date |
+| **Time-window conflict** | The promise and the opening hours cannot both be met |
+
+Full list and treatment: [Unplanned Demand](../planning/unplanned-demand.mdx).
+
+## If something is wrong
+
+| Symptom | Check |
+| --- | --- |
+| `Access Error` on **Vehicle** | Missing Fleet → Administrator |
+| The **Driver** field never loads | Missing Employees → Officer |
+| **Validate** refuses | `BR-INV-002` — see [Inventory Ownership](../ownership/inventory-ownership.mdx) |
+| **Mark Eligible** refuses | Readiness is Not Ready or Blocked |
+| The plan will not release | A trip on it has a blocking finding — `BR-PLN-002` |
+| A trip shows as not feasible | `BR-RTE-001` — capacity is exceeded at some point of the sequence |
+| A demand did not appear at all | See [No Demand Created](../troubleshooting/demand-problems.mdx) |
+
+## Related Pages
+
+- [Planning Overview](../planning/planning-overview.mdx)
+- [Generate a Plan](../planning/generate-a-plan.mdx)
+- [Plan Governance](../planning/plan-governance.mdx)
+- [Unplanned Demand](../planning/unplanned-demand.mdx)
+- [Permissions Reference](./permissions-reference.mdx)

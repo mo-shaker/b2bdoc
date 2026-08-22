@@ -1,0 +1,260 @@
+---
+id: plan-governance
+title: Plan Governance
+description: Separation of duties, BR-PLN-001 and BR-PLN-002, why an Administrator cannot approve their own plan, and what a frozen approved plan means.
+sidebar_label: Plan Governance
+sidebar_position: 5
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+import Screenshot from '@site/src/components/Screenshot';
+
+# Plan Governance
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Operations', 'Planning', 'Management', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="6 min"
+/>
+
+:::info[This is the canonical page for separation of duties]
+
+Other chapters refer here rather than restating it.
+
+:::
+
+**Role**
+Operations Manager authorises. Planner proposes.
+
+## The rule
+
+:::danger[The person who creates a plan cannot approve it]
+
+`BR-PLN-001` refuses **approval** and **release** by the plan's own author.
+
+**This includes an Administrator.** Administrative rights and approval authority are
+different things, and one does not confer the other.
+
+:::
+
+## Why
+
+A plan commits vehicles, drivers, warehouse labour and customer promises for a whole day.
+One person proposing it and the same person authorising it means nobody actually checked it.
+
+The check is not bureaucracy — it is the only point in the cycle where somebody who did not
+build the plan reads the unplanned demand and asks whether today's choices are acceptable.
+
+:::warning[A team of one cannot complete a SCOP cycle]
+
+This is intentional, not an oversight. Testing SCOP requires at least two accounts: a
+planner and an approver.
+
+:::
+
+## What the refusal looks like
+
+<Screenshot
+  src="quick-start/19-self-approval-refused.png"
+  alt="A refusal dialog stating that the plan's creator cannot approve it, naming BR-PLN-001."
+  caption="BR-PLN-001 refusing self-approval. The dialog names the rule and the policy."
+/>
+
+The dialog names the rule, states the policy, and identifies the record. There is no way
+past it from the screen — and there should not be.
+
+## How it is enforced
+
+Two mechanisms, working together.
+
+| Mechanism | What it does | Where |
+| --- | --- | --- |
+| **`BR-PLN-001`** | Refuses approval and release by the author | Fires at `plan_approve` and `plan_release` |
+| **Approval authority** | Requires the actor to hold the entitled group, with **Forbid Self-Approval** set | `Governance → Approval Authorities` |
+
+```text
+scop.plan  ·  approve  ·  Operations Manager  ·  Forbid Self-Approval = Yes
+scop.plan  ·  release  ·  Operations Manager  ·  Forbid Self-Approval = Yes
+```
+
+Both must be satisfied. Holding the group is not enough if you wrote the plan; not writing
+the plan is not enough if you do not hold the group.
+
+## Who can approve
+
+| You are | Can you approve a plan you created? | Can you approve someone else's? |
+| --- | --- | --- |
+| Planner / Dispatcher | No | **No** — you do not hold the authority |
+| Operations Manager | **No** | **Yes** |
+| Management | No | No |
+| Administrator | **No** | Yes |
+
+## BR-PLN-002 — a blocked trip is not released with its plan
+
+| | |
+| --- | --- |
+| **Code** | `BR-PLN-002` |
+| **Name** | A blocked trip must not be released with its plan |
+| **Severity** | **Blocking** |
+| **Fires at** | `plan_release` |
+| **If it cannot be evaluated** | **Block** |
+
+A plan is released as a whole. If one trip on it carries a blocking finding — most often a
+capacity breach under `BR-RTE-001` — releasing the plan would put an infeasible trip into
+operation alongside the good ones.
+
+`BR-PLN-002` refuses, and **names the offending trip**.
+
+| Fix | How |
+| --- | --- |
+| Repair the trip | Reduce its load, change the vehicle, resequence the stops |
+| Remove it from the plan | Its demands return to **Eligible for Planning** |
+| Then release again | The rest of the day proceeds |
+
+→ [Trips](../execution/trips.mdx)
+
+## The trip rules
+
+Trips carry their own rules, evaluated when a trip is approved or released.
+
+| Rule | Severity | Checks |
+| --- | --- | --- |
+| `BR-RTE-001` | **Blocking** | The load is feasible at **every point** of the stop sequence, not only at departure |
+| `BR-RTE-002` | **Warning** | Vehicle utilisation is not wasteful |
+
+:::info[Why capacity is checked at every point]
+
+A mixed pickup-and-delivery trip changes load after each stop. A trip that fits at departure
+can exceed the vehicle in the middle of the route, after a collection.
+
+Checking only departure would pass a trip that is physically impossible.
+
+:::
+
+`BR-RTE-002` is a **warning**, deliberately. A half-empty vehicle is sometimes exactly right
+— [customer commitments outrank utilisation](./planning-overview.mdx) — so it tells you and
+lets you proceed.
+
+## The frozen approved plan
+
+Once approved, the plan's content is the **authorised version of the day**.
+
+| Recorded | Meaning |
+| --- | --- |
+| **Approved By** | Who authorised it |
+| **Approved At** | When |
+| An approval row | On the **Approvals** tab |
+
+The plan is not edited after approval. If the day changes, the change is made on the
+**trip**, which carries its own approval and its own record.
+
+:::note[Why the plan is not reopened]
+
+Reopening an approved plan would mean the authorisation applied to something other than what
+was authorised. Handling change at trip level keeps the record honest: the plan says what
+was agreed, and the trips say what happened.
+
+:::
+
+## Modification is recorded, not prevented
+
+A planner may change a recommendation before submitting it. What is required is a **reason**.
+
+| Recorded | Where |
+| --- | --- |
+| The override reason | On the plan |
+| The modification count | On the plan, and in Decision Quality |
+| Who modified it | **Modified By** |
+| **The original recommendation** | Preserved on the **Recommendation** tab |
+
+:::info[The purpose is improvement, not policing]
+
+[Decision Quality](../reporting/decision-quality.mdx) measures how often the recommendation
+was accepted or overridden, and why.
+
+A high override rate with one reason repeating is a signal about the *system*, not about the
+planner. *Incorrect master data* appearing forty times is a data problem somebody can fix.
+
+:::
+
+## What to do when you are genuinely stuck
+
+If a rule refuses something that must proceed, the answer is a **rule exemption** — not
+switching the rule off.
+
+| An exemption requires | Why |
+| --- | --- |
+| A **reason** | Somebody has to say why this is acceptable |
+| A **risk** and a **mitigation** | Somebody has to have thought about it |
+| An **approver** | Somebody has to own the decision |
+| An **expiry date** | It cannot quietly become permanent |
+
+The evaluation then records **Exception Applied**, not **Passed** — the rule did not pass,
+it was waived.
+
+:::warning[Separation of duties is not a candidate for exemption]
+
+`BR-PLN-001` exists precisely so that no single person can authorise their own work. Waiving
+it for convenience defeats the only control it provides.
+
+If nobody is available to approve, the answer is a second approver, not an exemption.
+
+:::
+
+→ [The Governance Model](../concepts/the-governance-model.mdx)
+
+## What the rules record when they pass
+
+Governance is as visible when it succeeds as when it refuses. Verified on `b2b` at
+`Governance → Rule Evaluations` after an Operations Manager approved and released a plan the
+Administrator had created:
+
+| Rule | Gate | Result | Message |
+| --- | --- | --- | --- |
+| `BR-PLN-001` | `plan_approve` | Passed | *Approval is separated from creation.* |
+| `BR-PLN-001` | `plan_release` | Passed | *Approval is separated from creation.* |
+| `BR-PLN-002` | `plan_release` | Passed | *No trip on this plan carries a blocking finding.* |
+| `BR-RTE-001` | `trip_approve`, `trip_release` | Passed | *Feasible at every point of the sequence.* |
+| `BR-RTE-002` | `trip_approve`, `trip_release` | **Failed — Warning** | *Peak utilisation is only 0.0%, below the 50% the plan aims for.* |
+
+Note the last row: the plan **released normally** with a standing utilisation warning against
+it. That is `BR-RTE-002` behaving exactly as designed.
+<Screenshot
+  src="user-manual/83-rule-evaluations-governance.png"
+  alt="The SCOP Rule Evaluations list showing BR-PLN-001, BR-PLN-002, BR-RTE-001 and BR-RTE-002 evaluated at the approve and release gates, with their results and messages."
+  caption="The governance audit trail on b2b. Every gate that fired, its rule version, its result and the message it recorded — including BR-PLN-001 passing twice, once at approval and again at release."
+/>
+
+
+:::info[BR-PLN-001 is evaluated twice]
+
+Once at approval and again at release. Both are recorded, so the audit trail shows
+separation of duties held at each step rather than only at the first.
+
+:::
+
+## Verify governance is working
+
+| Test | Expect |
+| --- | --- |
+| Create a plan and try to approve it yourself | **Refused**, naming `BR-PLN-001` |
+| Try the same as an Administrator | **Refused** |
+| Have a second Operations Manager approve it | Succeeds |
+| Check **Approved By** | The second person, not the author |
+| Release a plan with an infeasible trip | **Refused**, naming `BR-PLN-002` and the trip |
+
+## Related Pages
+
+- [The Daily Plan](./the-daily-plan.mdx)
+- [The Governance Model](../concepts/the-governance-model.mdx)
+- [Business Rules](../reference/business-rules.mdx)
+- [Permissions Reference](../roles/permissions-reference.mdx)
+- [Decision Quality](../reporting/decision-quality.mdx)
+
+## Next
+
+[Unplanned Demand](./unplanned-demand.mdx).

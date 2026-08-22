@@ -1,0 +1,243 @@
+---
+id: reason-codes
+title: Reason Codes
+description: Every reason code in SCOP, by category — what each means, who chooses it, and why an honest reason is worth more than a convenient one.
+sidebar_label: Reason Codes
+sidebar_position: 3
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+import Screenshot from '@site/src/components/Screenshot';
+
+# Reason Codes
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Operations', 'Planning', 'Warehouse', 'Driver', 'Management', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="6 min"
+/>
+
+**Navigate to**
+`SCOP → Governance → Reason Codes`
+<Screenshot
+  src="user-manual/28-reason-codes.png"
+  alt="The SCOP Reason Codes list showing controlled reasons grouped by category."
+  caption="The controlled vocabulary on b2b — 51 reasons across six categories."
+/>
+
+
+## Why SCOP uses a controlled list
+
+Wherever SCOP asks *why*, it offers a list rather than a free-text box.
+
+:::info[A controlled vocabulary is what makes "why do we keep missing deliveries" answerable]
+
+A hundred free-text comments cannot be grouped, counted or charted. Fifty-one controlled
+reasons can — and every report that groups by reason exists because of this decision.
+
+:::
+
+## The six categories
+
+| Category | Count | You meet it when |
+| --- | --- | --- |
+| **Unplanned Demand** | 12 | why a planning run could not place a demand |
+| **Override** | 9 | why a person departed from the recommendation, or overruled computed readiness |
+| **Exception Root Cause** | 11 | why an operational problem happened |
+| **Stop Outcome** | 7 | why a delivery failed or was skipped |
+| **Next Action** | 7 | what to do about a demand that was not planned, or a rejection |
+| **Return Disposition** | 5 | what happens to goods that have come back |
+
+**51 active reason codes** in total.
+
+---
+
+## Unplanned Demand
+
+Why a planning run could not place a demand.
+
+Set by the planning provider. You read them; you do not choose them.
+
+| Reason | Code |
+| --- | --- |
+| **No available inventory** | `no_inventory` |
+| **Warehouse not ready** | `warehouse_not_ready` |
+| **No feasible vehicle** | `no_feasible_vehicle` |
+| **No qualified driver** | `no_qualified_driver` |
+| **Capacity shortage** | `capacity_shortage` |
+| **Time-window conflict** | `time_window_conflict` |
+| **Product incompatibility** | `product_incompatibility` |
+| **Route restriction** | `route_restriction` |
+| **Missing required data** | `missing_data` |
+| **Customer location unavailable** | `location_unavailable` |
+| **Planning horizon exceeded** | `horizon_exceeded` |
+| **Lower priority than available capacity permits** | `lower_priority` |
+
+→ [In context](../planning/unplanned-demand.mdx)
+
+---
+
+## Override
+
+Why a person departed from the recommendation, or overruled computed readiness.
+
+**You choose one.** Chosen honestly, these become the most useful report in the system.
+
+| Reason | Code |
+| --- | --- |
+| **Operational information unavailable to the engine** | `info_unavailable_to_engine` |
+| **Customer instruction** | `customer_instruction` |
+| **Management instruction** | `management_instruction` |
+| **Incorrect master data** | `incorrect_master_data` |
+| **Unexpected warehouse condition** | `unexpected_warehouse_condition` |
+| **Driver or vehicle issue** | `driver_or_vehicle_issue` |
+| **Local route knowledge** | `local_route_knowledge` |
+| **Service-risk judgment** | `service_risk_judgment` |
+| **Emergency requirement** | `emergency_requirement` |
+
+→ [In context](../reporting/decision-quality.mdx)
+
+---
+
+## Exception Root Cause
+
+Why an operational problem happened.
+
+Recorded on an exception, so the queue can be analysed rather than only worked.
+
+| Reason | Code |
+| --- | --- |
+| **Supplier delay** | `supplier_delay` |
+| **Customer time-window change** | `customer_window_change` |
+| **Inventory shortage** | `inventory_shortage` |
+| **Picking delay** | `picking_delay` |
+| **Invalid shipment composition** | `invalid_shipment_composition` |
+| **Vehicle breakdown** | `vehicle_breakdown` |
+| **Route restriction** | `route_restriction` |
+| **No feasible plan** | `no_feasible_plan` |
+| **Delivery rejection** | `delivery_rejection` |
+| **Invalid KPI result** | `invalid_kpi_result` |
+| **Unauthorized configuration** | `unauthorized_configuration` |
+
+→ [In context](../exceptions/exception-management.mdx)
+
+---
+
+## Stop Outcome
+
+Why a delivery failed or was skipped.
+
+**Required** by `BR-EXE-001`. Asked at the door, when the driver can answer.
+
+| Reason | Code |
+| --- | --- |
+| **Customer location closed** | `customer_closed` |
+| **Customer refused the delivery** | `customer_refused` |
+| **Goods damaged in transit** | `goods_damaged` |
+| **Access to the location blocked** | `access_blocked` |
+| **Ran out of time on the route** | `time_exhausted` |
+| **Vehicle issue** | `vehicle_issue` |
+| **Rescheduled at the customer's request** | `rescheduled_by_customer` |
+
+→ [In context](../execution/failed-delivery.mdx)
+
+---
+
+## Next Action
+
+What to do about a demand that was not planned, or a rejection.
+
+Suggested by the provider on unplanned demand; required when rejecting a demand.
+
+| Reason | Code |
+| --- | --- |
+| **Replan for another date** | `replan_another_date` |
+| **Use another warehouse** | `use_another_warehouse` |
+| **Split the shipment** | `split_shipment` |
+| **Request additional capacity** | `request_capacity` |
+| **Resolve missing data** | `resolve_missing_data` |
+| **Change the time window with authorization** | `change_time_window` |
+| **Perform an inter-warehouse transfer** | `inter_warehouse_transfer` |
+
+→ [In context](../planning/unplanned-demand.mdx)
+
+---
+
+## Return Disposition
+
+What happens to goods that have come back.
+
+**Required** before a return demand can be dispositioned.
+
+| Reason | Code |
+| --- | --- |
+| **Restock** | `restock` |
+| **Scrap** | `scrap` |
+| **Return to supplier** | `return_to_supplier` |
+| **Customer credit** | `customer_credit` |
+| **Pending decision** | `pending` |
+
+→ [In context](../demand/demand-completion.mdx)
+
+---
+
+## Choosing a reason honestly
+
+Three of the six categories are chosen by a **person**: override, stop outcome and next
+action. Those three carry all the analytical value, and all the risk.
+
+:::warning[The convenient reason and the true reason are rarely the same]
+
+| Chosen | True | Consequence |
+| --- | --- | --- |
+| *Local route knowledge* | *Incorrect master data* | A fixable data problem is hidden behind an unfixable one |
+| *Customer location closed* | *Ran out of time on the route* | A routing problem is recorded as a customer problem |
+| *Operational information unavailable to the engine* | *Unexpected warehouse condition* | A warehouse issue never reaches the warehouse |
+
+A planner who always chooses the same reason produces a report that says nothing.
+
+:::
+
+The reverse is also true, and it is the point: a reason recorded honestly forty times
+becomes a named, counted problem that somebody can actually fix.
+
+## Where each category is used
+
+| Category | Screen | Required? |
+| --- | --- | --- |
+| Unplanned Demand | `Planning → Unplanned Demand` | Set by the system |
+| Override | Plan **Modify**; readiness **Apply Override** | **Yes** |
+| Exception Root Cause | The exception form | No, but analytically essential |
+| Stop Outcome | Driver **Could not deliver** / **Skipped** | **Yes** — `BR-EXE-001` |
+| Next Action | Unplanned demand; demand **Reject** | Suggested; required on reject |
+| Return Disposition | Return demand **Set Disposition** | **Yes** |
+
+## Adding or changing reasons
+
+`SCOP → Governance → Reason Codes`
+
+Reasons can be deactivated and new ones added. Two cautions:
+
+| Caution | Why |
+| --- | --- |
+| Deactivating a reason does not remove it from history | Past records keep the reason they were given |
+| Adding near-duplicates destroys the value | Two reasons meaning the same thing split one signal into two weak ones |
+
+Reasons marked as coming from the approved blueprint are the agreed vocabulary. Extend it
+deliberately, not casually.
+
+## Related Pages
+
+- [The Governance Model](../concepts/the-governance-model.mdx)
+- [Unplanned Demand](../planning/unplanned-demand.mdx)
+- [Decision Quality](../reporting/decision-quality.mdx)
+- [Failed Delivery](../execution/failed-delivery.mdx)
+- [Exception Management](../exceptions/exception-management.mdx)
+
+## Next
+
+[Status Glossary](./status-glossary.mdx).

@@ -1,0 +1,118 @@
+---
+id: customer-service
+title: Customer Service
+description: What the Customer Service role does in SCOP — the customer promise, the requirement behind it, and answering "where is my delivery".
+sidebar_label: Customer Service
+sidebar_position: 2
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+
+# Customer Service
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Operations', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="4 min"
+/>
+
+## Your responsibility
+
+You own **the promise** and the requirement behind it. Almost all of your work happens in
+Odoo, on the sales order. SCOP is where you check what became of it.
+
+## What you actually do
+
+| Task | Where |
+| --- | --- |
+| Confirm the customer order | **Odoo** — Sales |
+| Set the delivery date the customer was promised | **Odoo** — on the order |
+| Check that SCOP picked the order up | `SCOP → Operations → Demands` |
+| Answer *"where is my delivery?"* | The demand, and its trip |
+| Check whether we kept the promise | `SCOP → Reporting → OTIF` |
+
+:::info[You do not create demands]
+
+A demand is created **automatically** when Odoo creates an in-scope delivery order. There
+is no "new demand" step, and you should not look for one.
+
+See [How Demands Are Created](../demand/how-demands-are-created.mdx).
+
+:::
+
+## Your menus
+
+| Menu | What you use it for |
+| --- | --- |
+| `Operations → Demands` | Confirm the requirement was picked up, and follow it |
+| `Operations → Shipments` | See how the requirement will move |
+| `Operations → Trips` | See when it is going |
+| `Master Data → Service Commitments` | Read what was promised |
+| `Reporting → OTIF` | See whether the promise was kept |
+| `Reporting → Operation Timeline` | Reconstruct one delivery end to end |
+
+## The service commitment
+
+The **delivery date on the sales order** becomes SCOP's record of what was promised. It is
+captured **once**, when the demand is generated.
+
+| If | Then |
+| --- | --- |
+| The order carries a delivery date | It becomes a **date commitment**, and OTIF measures against it |
+| The order carries no delivery date | The destination's opening hours are used as a **window commitment** |
+| Neither exists | There is **no commitment**, and the delivery is never counted late |
+
+Changing the order date **after** the demand exists does not rewrite the captured
+commitment. If a customer moves a date, tell the planner — see
+[Service Commitments](../configuration/service-commitments.mdx).
+
+## Answering "where is my delivery?"
+
+1. Open `SCOP → Operations → Demands`.
+2. Search the **source order number**, for example `S09520`.
+3. Read the demand's **Status**.
+
+| Status | Tell the customer |
+| --- | --- |
+| **Draft**, **Submitted** | Received, not yet checked |
+| **Validated** | Checked, waiting on the warehouse |
+| **Eligible for Planning** | Ready to be scheduled |
+| **Planned** | Scheduled, plan not yet approved |
+| **Released** | Scheduled and authorised, going out |
+| **In Execution** | On the vehicle now |
+| **Completed** | Delivered in full |
+| **Partially Completed** | Part delivered; the rest is on a backorder |
+| **Failed** | Not delivered — check the reason on the stop |
+| **Rejected**, **Cancelled** | Will not be delivered as ordered |
+
+To see the vehicle and timing, open the demand's **Shipments** tab and follow the shipment
+to its trip.
+
+## What you may not do
+
+| Not permitted | Who does it |
+| --- | --- |
+| Validate a demand or mark it eligible | Planner |
+| Change quantities | Odoo, on the transfer — Warehouse |
+| Build or approve a plan | Planner, then Operations Manager |
+| Change a captured commitment | Nobody. It is captured once, by design |
+
+## If something is wrong
+
+| Symptom | Check |
+| --- | --- |
+| No demand for a confirmed order | The operation type may be outside pilot scope, or the destination has no planning node — see [No Demand Created](../troubleshooting/demand-problems.mdx) |
+| The demand shows the wrong destination | The delivery address maps to a different planning node — tell your Administrator |
+| A delivery is missing from OTIF | It may carry no commitment — see [OTIF](../reporting/otif.mdx) |
+| The demand is stuck in **Submitted** | Ownership is probably unresolved — tell the planner. See [Inventory Ownership](../ownership/inventory-ownership.mdx) |
+
+## Related Pages
+
+- [Demand Management](../demand/demand-management.mdx)
+- [Service Commitments](../configuration/service-commitments.mdx)
+- [OTIF](../reporting/otif.mdx)
+- [Operation Timeline](../reporting/operation-timeline.mdx)

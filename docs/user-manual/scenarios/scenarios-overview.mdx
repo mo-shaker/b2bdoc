@@ -1,0 +1,107 @@
+---
+id: scenarios-overview
+title: Scenarios Overview
+description: Nine complete worked examples that tie the reference chapters together — which to read, in what order, and what each one demonstrates.
+sidebar_label: Scenarios Overview
+sidebar_position: 1
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+
+# Scenarios Overview
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Operations', 'Planning', 'Warehouse', 'Driver', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="4 min"
+/>
+
+## What these are
+
+The reference chapters explain one screen at a time. These scenarios take **one operational
+situation** end to end, across every role and every screen it touches.
+
+They are written to be **followed**, not only read. Each one names the roles, the records and
+the order.
+
+## Which to read
+
+| Scenario | Demonstrates | Roles involved |
+| --- | --- | --- |
+| [Standard Full Delivery](./standard-full-delivery.mdx) | The complete cycle, working | All five |
+| [Two Orders, One Visit](./two-orders-one-visit.mdx) | Consolidation, and the traceability that survives it | Customer Service, Planner |
+| [Partial Delivery With Backorder](./partial-delivery-with-backorder.mdx) | Short delivery, backorder, follow-up demand, mixed outcomes | Warehouse, Driver, Planner |
+| [Failed Delivery](./failed-delivery-scenario.mdx) | `BR-EXE-001`, and telling a failure from late paperwork | Driver, Operations |
+| [Unresolved Ownership](./unresolved-ownership-scenario.mdx) | `BR-INV-002`, and how to resolve it | Planner |
+| [Missing Planning Node](./missing-planning-node-scenario.mdx) | A silent-looking failure that is not silent | Administrator |
+| [No Feasible Vehicle](./no-feasible-vehicle-scenario.mdx) | Capacity, and the difference between two similar messages | Planner |
+| [Plan Modification Before Approval](./plan-modification-before-approval.mdx) | Override reasons, and separation of duties | Planner, Operations Manager |
+| [Loading Delay](./loading-delay-scenario.mdx) | The departure gate, and measured loading duration | Warehouse, Driver |
+
+## A reading order
+
+| If you are | Read |
+| --- | --- |
+| **New to SCOP** | Standard Full Delivery, then the [Quick Start](../../quick-start/overview.mdx) |
+| **Running UAT** | All nine, in the order above |
+| **Training a warehouse team** | Standard Full Delivery, Partial Delivery, Loading Delay |
+| **Training drivers** | Standard Full Delivery, Failed Delivery |
+| **Training planners** | Unresolved Ownership, No Feasible Vehicle, Plan Modification |
+| **Setting up a deployment** | Missing Planning Node, Unresolved Ownership |
+
+## The demo records
+
+The scenarios use one continuing story, so a reader following them in order recognises the
+records.
+
+| Identifier | Role in the story |
+| --- | --- |
+| **SCOP Manual Demo Customer** | The parent commercial customer |
+| **SCOP Manual Branch A** | A planning node, normal deliveries |
+| **SCOP Manual Branch B** | A second branch — proves a different branch is a different visit |
+| **SCOP Manual Branch C** | Deliberately **without** a planning node |
+| **SCOP Manual Vehicle** | Small capacity, so infeasibility can be demonstrated honestly |
+| **SCOP Manual Driver** | A driver with an employee and user link |
+| **SCOP Manual Consignment Supplier** | A partner flagged as a consignment owner |
+
+:::note[Your identifiers will differ]
+
+The reference numbers in these pages — `DMD-2026-000010` and so on — are examples. Yours will
+be different. The **shapes** are what matter.
+
+:::
+
+## Before you start any of them
+
+| Prerequisite | Check |
+| --- | --- |
+| Pilot scope is **Applied**, with the right operation types | `Technical → Pilot Scope` |
+| Planning nodes exist and are complete | `Master Data → Locations` |
+| At least one vehicle has a capacity profile | The vehicle's SCOP fields |
+| At least one driver's employee is linked to a user | Odoo Employees |
+| **Two** people can approve plans | `Governance → Approval Authorities` |
+| Planners hold Fleet → Administrator, Employees → Officer, Inventory → User | The user record |
+
+:::danger[The prerequisite that stops a solo tester]
+
+`BR-PLN-001` refuses approval by the plan's own author, including for an Administrator.
+
+**One person cannot complete a SCOP cycle.** Arrange a second approver before you start.
+
+:::
+
+→ [Onboarding and Migration](../configuration/onboarding-and-migration.mdx)
+
+## Related Pages
+
+- [SCOP Quick Start Guide](../../quick-start/overview.mdx)
+- [Troubleshooting Index](../troubleshooting/troubleshooting-index.mdx)
+- [Roles Overview](../roles/roles-overview.mdx)
+
+## Next
+
+[Standard Full Delivery](./standard-full-delivery.mdx).

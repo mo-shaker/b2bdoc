@@ -1,0 +1,252 @@
+---
+id: reporting-problems
+title: Reporting Problems
+description: Missing rows, figures that look too good, empty reports and divergent estimates — why the numbers can mislead, and how to check.
+sidebar_label: Reporting Problems
+sidebar_position: 6
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+
+# Reporting Problems
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Management', 'Operations', 'Planning', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="6 min"
+/>
+
+:::warning[Most reporting problems are not report problems]
+
+They are data problems that the report is faithfully showing.
+
+Before investigating a figure, check the three data-quality reports — see
+[Data Quality Reports](../reporting/data-quality-reports.mdx).
+
+:::
+
+---
+
+## A delivery is missing from OTIF
+
+### 1 · It carries no commitment
+
+**How to verify** Clear the default filter and group by **Has Commitment**.
+**Cause** OTIF opens filtered to records that have a commitment. Nothing was promised, so
+nothing can be measured.
+**Correct action** None, unless a commitment should have existed. See
+[Service Commitments](../configuration/service-commitments.mdx).
+
+### 2 · The demand has not finished
+
+**How to verify** The demand's state.
+**Cause** Only **Completed**, **Partially Completed** and **Failed** demands appear.
+**Correct action** Finish it — usually by validating the Odoo transfer.
+
+### 3 · It predates go-live
+
+**Cause** There is no historical backfill.
+**Correct action** None.
+
+---
+
+## OTIF looks too good
+
+### 1 · The commitment filter is hiding most deliveries
+
+**How to verify** Clear the filter and count how many rows have **Has Commitment** true
+against false.
+**Cause** If only a small proportion carry commitments, the measure is thin and unrepresentative.
+**Correct action** Record commitments where they exist. Report the **count** alongside the
+percentage.
+
+:::danger[A rising OTIF with a falling commitment count is not an improvement]
+
+Fewer measured deliveries can mean the remaining ones are simply the easy ones.
+
+:::
+
+### 2 · Transfers are validated with the ordered quantity
+
+**How to verify** Compare a sample of validated transfers against what was actually delivered.
+**Cause** Validating the ordered quantity when less moved produces a Completed demand, a clean
+**In Full**, and a customer who did not get their goods.
+**Correct action** Validate what actually moved. This is a training matter.
+
+### 3 · Node timezones are wrong
+
+**How to verify** Compare **Arrived (local)** on a row against the window, and check the
+node's timezone.
+**Cause** A wrong timezone shifts every arrival at that node by the offset.
+**Correct action** Correct the timezone. Note that history before the correction is not
+comparable with history after.
+
+---
+
+## Plan Coverage looks too good
+
+### 1 · Orphan moves exist
+
+**How to verify** `Reporting → Orphan Moves` — is it empty?
+**Cause** Stock is moving on demand-generating transfers that **no demand line covers**. That
+demand was never offered, so it never counts against coverage.
+
+:::danger[Coverage is overstated by exactly this much]
+
+:::
+
+**Correct action** Re-save the transfers. If that does not fix it, check Failed Projections.
+
+### 2 · Demand never became eligible
+
+**How to verify** `Operations → Demands`, grouped by **Status**. Look at the counts in
+**Submitted** and **Validated**.
+**Cause** Coverage measures against **eligible** demand. Requirements stuck earlier are
+invisible to it.
+**Correct action** Work the demand queue. Read coverage alongside the status distribution.
+
+### 3 · Coverage percentages are being summed
+
+**Cause** Coverage is a percentage and must be **averaged**.
+**Correct action** For a period figure, sum **Offered** and **Planned** and divide.
+
+---
+
+## A report is empty
+
+| Cause | Verify | Action |
+| --- | --- | --- |
+| A default filter | Clear the search bar | — |
+| No data since go-live | The pilot go-live date | Expected early in a pilot |
+| Nothing has finished yet | The relevant records' states | Reports mostly cover finished work |
+| Nobody raises exceptions | The exception list | See below |
+
+:::warning[An empty exception queue is not automatically good news]
+
+Exceptions are raised **deliberately**. A queue that is always empty in a busy operation
+usually means problems are handled informally and never recorded — so they cannot be counted,
+escalated or fixed at source.
+
+:::
+
+---
+
+## An exception has no SLA deadline
+
+**How to verify** The **SLA Deadline** field is empty.
+**Cause** Its **category** has no SLA hours configured. The deadline is computed from
+**Detected At** plus the category's SLA the moment the exception is created, so an empty
+deadline points at the category, not at the exception.
+**Correct action** Set SLA hours on the category at `Governance → Exception Categories`.
+
+:::note[Being unclassified does not stop an exception ageing]
+
+A category is required to create an exception at all, so even one still sitting in
+**Detected** has a deadline and will show as overdue once it passes.
+
+:::
+
+---
+
+## Exception Ageing seems to prioritise wrongly
+
+**Cause** You are sorting by age rather than by age **against the category's SLA**.
+**Correct action** Filter to **Overdue**, then sort by **Severity**. A three-hour vehicle
+breakdown (2 h SLA) is more urgent than a thirty-hour supplier delay (24 h SLA).
+
+---
+
+## Planned and actual diverge on every trip
+
+**How to verify** `Reporting → Trip Planned vs Actual` — is the variance consistent across
+vehicles and drivers?
+**Cause** A consistent gap is an **estimate** problem, not a performance problem.
+
+| Pattern | Fix |
+| --- | --- |
+| Duration consistently over | Service durations on the nodes are too low |
+| Distance consistently over | The travel matrix distances are short |
+| One vehicle only | Its average speed is wrong |
+| One node only | Its service duration is wrong |
+| Cost only | The cost rates are wrong |
+
+**Correct action** Fix the master data. Every future plan improves, and OTIF improves with it.
+
+:::warning[Do not read a fleet-wide pattern as driver performance]
+
+:::
+
+---
+
+## Decision Quality shows a high override rate
+
+**Cause** Usually the recommendation is wrong in a specific, nameable way.
+**How to verify** Group by **Override Reason**.
+
+| Dominant reason | Meaning |
+| --- | --- |
+| *Incorrect master data* | **Fix the data.** These modifications disappear |
+| *Local route knowledge* | The travel matrix is wrong |
+| *Operational information unavailable to the engine* | The system lacks an input — a roadmap item |
+| Varied reasons | Ordinary operational judgement. Nothing to fix |
+
+:::note[Do not target a low override rate]
+
+It would be achieved by accepting bad plans. A planner overriding a poor recommendation is
+doing their job.
+
+:::
+
+---
+
+## Cost figures do not match the accounts
+
+**Cause** Cost rates are **operational estimates for comparing plans**. Nothing reconciles
+them to the ledger.
+**Correct action** None. Do not quote them as a cost of sale.
+
+→ [Release 1 Scope](../about/release-1-scope.mdx)
+
+---
+
+## Ownership Data Quality shows a large unresolved population
+
+**How to verify** Group by **Customer**, then by **Demand Type**.
+
+| Pattern | Cause | Fix |
+| --- | --- | --- |
+| One customer | A missing consignment flag | `Onboarding → 1 · Consignment Partners` |
+| Inbound only | Consignment partners not flagged | Same |
+| Outbound, spread widely | The warehouse is not recording owners on reserved stock | An Odoo process change |
+| Nothing resolved at all | Migration was never run | `Onboarding → 2 · Inventory Ownership` |
+
+:::info[Fix the pattern, not the demands]
+
+A hundred unresolved lines caused by one unflagged partner is one fix, not a hundred.
+
+:::
+
+---
+
+## Failed Projections has entries
+
+**Cause** SCOP tried to record something and failed. Generation is non-blocking, so the
+transfer saved anyway and nothing complained.
+**Correct action** Read the error message, fix the cause, re-save the transfer.
+
+During a pilot this screen deserves a daily glance.
+
+## Related Pages
+
+- [Data Quality Reports](../reporting/data-quality-reports.mdx)
+- [OTIF](../reporting/otif.mdx)
+- [Plan Coverage](../reporting/plan-coverage.mdx)
+- [Reporting Overview](../reporting/reporting-overview.mdx)
+
+## Next
+
+[Scenarios Overview](../scenarios/scenarios-overview.mdx).

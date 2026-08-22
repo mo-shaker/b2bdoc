@@ -1,0 +1,8 @@
+{
+  "label": "06 · Shipment Management",
+  "position": 7,
+  "link": {
+    "type": "generated-index",
+    "description": "The unit that can be planned — formation, consolidation and the physical visit."
+  }
+}

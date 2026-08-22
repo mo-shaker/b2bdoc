@@ -1,0 +1,190 @@
+---
+id: partial-deliveries-and-backorders
+title: Partial Deliveries and Backorders
+description: What happens when less is delivered than ordered — the backorder, the follow-up demand, the demand chain, and mixed outcomes at one stop.
+sidebar_label: Partial Deliveries and Backorders
+sidebar_position: 9
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+
+# Partial Deliveries and Backorders
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Warehouse', 'Planning', 'Operations', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="6 min"
+/>
+
+**Roles**
+Warehouse records it. Planner handles what is left.
+
+## The three delivery outcomes
+
+| What happened | Odoo does | SCOP records |
+| --- | --- | --- |
+| Everything delivered | Closes the transfer | Stop **Completed**, demand **Completed** |
+| Some delivered | Closes the transfer, **creates a backorder** | Stop **Partially Completed**, demand **Partially Completed**, follow-up demand created |
+| Nothing delivered | — | Stop **Failed** with a reason, demand **Failed**, follow-up created |
+
+All three are decided by the quantity on the validated transfer. Nobody chooses.
+
+## A short delivery, step by step
+
+| # | Who | Where | What |
+| --- | --- | --- | --- |
+| 1 | Driver | At the door | Delivers what could be delivered |
+| 2 | **Warehouse** | **Odoo** | Validates the transfer with **the quantity that actually moved** |
+| 3 | Odoo | Odoo | Creates a **backorder** for the remainder |
+| 4 | SCOP | — | Reads the actual quantity onto the stop line and the demand line |
+| 5 | SCOP | — | Derives the outcome: **Partially Completed** |
+| 6 | SCOP | — | Creates a **follow-up demand** for the remainder |
+| 7 | Driver | The stop | Presses **Delivered**. `BR-EXE-001` asks for a reason |
+| 8 | Planner | Next planning run | Plans the follow-up |
+
+## The backorder and the follow-up demand
+
+Two things are created, in two different systems, and they are not the same thing.
+
+| | Created by | Represents |
+| --- | --- | --- |
+| **Backorder** | **Odoo** | The remaining stock movement |
+| **Follow-up demand** | **SCOP** | The remaining business requirement |
+
+:::info[The original demand is not replaced]
+
+`DMD-2026-000010` remains the customer's original requirement. It stays **Partially
+Completed** until the remainder is delivered, and only then becomes **Completed**.
+
+That is what keeps the promise measurable. OTIF asks whether the *original* requirement was
+met — not whether the last backorder eventually arrived.
+
+:::
+
+### The demand chain
+
+On the follow-up demand's **Follow-Up and Returns** tab:
+
+| Field | Points to |
+| --- | --- |
+| **Parent Demand** | The demand this one follows up |
+| **Is Follow-Up** | Set on this demand |
+| **Root Demand** | The original, at the head of the chain |
+
+A long chain — original, follow-up, follow-up of the follow-up — always names the same root.
+
+## Why a backorder is not a new demand
+
+:::info[A backorder is another fulfilment of the same requirement]
+
+The link between a demand and Odoo is at **move level**, not at transfer level.
+
+If a demand were tied to a single transfer, every partial delivery would appear as a
+brand-new requirement, and the customer's original promise would be lost after the first
+short delivery.
+
+Because the link is at move level, one demand can be fulfilled by the original transfer plus
+every backorder that follows it.
+
+:::
+
+This is why the **Transfers** count on a demand can be greater than one, and why that is
+normal rather than a duplicate.
+
+## Mixed outcomes at one stop
+
+Several demands can share a physical visit. **They do not share a fate.**
+
+| At one arrival | Its transfer | Demand outcome |
+| --- | --- | --- |
+| `DMD-…010` | Validated in full | **Completed** |
+| `DMD-…011` | Validated short, backorder created | **Partially Completed** |
+
+The stop itself records **Partially Completed** — the visit did not do everything planned —
+but each demand is resolved on its own transfer.
+
+:::note[This is the point of keeping the demand link on every line]
+
+A consolidated shipment saves a journey. It must not cost traceability, and it does not.
+
+→ [The Physical Visit](../shipments/the-physical-visit.mdx)
+
+:::
+
+## The reason is required
+
+`BR-EXE-001` — *a failed or partial stop must carry an outcome reason.*
+
+The driver is asked at the moment they close the stop, because that is when they can
+actually answer. The seven stop-outcome reasons are at
+[Failed Delivery](./failed-delivery.mdx).
+
+Without a reason, the stop cannot close — and neither can the trip.
+
+## Completing the chain
+
+The follow-up demand is a demand like any other:
+
+| Step | Where |
+| --- | --- |
+| It appears in the demand list | `Operations → Demands`, with **Is Follow-Up** set |
+| It needs validating and marking eligible | The normal lifecycle |
+| It forms its own shipment | For the remaining quantity |
+| It gets planned | The next planning run |
+| When it is delivered | The **original** demand becomes **Completed** |
+
+:::warning[A follow-up demand does not plan itself]
+
+It goes into the eligible pool like anything else. If nobody plans it, the original demand
+sits at **Partially Completed** indefinitely.
+
+Watch for follow-ups in the demand list, and check [Plan Coverage](../reporting/plan-coverage.mdx).
+
+:::
+
+## Effect on measurement
+
+| Report | Effect |
+| --- | --- |
+| [OTIF](../reporting/otif.mdx) | **In Full** is false for a partial delivery. **On Time** is judged on arrival at the original stop |
+| [Plan Coverage](../reporting/plan-coverage.mdx) | The follow-up is eligible demand that must be planned |
+| [Trip Planned vs Actual](../reporting/trip-planned-vs-actual.mdx) | The trip closes as **Partially Completed** |
+
+## Verify
+
+| Check | Where | Expect |
+| --- | --- | --- |
+| The transfer was validated short | Odoo | State **Done**, quantity less than ordered |
+| A backorder exists | Odoo | A new transfer |
+| The stop outcome | The stop | **Partially Completed** |
+| The demand | `Operations → Demands` | **Partially Completed** |
+| A follow-up demand exists | The demand's **Follow-Up and Returns** tab | A child demand |
+| The chain is intact | The follow-up's **Root Demand** | The original |
+| The other demand at that stop | Its own status | Possibly **Completed** |
+
+## If it does not work
+
+| Symptom | Cause | Fix |
+| --- | --- | --- |
+| No backorder | Odoo was told not to create one | Check the Odoo transfer |
+| No follow-up demand | The backorder may be outside pilot scope | [Pilot Scope](../configuration/pilot-scope.mdx) |
+| The demand is **Completed** but was short | The transfer was validated with the **ordered** quantity | Correct it in Odoo |
+| The follow-up is never planned | Nobody planned it | Include it in the next run |
+| The original never reaches **Completed** | The follow-up has not been delivered | Deliver it |
+| Both demands at one stop show the same state | Check each demand's own transfer — they may genuinely be the same |
+
+## Related Pages
+
+- [Odoo Delivery Validation](./odoo-delivery-validation.mdx)
+- [Failed Delivery](./failed-delivery.mdx)
+- [Demand Completion](../demand/demand-completion.mdx)
+- [The Physical Visit](../shipments/the-physical-visit.mdx)
+- [Partial Delivery With Backorder](../scenarios/partial-delivery-with-backorder.mdx)
+
+## Next
+
+[Failed Delivery](./failed-delivery.mdx).

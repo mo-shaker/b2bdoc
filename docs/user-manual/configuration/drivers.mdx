@@ -1,0 +1,226 @@
+---
+id: drivers
+title: Drivers
+description: Setting up a driver — the employee-to-user link, qualifications, availability — and what happens when a trip has no driver.
+sidebar_label: Drivers
+sidebar_position: 5
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+
+# Drivers
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Operations', 'Planning', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="5 min"
+/>
+
+**Role**
+Administrator sets up. Planner maintains availability and assigns.
+
+**Navigate to**
+Odoo **Employees**, plus `SCOP → Master Data → Driver Qualifications` and
+`→ Driver Availability`
+
+## The three records behind one driver
+
+A driver is three linked things, and all three must exist.
+
+```text
+Odoo User          ← how they sign in
+    ↕ linked
+Odoo Employee      ← the driver record, flagged "Is Driver"
+    ↕ assigned
+SCOP Trip          ← the work
+```
+
+| Record | Purpose | If missing |
+| --- | --- | --- |
+| **User** with the **Driver** SCOP role | Signing in and seeing **My Work** | They cannot sign in, or see no SCOP menu |
+| **Employee**, flagged as a driver, **linked to that user** | Being assignable to a trip | The trip cannot be assigned, and **My Trips** stays empty |
+| **Trip assignment** | The work itself | Nothing to do |
+
+:::danger[The employee-to-user link is the one people miss]
+
+The record rules that give a driver their own trips match on the **employee's linked user
+account**, not on the employee record alone.
+
+An employee flagged as a driver but not linked to a user account can be assigned a trip that
+**nobody will ever see**.
+
+:::
+
+## The SCOP attributes on an employee
+
+| Field | Meaning |
+| --- | --- |
+| **Is Driver** | Makes the employee assignable to trips |
+| **Qualifications** | Licences and certificates held |
+| **Availability** | Shifts, absences and blocks |
+| **Max Daily Driving (min)** | The legal or policy limit. Defaults to 480 minutes |
+| **Home Location** | The planning node they start and end at |
+| **Has Valid Qualifications** | Computed — whether anything has expired |
+
+## Qualification types
+
+`SCOP → Master Data → Qualification Types`
+
+The kinds of qualification a driver can hold.
+
+| Field | Meaning |
+| --- | --- |
+| **Name** | What it is |
+| **Code** | A short reference |
+| **Requires Expiry** | Whether a holder must record an expiry date |
+| **Description** | The detail |
+
+## Driver qualifications
+
+`SCOP → Master Data → Driver Qualifications`
+
+Who holds what.
+
+| Field | Meaning |
+| --- | --- |
+| **Employee** | The driver |
+| **Qualification Type** | What they hold |
+| **Reference** | The licence or certificate number |
+| **Issued Date** | When |
+| **Expiry Date** | When it lapses |
+| **Valid** | Computed — whether it is currently in force |
+
+:::warning[An expired qualification is not a warning, it is a constraint]
+
+Planning uses qualifications when work requires them. A driver whose licence has lapsed
+produces *No qualified driver* on demands needing it — not a notice.
+
+Watch **Has Valid Qualifications** on the employee, and review expiry dates before they
+matter.
+
+:::
+
+## Driver availability
+
+`SCOP → Master Data → Driver Availability` *(Planner)*
+
+| Field | Meaning |
+| --- | --- |
+| **Employee** | The driver |
+| **From** / **To** | The period |
+| **Availability Type** | Shift · Absence · Blocked |
+| **Max Driving Minutes** | A limit for this period specifically |
+| **Reason** | Why |
+
+| Type | Meaning |
+| --- | --- |
+| **Shift** | They are working |
+| **Absence** | Leave, sickness |
+| **Blocked** | Unavailable for another reason |
+
+Planning uses drivers who are on **shift** for the window being planned.
+
+:::note[Record absence before planning, not after]
+
+A driver on leave next Tuesday must be recorded as absent **before** Tuesday's plan is
+generated. Planning cannot know otherwise, and a plan built around an absent driver has to be
+redone.
+
+:::
+
+## Assigning a driver to a trip
+
+The **Driver** field on the trip.
+
+:::warning[The Driver field needs Odoo Employees → Officer]
+
+Without it, the field never finishes loading its options, so no driver can be selected — and
+a trip with no driver never appears in anyone's **My Trips**.
+
+This is the second most common permission problem in a new deployment, after Fleet.
+
+→ [Permissions Reference](../roles/permissions-reference.mdx)
+
+:::
+
+## What happens when a trip has no driver
+
+| Consequence | Detail |
+| --- | --- |
+| The trip is **invisible** in **My Trips** | Nobody owns it |
+| **Depart** cannot be pressed by a driver | There is no assigned driver |
+| A dispatcher **can** still depart it | Through the `depart` approval authority |
+| The trip still loads and can complete | But nobody records arrivals or proof of delivery |
+
+:::danger[A driverless trip is not an error SCOP will stop you making]
+
+Nothing refuses to release a trip with no driver. The symptom appears later, when a driver
+reports an empty **My Trips**.
+
+Check the **Driver** column on the trip list before releasing a plan.
+
+:::
+
+## Setting up a new driver — the checklist
+
+| # | Step | Where |
+| --- | --- | --- |
+| 1 | Create the Odoo user | Odoo Settings |
+| 2 | Give them the **Driver** SCOP role — **and nothing else** | The user's SCOP category |
+| 3 | Create or find the employee record | Odoo Employees |
+| 4 | Flag it **Is Driver** | The employee |
+| 5 | **Link the employee to the user account** | The employee |
+| 6 | Record qualifications | `Master Data → Driver Qualifications` |
+| 7 | Record shifts | `Master Data → Driver Availability` |
+| 8 | Set the home location and daily driving limit | The employee |
+| 9 | Sign in as them and confirm **My Work** appears | — |
+
+:::danger[Never add SCOP User to a driver]
+
+`SCOP User` grants read access across the whole operation — every demand, every shipment,
+every plan.
+
+The record rules still narrow their trips, but everything else opens up.
+
+→ [Driver Security Model](../execution/driver-security-model.mdx)
+
+:::
+
+## Verify
+
+| Check | Where | Expect |
+| --- | --- | --- |
+| The employee is flagged as a driver | Odoo Employees | **Is Driver** true |
+| It is linked to a user | The employee | A user account |
+| The user holds only the Driver role | The user's SCOP category | Driver only |
+| Qualifications are valid | **Has Valid Qualifications** | True |
+| They are available | `Master Data → Driver Availability` | A shift covering the day |
+| They can be assigned | The trip's **Driver** field | They appear |
+| They can see their trip | Sign in as them | It appears in **My Trips** |
+
+## If it does not work
+
+| Symptom | Cause | Fix |
+| --- | --- | --- |
+| The **Driver** field never loads | The planner lacks Odoo **Employees → Officer** | Grant it |
+| The driver is not in the list | Not flagged **Is Driver**, or unavailable that day | Fix the employee or the availability |
+| **My Trips** is empty | No trip assigned, none released, or **the employee is not linked to the user** | Check all three |
+| Demands come back *No qualified driver* | Nobody available holds the qualification | Record it, or assign someone who does |
+| A qualification is not counted | It has expired | Renew and update the expiry date |
+| The driver can see other people's work | They hold `SCOP User` as well | Remove it |
+
+## Related Pages
+
+- [Driver](../roles/driver.mdx)
+- [Driver Delivery](../execution/driver-delivery.mdx)
+- [Driver Security Model](../execution/driver-security-model.mdx)
+- [Fleet and Vehicles](./fleet-and-vehicles.mdx)
+- [Permissions Reference](../roles/permissions-reference.mdx)
+
+## Next
+
+[Service Commitments](./service-commitments.mdx).

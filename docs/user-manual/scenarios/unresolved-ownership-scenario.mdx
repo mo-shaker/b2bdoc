@@ -1,0 +1,199 @@
+---
+id: unresolved-ownership-scenario
+title: Unresolved Ownership
+description: A demand that will not validate — reproducing BR-INV-002, understanding why SCOP refuses to guess, and resolving it properly.
+sidebar_label: Unresolved Ownership
+sidebar_position: 6
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+
+# Unresolved Ownership
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Planning', 'Warehouse', 'Operations', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="5 min"
+/>
+
+## The situation
+
+A demand exists, everything looks normal, and **Validate** is refused. The demand cannot move.
+
+## Reproducing it
+
+The easiest reproduction is the ordinary one:
+
+| # | Do |
+| --- | --- |
+| 1 | Confirm a sales order for **SCOP Manual Demo Customer** |
+| 2 | **Do not reserve** the delivery order in Odoo |
+| 3 | Open the demand in SCOP |
+| 4 | Press **Validate** |
+
+**Result** `BR-INV-002` refuses, naming the lines whose owner could not be established.
+
+---
+
+## Step 1 — Read the refusal
+
+The dialog names:
+
+| Names | Which is |
+| --- | --- |
+| The **rule** | `BR-INV-002` |
+| The **policy** | Ownership must be resolved and consistent |
+| The **evidence** | The exact lines at fault |
+
+You are never left searching for which line.
+
+The demand form also carries a banner at the **top**, not buried in a tab:
+
+> Ownership is unresolved on at least one line. This demand stays visible and editable, but
+> it cannot pass validation until an owner is recorded — it is never defaulted to the company.
+
+---
+
+## Step 2 — Understand why SCOP will not guess
+
+:::warning[An absent owner asserts nothing in this deployment]
+
+In standard Odoo, an empty owner field **is** a positive assertion of company ownership.
+
+In this deployment that field has never been populated by any module. Its emptiness means
+nobody has recorded an answer.
+
+If SCOP read it as "the company", it would assign the company as owner of every
+customer-owned carton in the building — and `BR-INV-002` would then confirm the chain as
+internally consistent, **because it would be**.
+
+Consistently wrong is the failure this rule exists to prevent.
+
+:::
+
+→ [Inventory Ownership](../ownership/inventory-ownership.mdx)
+
+---
+
+## Step 3 — Resolve it
+
+**Role** Planner. You need Odoo **Inventory → User**.
+
+### The ordinary case
+
+| # | Do |
+| --- | --- |
+| 1 | Open the Odoo transfer — the demand's **Transfers** button |
+| 2 | Check availability and **reserve** the stock |
+| 3 | Return to the demand |
+| 4 | Press **Resolve Ownership** |
+| 5 | Press **Validate** |
+
+**Result** Ownership resolves with source **Stock Move Line**, and validation succeeds.
+
+:::info[More than half of unresolved ownership resolves here]
+
+At the moment a transfer is created it usually has no move lines, so there is nothing to read
+an owner from. Almost every outbound demand starts unresolved.
+
+**Validate** itself re-derives ownership first, so pressing it directly often succeeds too.
+
+:::
+
+### The other four cases
+
+| Case | Symptom | Fix |
+| --- | --- | --- |
+| **Mixed owners on one move** | Reserved, still refusing | Odoo records more than one owner. Split the movement so each part has one |
+| **Unflagged consignment partner** | Inbound movements refusing | Flag the partner at `Onboarding → 1 · Consignment Partners`, then re-derive |
+| **A return with nothing to inherit** | A return demand refusing | The original outbound was never covered. Record the owner in Odoo |
+| **A delivery with no recorded owner** | Reserved, every owner empty | **No approved policy resolves this.** Establish who owns the goods and record it in Odoo |
+
+:::note[The company default is not available for deliveries]
+
+Only **receipts** can use the governed company default, and not from a flagged consignment
+partner.
+
+For a delivery, if the answer genuinely is "the company", **record it explicitly**. Recording
+it is different from SCOP assuming it.
+
+:::
+
+→ [Correcting Ownership](../ownership/correcting-ownership.mdx)
+
+---
+
+## Step 4 — Verify
+
+| Check | Where | Expect |
+| --- | --- | --- |
+| The banner is gone | The demand form | No warning |
+| Every line has an **Ownership Source** | The **Lines** tab | A value on every row |
+| The row is no longer red | `Operations → Demands` | Normal colouring |
+| Readiness is no longer **Blocked** | `Operations → Warehouse Readiness` | Something other than Blocked |
+| **Validate** succeeds | The demand | **Validated** |
+
+---
+
+## The knock-on effect
+
+Unresolved ownership does not only block validation.
+
+| Also affected | How |
+| --- | --- |
+| **Warehouse Readiness** | **Blocked**, with the products named. Tested **before** any staged quantity |
+| **Planning** | Rejected at step 1 of the run, before capacity is even considered |
+| **Ownership Data Quality** | Counted as unresolved |
+
+:::info[Blocked is tested first, deliberately]
+
+A shipment whose owner is unresolved is not "partially ready" — it is not plannable at all.
+Testing ownership before any quantity stops a well-prepared pallet masking a legal problem.
+
+:::
+
+:::warning[An override does not resolve ownership]
+
+Overriding readiness to **Ready** makes the shipment plannable. `BR-INV-002` still refuses to
+validate the demand.
+
+:::
+
+---
+
+## Finding it at scale
+
+One blocked demand is a data gap. Twenty is a configuration gap.
+
+`SCOP → Reporting → Ownership Data Quality`, grouped by resolution:
+
+| Pattern | Root cause | Fix |
+| --- | --- | --- |
+| Concentrated on one **customer** | A missing consignment flag | Flag the partner |
+| Concentrated on one **product** | It is held on consignment | Same |
+| Spread across **outbound** | The warehouse is not recording owners on reserved stock | An Odoo process change |
+| **Nothing** resolved anywhere | Migration was never run | `Onboarding → 2 · Inventory Ownership` |
+
+## What not to do
+
+| Do not | Why |
+| --- | --- |
+| Ask for `BR-INV-002` to be switched off | It is the only thing stopping SCOP moving goods it has no title to |
+| Set an owner to "the company" to clear the block | If that is true, record it in Odoo where it is auditable |
+| **Reject** the demand | The requirement is real. It is blocked, not wrong |
+| Create a rule exemption routinely | An exemption is for a specific, argued case with a named approver and an expiry |
+
+## Related Pages
+
+- [Inventory Ownership](../ownership/inventory-ownership.mdx)
+- [Correcting Ownership](../ownership/correcting-ownership.mdx)
+- [Business Rules](../reference/business-rules.mdx)
+- [Data Quality Reports](../reporting/data-quality-reports.mdx)
+
+## Next
+
+[Missing Planning Node](./missing-planning-node-scenario.mdx).

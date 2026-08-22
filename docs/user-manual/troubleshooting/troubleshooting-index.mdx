@@ -1,0 +1,148 @@
+---
+id: troubleshooting-index
+title: Troubleshooting Index
+description: Every symptom in one table — what you are seeing, the usual cause, and the page that fixes it.
+sidebar_label: Troubleshooting Index
+sidebar_position: 1
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+
+# Troubleshooting Index
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Operations', 'Planning', 'Warehouse', 'Driver', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="5 min"
+/>
+
+## Start here
+
+Find what you are **seeing**. The table gives the usual cause and the page that deals with it
+properly.
+
+:::warning[Two checks before anything else]
+
+**Clear the search bar.** A record that seems to be missing is usually filtered, not absent.
+This is the most common false alarm during UAT.
+
+**Check the state.** A button that is missing is usually a record that is not in the state
+which offers it.
+
+:::
+
+## By symptom
+
+### Nothing appeared in SCOP
+
+| You are seeing | Usual cause | Go to |
+| --- | --- | --- |
+| No demand for a confirmed order | Operation type not in pilot scope | [Demand Problems](./demand-problems.mdx) |
+| No demand for some destinations only | A planning node is missing | [Demand Problems](./demand-problems.mdx) |
+| No demands at all, ever | Pilot scope not applied | [Demand Problems](./demand-problems.mdx) |
+| No demand for older transfers | They predate go-live. **Expected** | [Pilot Scope](../configuration/pilot-scope.mdx) |
+| No shipment after Mark Eligible | Rare — formation failed | [Readiness and Shipment Problems](./readiness-and-shipment-problems.mdx) |
+| No loading tasks for a released trip | The trip has no shipments | [Execution Problems](./execution-problems.mdx) |
+
+### A demand will not move
+
+| You are seeing | Usual cause | Go to |
+| --- | --- | --- |
+| **Validate** is refused | `BR-INV-002` — ownership unresolved | [Demand Problems](./demand-problems.mdx) |
+| **Validate** raises an access error | Missing Odoo **Inventory → User** | [Permissions Reference](../roles/permissions-reference.mdx) |
+| **Mark Eligible** is refused | Readiness is Not Ready or Blocked | [Demand Problems](./demand-problems.mdx) |
+| Eligible, but never planned | Readiness is **Partially Ready** — eligible but not plannable | [Readiness and Shipment Problems](./readiness-and-shipment-problems.mdx) |
+| Stuck at **In Execution** | The Odoo transfer is not validated | [Demand Problems](./demand-problems.mdx) |
+| Stuck at **Partially Completed** | The follow-up demand has not been delivered | [Demand Problems](./demand-problems.mdx) |
+| A very old demand stuck mid-flight | Records from an earlier release are not rewritten | [Release 1 Scope](../about/release-1-scope.mdx) |
+
+### The warehouse cannot make it ready
+
+| You are seeing | Usual cause | Go to |
+| --- | --- | --- |
+| Readiness stays **Blocked** | Ownership unresolved on a line | [Readiness and Shipment Problems](./readiness-and-shipment-problems.mdx) |
+| Readiness stays **Not Ready** | Nothing reserved in Odoo, or no lines | [Readiness and Shipment Problems](./readiness-and-shipment-problems.mdx) |
+| **Stage Everything** does nothing visible | Press **Refresh Readiness** | [Readiness and Shipment Problems](./readiness-and-shipment-problems.mdx) |
+| **Stage Everything** is not offered | You are not a Warehouse user | [Permissions Reference](../roles/permissions-reference.mdx) |
+| Staged % shows `10000%` | A known display defect | [Release 1 Scope](../about/release-1-scope.mdx) |
+| Readiness went backwards | A reservation was removed. **Correct behaviour** | [Warehouse Readiness](../readiness/warehouse-readiness.mdx) |
+
+### Planning will not work
+
+| You are seeing | Usual cause | Go to |
+| --- | --- | --- |
+| `Access Error` on **Vehicle** | Missing Odoo **Fleet → Administrator** | [Planning Problems](./planning-problems.mdx) |
+| The **Driver** field never loads | Missing Odoo **Employees → Officer** | [Planning Problems](./planning-problems.mdx) |
+| Everything comes back *No feasible vehicle* | No vehicle has a capacity profile | [Planning Problems](./planning-problems.mdx) |
+| Everything comes back *Missing required data* | Nodes lack coordinates, timezone or windows | [Planning Problems](./planning-problems.mdx) |
+| The run is **Failed** | The provider raised or timed out | [Planning Problems](./planning-problems.mdx) |
+| Routes make no sense | A node is not geocoded | [Planning Problems](./planning-problems.mdx) |
+| The plan has no trips | Nothing could be placed. Read the reasons | [Unplanned Demand](../planning/unplanned-demand.mdx) |
+
+### The plan will not be approved or released
+
+| You are seeing | Usual cause | Go to |
+| --- | --- | --- |
+| **Approve** is not offered | The plan is not **Under Review** | [Planning Problems](./planning-problems.mdx) |
+| **Approve** refused, separation of duties | You created this plan — `BR-PLN-001` | [Plan Governance](../planning/plan-governance.mdx) |
+| **Approve** refused, not entitled | You are not an Operations Manager | [Permissions Reference](../roles/permissions-reference.mdx) |
+| **Modify** is refused | No override reason chosen | [Planning Problems](./planning-problems.mdx) |
+| **Release** is refused | A trip carries a blocking finding — `BR-PLN-002` | [Planning Problems](./planning-problems.mdx) |
+| The trip is not capacity-feasible | `BR-RTE-001` | [Planning Problems](./planning-problems.mdx) |
+
+### Execution will not proceed
+
+| You are seeing | Usual cause | Go to |
+| --- | --- | --- |
+| The trip will not depart | A loading task is still open | [Execution Problems](./execution-problems.mdx) |
+| **Depart** is not offered to the driver | Same, or the trip is not **Ready to Depart** | [Execution Problems](./execution-problems.mdx) |
+| A driver sees no trips | No trip assigned, not released, or the employee is not linked to a user | [Execution Problems](./execution-problems.mdx) |
+| **Delivered** is refused, quantities zero | The Odoo transfer is not validated. **Not a failure** | [Execution Problems](./execution-problems.mdx) |
+| **Delivered** is refused, needs a reason | `BR-EXE-001` | [Execution Problems](./execution-problems.mdx) |
+| The stop will not close | One of the two above | [Execution Problems](./execution-problems.mdx) |
+| The trip will not complete | A stop lacks an outcome or a reason | [Execution Problems](./execution-problems.mdx) |
+| No coordinates on proof of delivery | The site is on plain `http` | [Proof of Delivery](../execution/proof-of-delivery.mdx) |
+
+### The numbers look wrong
+
+| You are seeing | Usual cause | Go to |
+| --- | --- | --- |
+| A delivery missing from OTIF | It carries no commitment | [Reporting Problems](./reporting-problems.mdx) |
+| OTIF looks too good | The commitment filter is hiding most deliveries | [Reporting Problems](./reporting-problems.mdx) |
+| Coverage looks too good | Orphan moves, or demand never became eligible | [Reporting Problems](./reporting-problems.mdx) |
+| A report is empty | A default filter, or no data since go-live | [Reporting Problems](./reporting-problems.mdx) |
+| Planned and actual diverge on every trip | The estimates are wrong, not the drivers | [Reporting Problems](./reporting-problems.mdx) |
+| An exception has no SLA deadline | Its category has no SLA hours configured | [Exception Ageing](../reporting/exception-ageing.mdx) |
+
+### Access problems
+
+| You are seeing | Usual cause | Go to |
+| --- | --- | --- |
+| No `SCOP` menu at all | No SCOP group assigned | [Accessing SCOP](../getting-started/accessing-scop.mdx) |
+| `SCOP` appears but is empty | Only **Finance User**, which has no menu | [Release 1 Scope](../about/release-1-scope.mdx) |
+| **Planning** is missing | Not a Planner | [Navigating SCOP](../getting-started/navigating-scop.mdx) |
+| **Technical** is missing | Not an Administrator | [Navigating SCOP](../getting-started/navigating-scop.mdx) |
+| A driver can see other people's work | They hold `SCOP User` as well | [Driver Security Model](../execution/driver-security-model.mdx) |
+
+## The three questions that solve most problems
+
+| # | Question | Where |
+| --- | --- | --- |
+| 1 | **Did SCOP see this at all?** | `Technical → Domain Events` |
+| 2 | **What rule refused me, and why?** | `Governance → Rule Evaluations` |
+| 3 | **What actually happened, in order?** | `Reporting → Operation Timeline` |
+
+## Related Pages
+
+- [Demand Diagnostics](../demand/demand-diagnostics.mdx)
+- [Business Rules](../reference/business-rules.mdx)
+- [Operation Timeline](../reporting/operation-timeline.mdx)
+- [Data Quality Reports](../reporting/data-quality-reports.mdx)
+
+## Next
+
+[Demand Problems](./demand-problems.mdx).

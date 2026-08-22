@@ -1,0 +1,200 @@
+---
+id: service-commitments
+title: Service Commitments
+description: What was promised to the customer — the three commitment types, capture-once behaviour, what happens when there is no commitment, and supplier commitments.
+sidebar_label: Service Commitments
+sidebar_position: 6
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+
+# Service Commitments
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Operations', 'Planning', 'Procurement', 'Management', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="6 min"
+/>
+
+**Role**
+Customer Service owns the promise. Planner is constrained by it. Management measures against
+it.
+
+**Navigate to**
+`SCOP → Master Data → Service Commitments`
+
+## What a service commitment is
+
+**What we promised this customer.** It is the thing OTIF measures against, and the thing
+planning treats as a constraint.
+
+## The three types
+
+| Type | Means | Fields used |
+| --- | --- | --- |
+| **Required Date** | We promised a day | **Required Date** |
+| **Time Window** | We promised a band of hours on a given day of the week | **Day of Week**, **Time From**, **Time To** |
+| **Service Condition** | A qualitative undertaking | **Condition** |
+
+| Field | Meaning |
+| --- | --- |
+| **Name** | What the commitment is called |
+| **Partner** | Who it was made to |
+| **Location** | Which node it applies at |
+| **Mandatory** | Whether it must be honoured, or is a preference |
+| **Valid From** / **Valid To** | Optional seasonal validity |
+| **Demands** | The demands carrying this commitment |
+
+:::info[Times are in the node's own timezone]
+
+A window of 08:00–12:00 means eight until noon **at the location**, not at the server. That
+is why every planning node carries a required timezone.
+
+→ [Planning Nodes](./planning-nodes.mdx)
+
+:::
+
+## Where commitments come from
+
+Most are seeded automatically. When a demand is generated from a transfer with a sales order
+behind it, the order's **delivery date** becomes a commitment.
+
+| The order has | The commitment is |
+| --- | --- |
+| A delivery date | A **date commitment** |
+| No delivery date | The destination's opening hours are used as a **window** |
+| Neither | **No commitment** |
+
+## Capture-once
+
+:::warning[A commitment is captured once, when the demand is generated]
+
+Changing the sales order's delivery date **afterwards** does not rewrite the captured
+commitment.
+
+That is deliberate. The commitment records what was promised at the time, and rewriting it
+would make every past OTIF figure move whenever somebody edited an old order.
+
+:::
+
+If a customer genuinely moves a date, the correct response is:
+
+| # | Step | Who |
+| --- | --- | --- |
+| 1 | Record the change on the order | Customer Service |
+| 2 | Tell the planner the date has moved | Customer Service |
+| 3 | Replan the demand for the new date | Planner |
+| 4 | Where a formal record is needed, create a commitment for the new promise | Customer Service |
+
+## Commitments outrank opening hours
+
+A commitment is **more specific** than an opening time, so it wins.
+
+| Situation | Planning honours |
+| --- | --- |
+| A commitment exists | **The commitment** |
+| No commitment | The node's opening hours |
+| Neither | Nothing constrains the timing |
+
+The same precedence decides whether two requirements share one physical visit: two different
+committed windows are two different promises, and one arrival cannot keep both.
+
+→ [The Physical Visit](../shipments/the-physical-visit.mdx)
+
+## What happens when there is no commitment
+
+:::info[No commitment means never late — and never counted]
+
+A delivery with no commitment is **not counted as late**. It is not counted at all.
+
+[OTIF](../reporting/otif.mdx) opens filtered to records that **have** a commitment, precisely
+so that a growing pile of uncommitted deliveries cannot quietly inflate the on-time figure.
+
+:::
+
+| Consequence | Detail |
+| --- | --- |
+| **On Time** | Not measurable |
+| **In Full** | Still measurable — it depends on quantities, not dates |
+| Planning | Nothing constrains timing beyond the node's opening hours |
+| The report | Excluded from the on-time denominator |
+
+:::warning[Always group OTIF by Has Commitment before drawing a conclusion]
+
+Otherwise you are averaging a denominator that changes shape.
+
+:::
+
+## Mandatory against preferred
+
+| Mandatory | Meaning |
+| --- | --- |
+| **True** | Planning must honour it. A conflict makes the demand unplannable |
+| **False** | Planning prefers it. A conflict is accepted |
+
+A mandatory commitment that cannot be met produces *Time-window conflict* in the unplanned
+demand list.
+
+→ [Unplanned Demand](../planning/unplanned-demand.mdx)
+
+## Supplier commitments
+
+`SCOP → Master Data → Supplier Commitments` *(Procurement)*
+
+The mirror image: what a **supplier** promised us.
+
+| Field | Meaning |
+| --- | --- |
+| **Partner** | The supplier |
+| **Product** | What they promised |
+| **Quantity Committed** | How much |
+| **Unit** | The unit of measure |
+| **Expected Date** | When |
+| **Location** | Where it should arrive |
+| **Source Document** | The order behind it |
+| **Status** | Open · Received · Cancelled |
+
+:::note[Supplier commitments are a record, not a control in Release 1]
+
+They document what was promised. There is no supplier OTIF equivalent and no automated
+supplier alerting in Release 1.
+
+→ [Release 1 Scope](../about/release-1-scope.mdx)
+
+:::
+
+## Verify
+
+| Check | Where | Expect |
+| --- | --- | --- |
+| The demand carries a commitment | The demand's **Service Commitment** field | A commitment, or deliberately none |
+| Which kind | The commitment's **Type** | Date, window or condition |
+| It appears in OTIF | `Reporting → OTIF` | **Has Commitment** true |
+| Planning respected it | The stop's planned arrival | Inside the window |
+| It was met | `Reporting → OTIF` | **On Time** true |
+
+## If it does not work
+
+| Symptom | Cause | Fix |
+| --- | --- | --- |
+| A delivery is missing from OTIF | It carries no commitment | Expected. Record one if it should be measured |
+| The commitment shows an old date | Capture-once — it was taken at generation | Replan the demand; create a new commitment if needed |
+| Demands come back *Time-window conflict* | The commitment and the opening hours cannot both be met | Change the window with authorisation, or plan it separately |
+| A delivery arrives at the wrong hour | The node's timezone is wrong | [Planning Nodes](./planning-nodes.mdx) |
+| Everything shows as on time and it seems too good | The commitment filter is hiding the uncommitted majority | Group by **Has Commitment** |
+
+## Related Pages
+
+- [OTIF](../reporting/otif.mdx)
+- [Planning Nodes](./planning-nodes.mdx)
+- [The Physical Visit](../shipments/the-physical-visit.mdx)
+- [Customer Service](../roles/customer-service.mdx)
+- [Procurement](../roles/procurement.mdx)
+
+## Next
+
+[Routes and Stop Activities](./routes-and-stop-activities.mdx).

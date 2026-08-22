@@ -1,0 +1,369 @@
+---
+id: exception-management
+title: Exception Management
+description: The ten-state exception lifecycle, the twelve categories with their SLAs, resolution actions, escalation, and what an exception is not.
+sidebar_label: Exception Management
+sidebar_position: 1
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+import Screenshot from '@site/src/components/Screenshot';
+
+# Exception Management
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Operations', 'Management', 'Planning', 'Warehouse', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="8 min"
+/>
+
+**Role**
+Operations Manager owns the queue. Any SCOP user can raise and work an exception.
+
+**Navigate to**
+`SCOP → Operations → Exceptions`
+
+## What an exception is
+
+A recorded **operational problem that needs somebody to own and resolve it**.
+
+It is not a log entry and not an error message. It has an owner, a deadline, a resolution
+plan, and a lifecycle that ends in somebody confirming the problem is actually gone.
+
+## What an exception is not
+
+| Not an exception | What it is instead |
+| --- | --- |
+| A failed delivery | A stop **outcome**, with a reason. It may *lead* to an exception |
+| An unplanned demand | A planning **result**, with a reason |
+| A business-rule refusal | A [rule evaluation](../concepts/the-governance-model.mdx) |
+| A system error | A [failed projection](../reporting/data-quality-reports.mdx) |
+
+:::info[Exceptions are raised deliberately]
+
+SCOP does not turn every operational bump into an exception. A short delivery with a reason
+is a recorded fact; it becomes an exception when it needs **owning** — a customer dispute,
+damaged goods, a vehicle that failed mid-route.
+
+:::
+
+## Where they come from
+
+| Source | How |
+| --- | --- |
+| A trip | **Raise Exception**, available in Loading, Ready to Depart or In Progress |
+| A business rule | A critical rule failure can raise one |
+| A person | Created directly on the exception list |
+
+The trip moves to **Exception** and waits until the problem is resolved or the trip is
+completed or cancelled.
+
+→ [Trip Lifecycle](../execution/trip-lifecycle.mdx)
+
+## The list
+
+`SCOP → Operations → Exceptions` opens filtered to **open** exceptions.
+<Screenshot
+  src="user-manual/11-exceptions-list.png"
+  alt="The SCOP Exceptions list showing five open exceptions with category, severity, owner, SLA deadline, escalation count and status."
+  caption="The open queue on b2b. Note EXC-2026-000006, still in Detected, which already carries an SLA deadline."
+/>
+
+
+| Column | Meaning |
+| --- | --- |
+| **Title** | What the problem is |
+| **Category** | Which of the twelve kinds |
+| **Severity** | Information · Warning · Approval Required · Blocking · Critical |
+| **Origin** | The record it concerns |
+| **Owner** | Who is dealing with it |
+| **Detected At** | When it was raised |
+| **SLA Deadline** | When it should be resolved by |
+| **Overdue** | Whether it has passed that |
+| **Escalation Count** | How many times it has escalated |
+| **Status** | Where it is in its lifecycle |
+
+## The ten states
+
+```mermaid
+stateDiagram-v2
+    [*] --> detected
+    detected: Detected
+    classified: Classified
+    assigned: Assigned
+    investigating: Investigating
+    resolution_defined: Resolution Defined
+    in_resolution: In Resolution
+    escalated: Escalated
+    resolved: Resolved
+    closed: Closed
+    cancelled: Cancelled
+
+    detected --> classified: Classify
+    detected --> cancelled: Cancel
+    classified --> assigned: Assign
+    assigned --> investigating: Investigate
+    investigating --> resolution_defined: Define Resolution
+    resolution_defined --> in_resolution: Start Resolution
+    in_resolution --> resolved: Resolve
+    in_resolution --> escalated: SLA breach, or Escalate
+    escalated --> in_resolution: Resume
+    resolved --> closed: Close
+
+    closed --> [*]
+    cancelled --> [*]
+```
+
+| # | State | What it needs to leave |
+| --- | --- | --- |
+| 1 | **Detected** | Confirmation of the category and severity it was created with |
+| 2 | **Classified** | An owner |
+| 3 | **Assigned** | Somebody to start looking |
+| 4 | **Investigating** | At least one resolution action |
+| 5 | **Resolution Defined** | Somebody to start doing it |
+| 6 | **In Resolution** | Every resolution action done |
+| 7 | **Escalated** | Somebody to resume it |
+| 8 | **Resolved** | Confirmation |
+| 9 | **Closed** | **Terminal** |
+<Screenshot
+  src="user-manual/84-exception-form-closed.png"
+  alt="A closed SCOP exception showing its category, root cause, owner, resolution actions and the times it was resolved and closed."
+  caption="A closed exception on b2b, with both its resolution actions done and an outcome recorded against each."
+/>
+
+| 10 | **Cancelled** | **Terminal** |
+
+## Working an exception
+
+### Classify
+
+| | |
+| --- | --- |
+| **Requires** | A **category** and a **severity** |
+| **Effect** | Moves the exception to **Classified** |
+
+:::info[The SLA clock starts at detection, not at classification]
+
+A **category is required to create an exception at all**, and the SLA deadline is computed
+from **Detected At** plus that category's SLA hours the moment the record exists.
+
+So an exception sitting in **Detected** already has a deadline and already ages. Verified on
+`b2b`: `EXC-2026-000006`, still in **Detected**, carries a deadline 24 hours after its
+detection time, because its category — *Supplier delay* — has a 24-hour SLA.
+
+Classify still matters: it is the acknowledgement that somebody has looked at the exception
+and agrees with how it is filed. Changing the **category** at that point recomputes the
+deadline.
+
+:::
+
+### Assign
+
+| | |
+| --- | --- |
+| **Requires** | An **owner** |
+| **Effect** | Creates an **activity** for that person, so it reaches their activity list |
+
+This is the only place SCOP creates an automatic activity.
+
+### Investigate
+
+No requirement. It records that somebody has started looking.
+
+### Define Resolution
+
+| | |
+| --- | --- |
+| **Requires** | **At least one resolution action** |
+
+A resolution action is a concrete step:
+
+| Field | Meaning |
+| --- | --- |
+| **Name** | What will be done |
+| **Description** | The detail |
+| **Action Type** | Which of eleven operational steps this is — see below |
+| **Owner** | Who will do it |
+| **Status** | Planned · In Progress · Done · Abandoned |
+| **Done At** | When it was finished |
+| **Outcome** | What happened |
+
+:::info[You cannot resolve an exception without a plan]
+
+Requiring at least one action is what stops an exception being closed with *"sorted"* and no
+record of what was actually done. Verified on `b2b`: **Define Resolution** refuses with
+*"…needs at least one resolution action before its resolution can be defined."*
+
+:::
+
+#### The eleven action types
+
+A resolution action is not free text — it names one of eleven concrete operational steps:
+
+| Action Type | Meaning |
+| --- | --- |
+| **Replace the vehicle** | Swap the vehicle on the trip |
+| **Replace the driver** | Swap the driver |
+| **Split the trip** | Break one trip into two |
+| **Reassign the shipment** | Move a shipment to a different trip |
+| **Change the stop sequence** | Reorder the route |
+| **Return products to a warehouse** | Bring the goods back |
+| **Transfer products to another vehicle** | Move the load across |
+| **Reschedule the stop** | Give the visit another slot |
+| **Create follow-up demand** | Raise the remaining requirement |
+| **Cancel part of the movement** | Drop part of the load |
+| **Escalate for management approval** | Hand the decision upward |
+
+Because the list is closed, *"what do we actually do about problems like this"* is a report
+rather than a reading exercise.
+
+### Start Resolution
+
+Records that the plan is being carried out.
+
+### Resolve
+
+| | |
+| --- | --- |
+| **Requires** | **Every resolution action is done** |
+| **Records** | **Resolved At** |
+
+### Close
+
+| | |
+| --- | --- |
+| **Requires** | Authority to close |
+| **Records** | **Closed At**. **Terminal** |
+
+## Escalation
+
+An exception in **In Resolution** escalates when its SLA is breached, or when somebody
+presses **Escalate**.
+
+| Effect | Detail |
+| --- | --- |
+| The state becomes **Escalated** | |
+| **Escalation Count** increments | |
+| **Escalated At** is recorded | |
+| The **responsible group** is notified | From the category |
+
+**Resume** takes it back to **In Resolution** once it is moving again.
+<Screenshot
+  src="user-manual/47-exception-form-escalated.png"
+  alt="A SCOP exception form in the Escalated state showing its category, severity, owner, SLA deadline and escalation count."
+  caption="An escalated critical exception. The escalation count and the moment it escalated are both recorded."
+/>
+
+
+:::note[Escalation is the only automatic notification in Release 1]
+
+Everything else reaches you by following a record or by reading a report. There are no
+automated operational alerts for late trips or unplanned demand.
+
+:::
+
+## The twelve categories
+
+Each carries a default severity and an SLA in hours.
+
+| Category | Default severity | SLA |
+| --- | --- | --- |
+| **Vehicle breakdown** | Critical | **2 h** |
+| **Critical rule failure** | Critical | 4 h |
+| **Unauthorized configuration** | Critical | 4 h |
+| **Inventory shortage** | Blocking | 4 h |
+| **No feasible plan** | Blocking | 4 h |
+| **Picking delay** | Warning | 4 h |
+| **Invalid shipment composition** | Blocking | 8 h |
+| **Customer time-window change** | Warning | 8 h |
+| **Delivery rejection** | Warning | 8 h |
+| **Route restriction** | Warning | 8 h |
+| **Supplier delay** | Warning | 24 h |
+| **Invalid KPI result** | Information | 48 h |
+
+Each category also carries a **reminder** interval before the deadline, an **escalate after**
+interval past it, and the **responsible group** that gets notified.
+
+Configured at `SCOP → Governance → Exception Categories` *(Administrator)*.
+
+## Root cause
+
+`Root Cause` records **why** it happened, from eleven controlled reasons:
+
+| Root cause |
+| --- |
+| Supplier delay |
+| Customer time-window change |
+| Inventory shortage |
+| Picking delay |
+| Invalid shipment composition |
+| Vehicle breakdown |
+| Route restriction |
+| No feasible plan |
+| Delivery rejection |
+| Invalid KPI result |
+| Unauthorized configuration |
+
+:::info[Root cause is what makes the queue analysable]
+
+A month of exceptions with root causes recorded answers *"what keeps going wrong"*. A month
+of free-text descriptions does not.
+
+→ [Reason Codes](../reference/reason-codes.mdx)
+
+:::
+
+## Ageing and the SLA
+
+`SCOP → Reporting → Exception Ageing` reads the queue by age against deadline.
+
+| Measure | Meaning |
+| --- | --- |
+| **Age (hours)** | Since detection |
+| **Hours Past Deadline** | Negative means still in time |
+| **Is Overdue** | Past the SLA deadline |
+| **Age Bucket** | Grouped bands, starting under 4 hours |
+| **Escalation Count** | How many times it escalated |
+
+→ [Exception Ageing](../reporting/exception-ageing.mdx)
+
+## Verify
+
+| Check | Where | Expect |
+| --- | --- | --- |
+| The exception exists | `Operations → Exceptions` | In the open list |
+| It is classified | Its **Category** and **Severity** | Both set |
+| It has a deadline | **SLA Deadline** | Computed from the category |
+| It has an owner | **Owner** | A person, with an activity |
+| It has a plan | The **Resolution Actions** tab | At least one action |
+| It resolved | **Resolved At** | A timestamp |
+| The trip resumed | The trip's status | **In Progress** |
+
+## If it does not work
+
+| Symptom | Cause |
+| --- | --- |
+| **Classify** is refused | No category or no severity chosen |
+| **Assign** is refused | No owner chosen |
+| **Define Resolution** is refused | No resolution action added |
+| **Resolve** is refused | A resolution action is still open |
+| No SLA deadline | Its category has no SLA hours configured |
+| It never appears as overdue | Its deadline is genuinely still in the future |
+| The trip will not **Resume** | Its originating exception is not resolved or closed |
+| The list looks empty | It opens filtered to open exceptions — clear the filter |
+
+## Related Pages
+
+- [Trip Lifecycle](../execution/trip-lifecycle.mdx)
+- [Exception Ageing](../reporting/exception-ageing.mdx)
+- [Reason Codes](../reference/reason-codes.mdx)
+- [Operations Manager](../roles/operations-manager.mdx)
+- [Failed Delivery](../execution/failed-delivery.mdx)
+
+## Next
+
+[Planning Nodes](../configuration/planning-nodes.mdx).

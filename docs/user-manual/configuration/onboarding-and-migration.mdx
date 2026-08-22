@@ -1,0 +1,209 @@
+---
+id: onboarding-and-migration
+title: Onboarding and Migration
+description: The three go-live wizards in order — flagging consignment partners, migrating inventory ownership, and checking pilot readiness.
+sidebar_label: Onboarding and Migration
+sidebar_position: 9
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+
+# Onboarding and Migration
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Operations', 'Management', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="5 min"
+/>
+
+**Role**
+Administrator runs steps 1 and 2. Management runs step 3.
+
+**Navigate to**
+`SCOP → Master Data → Onboarding`
+
+## The order matters
+
+The three wizards are numbered because each depends on the one before.
+
+```text
+1 · Consignment Partners    flag the partners whose stock we hold
+        ↓
+2 · Inventory Ownership     migrate ownership onto existing stock
+        ↓
+3 · Pilot Readiness         check that go-live prerequisites are met
+```
+
+Running step 2 before step 1 migrates ownership without knowing which partners are
+consignment owners — which is exactly the wrong answer, applied at scale.
+
+## 1 · Consignment Partners
+
+`SCOP → Master Data → Onboarding → 1 · Consignment Partners`
+
+### What it does
+
+Flags partners as **consignment owners** — parties whose stock we hold but do not own.
+
+### Why it comes first
+
+:::info[The flag is what stops SCOP defaulting ownership to the company]
+
+Goods arriving from a flagged consignment partner are presumptively **theirs**. SCOP
+therefore refuses to apply the governed company default to them, and waits for the owner to
+be recorded properly.
+
+Without the flag, an inbound movement from a consignment supplier would be resolved as
+company-owned — the exact error the ownership design exists to prevent.
+
+→ [Inventory Ownership](../ownership/inventory-ownership.mdx)
+
+:::
+
+### Running it
+
+| # | Step |
+| --- | --- |
+| 1 | Open the wizard |
+| 2 | Identify the partners to flag |
+| 3 | Press **Run** |
+| 4 | **Read the result before closing** |
+
+:::warning[Flagging is not retroactive]
+
+Ownership already resolved on existing demands is not rewritten. Flag the partners, then
+re-derive the demands that need it with **Resolve Ownership**.
+
+→ [Correcting Ownership](../ownership/correcting-ownership.mdx)
+
+:::
+
+## 2 · Inventory Ownership
+
+`SCOP → Master Data → Onboarding → 2 · Inventory Ownership`
+
+### What it does
+
+Records ownership onto **existing stock**, so that demands generated from it can resolve.
+
+### Why it is needed
+
+In this deployment the owner field on stock has never been populated by any module. Its
+emptiness asserts nothing — which is precisely why SCOP refuses to read it as company
+ownership.
+
+Migration puts a real answer where there was an absence.
+
+### Running it
+
+| # | Step |
+| --- | --- |
+| 1 | Complete step 1 first |
+| 2 | Open the wizard |
+| 3 | Press **Run** |
+| 4 | **Read the result before closing** |
+| 5 | Check `Reporting → Ownership Data Quality` |
+
+### Verifying it worked
+
+`SCOP → Reporting → Ownership Data Quality`, grouped by resolution.
+
+| What you see | Meaning |
+| --- | --- |
+| Mostly resolved | Migration worked |
+| A concentration of unresolved on one partner | That partner probably needed the consignment flag |
+| Unresolved spread across outbound movements | The warehouse is not recording owners on reserved stock |
+
+→ [Data Quality Reports](../reporting/data-quality-reports.mdx)
+
+## 3 · Pilot Readiness
+
+`SCOP → Master Data → Onboarding → 3 · Pilot Readiness` *(Management)*
+
+### What it does
+
+Runs a check and reports whether the prerequisites for going live are in place.
+
+Press **Check** to run it, and read the result.
+
+### What it looks at
+
+| Area | Question |
+| --- | --- |
+| **Pilot scope** | Is a scope record applied, with operation types selected? |
+| **Planning nodes** | Do the locations in scope map to nodes? |
+| **Node completeness** | Do those nodes have coordinates, timezone and opening hours? |
+| **Ownership** | Has ownership been migrated? |
+| **Fleet** | Do vehicles have capacity profiles? |
+| **Drivers** | Are drivers linked to user accounts? |
+
+:::note[Use it before a go-live decision, not as a daily screen]
+
+It is a gate, not a dashboard. Run it when deciding whether to start, and again after fixing
+what it found.
+
+:::
+
+## The full go-live checklist
+
+The wizards cover ownership and readiness. This is everything.
+
+| # | Task | Where | Chapter |
+| --- | --- | --- | --- |
+| 1 | Create planning nodes for every origin and destination | `Master Data → Locations` | [Planning Nodes](./planning-nodes.mdx) |
+| 2 | Give each node coordinates, timezone and opening hours | Same | Same |
+| 3 | Give every vehicle a capacity profile | Odoo Fleet | [Fleet and Vehicles](./fleet-and-vehicles.mdx) |
+| 4 | Record vehicle availability | `Master Data → Vehicle Availability` | Same |
+| 5 | Link every driver's employee record to a user account | Odoo Employees | [Drivers](./drivers.mdx) |
+| 6 | Record driver qualifications and shifts | `Master Data → Driver ...` | Same |
+| 7 | Assign SCOP roles, plus the Odoo groups they need | Odoo Settings | [Permissions Reference](../roles/permissions-reference.mdx) |
+| 8 | **Confirm there are two Operations Managers** | Same | [Plan Governance](../planning/plan-governance.mdx) |
+| 9 | Flag consignment partners | Onboarding 1 | Above |
+| 10 | Migrate inventory ownership | Onboarding 2 | Above |
+| 11 | Configure and **Apply** pilot scope | `Technical → Pilot Scope` | [Pilot Scope](./pilot-scope.mdx) |
+| 12 | Run Pilot Readiness | Onboarding 3 | Above |
+| 13 | Create one test transfer and follow it end to end | — | [Standard Full Delivery](../scenarios/standard-full-delivery.mdx) |
+
+:::danger[Step 8 is the one that is forgotten]
+
+`BR-PLN-001` refuses approval by the plan's author, including for an Administrator. A pilot
+with one Operations Manager who also builds the plans **cannot complete a cycle**.
+
+:::
+
+## Verify
+
+| Check | Where | Expect |
+| --- | --- | --- |
+| Consignment partners are flagged | Onboarding 1's result | The partners you intended |
+| Ownership migrated | `Reporting → Ownership Data Quality` | Mostly resolved |
+| Readiness check passes | Onboarding 3 | No blocking findings |
+| A test transfer produces a demand | `Operations → Demands` | One demand |
+| The demand can be validated and planned | The demand | It reaches **Planned** |
+| A second person can approve | The plan | Approval succeeds |
+
+## If it does not work
+
+| Symptom | Cause | Fix |
+| --- | --- | --- |
+| Ownership still unresolved after migration | Consignment partners were not flagged first | Run step 1, then re-derive |
+| Pilot Readiness reports missing nodes | Locations are unmapped | [Planning Nodes](./planning-nodes.mdx) |
+| No demands after go-live | Scope not applied, or types not selected | [Pilot Scope](./pilot-scope.mdx) |
+| Demands appear but cannot be planned | Nodes incomplete, or no vehicle capacity profile | Complete both |
+| The cycle cannot be completed | Only one person can approve | Add a second Operations Manager |
+
+## Related Pages
+
+- [Pilot Scope](./pilot-scope.mdx)
+- [Inventory Ownership](../ownership/inventory-ownership.mdx)
+- [Correcting Ownership](../ownership/correcting-ownership.mdx)
+- [Planning Nodes](./planning-nodes.mdx)
+- [Administrator](../roles/administrator.mdx)
+
+## Next
+
+[Reporting Overview](../reporting/reporting-overview.mdx).

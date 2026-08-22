@@ -1,0 +1,201 @@
+---
+id: navigating-scop
+title: Navigating SCOP
+description: The complete SCOP menu map — every section, every entry, which role sees it, and which chapter documents it.
+sidebar_label: Navigating SCOP
+sidebar_position: 2
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+import Screenshot from '@site/src/components/Screenshot';
+
+# Navigating SCOP
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Operations', 'Warehouse', 'Planning', 'Management', 'Driver', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="8 min"
+/>
+
+**Role**
+Everyone.
+
+**Navigate to**
+`SCOP`
+
+## Purpose
+
+This is the map. Every menu entry that exists in Release 1 appears below, with the role
+that sees it and the chapter that documents it.
+
+## How the menu is organised
+<Screenshot
+  src="user-manual/01-scop-menu-operations.png"
+  alt="The SCOP application menu bar showing Dashboard, Operations, Planning, Master Data, Governance, Reporting and Technical."
+  caption="The SCOP menu bar. My Work is absent here because this user is not a Driver."
+/>
+
+
+SCOP groups its screens by **what you are doing**, not by what kind of record it is.
+
+| Section | Contains | Who sees it |
+| --- | --- | --- |
+| **Dashboard** | A summary of today's operation | Planner, Management |
+| **My Work** | A driver's own trips and stops, and nothing else | Driver |
+| **Operations** | The day's work — demands, shipments, readiness, loading, trips, stops, exceptions | SCOP User |
+| **Planning** | Building and governing the daily plan | Planner |
+| **Master Data** | The configuration operations depends on | SCOP User |
+| **Governance** | Rules, reasons, authorities | SCOP User |
+| **Reporting** | Every measure | SCOP User |
+| **Technical** | Diagnostics and scope | Administrator |
+
+## Dashboard
+
+| Entry | What it shows | Role | Chapter |
+| --- | --- | --- | --- |
+| **Dashboard** | Today's operation at a glance | Planner, Management | [The Dashboard](../reporting/the-dashboard.mdx) |
+
+## My Work
+
+Visible only to a Driver, and the only section a Driver sees.
+
+| Entry | What it shows | Chapter |
+| --- | --- | --- |
+| **My Trips** | The signed-in driver's own trips, as cards | [Driver Delivery](../execution/driver-delivery.mdx) |
+| **My Stops** | The stops on those trips, as cards | [Driver Delivery](../execution/driver-delivery.mdx) |
+
+Both are filtered to trips that are **released or later** — a driver does not see a plan
+being argued over.
+
+## Operations
+
+| Entry | Object | Role | Chapter |
+| --- | --- | --- | --- |
+| **Demands** | What must move | SCOP User | [Demand Management](../demand/demand-management.mdx) |
+| **Shipments** | The plannable unit | SCOP User | [Shipment Management](../shipments/shipment-management.mdx) |
+| **Warehouse Readiness** | Can it go, and why | Warehouse | [Warehouse Readiness](../readiness/warehouse-readiness.mdx) |
+| **Loading Tasks** | Warehouse work to load a vehicle | Warehouse | [Loading Operations](../execution/loading-operations.mdx) |
+| **Allocations** | The stock reserved against demand | SCOP User | [Planning Eligibility](../demand/planning-eligibility.mdx) |
+| **Trips** | Vehicle, driver, sequence of stops | SCOP User *(hidden from Driver)* | [Trips](../execution/trips.mdx) |
+| **Stops** | Individual physical visits | SCOP User *(hidden from Driver)* | [Stops](../execution/stops.mdx) |
+| **Loads** | What is physically on the vehicle | SCOP User | [Loading Operations](../execution/loading-operations.mdx) |
+| **Resource Assignments** | Vehicles and drivers held for trips | Planner | [Fleet and Vehicles](../configuration/fleet-and-vehicles.mdx) |
+| **Exceptions** | Recorded operational problems | SCOP User | [Exception Management](../exceptions/exception-management.mdx) |
+
+:::note[Trips and Stops are deliberately hidden from Drivers]
+
+A Driver reaches their trips through **My Work**, which serves a simplified form built for
+a phone. `Operations → Trips` serves the dispatcher's full form, and is hidden from the
+Driver group so the two are never confused.
+
+Hiding the menu is a convenience. The security is the record rule underneath it — see
+[Driver Security Model](../execution/driver-security-model.mdx).
+
+:::
+
+## Planning
+
+Visible to Planner / Dispatcher and above.
+
+| Entry | What it does | Chapter |
+| --- | --- | --- |
+| **Generate a Plan** | Opens the planning wizard | [Generate a Plan](../planning/generate-a-plan.mdx) |
+| **Daily Plans** | The plans themselves, in their lifecycle | [The Daily Plan](../planning/the-daily-plan.mdx) |
+| **Planning Runs** | Each attempt, with its inputs and answer | [Planning Runs](../planning/planning-runs.mdx) |
+| **Unplanned Demand** | What could not be placed, and why | [Unplanned Demand](../planning/unplanned-demand.mdx) |
+
+## Master Data
+
+| Entry | What it configures | Role | Chapter |
+| --- | --- | --- | --- |
+| **Locations** | Planning nodes | SCOP User | [Planning Nodes](../configuration/planning-nodes.mdx) |
+| **Import Locations** | Bulk node creation | Administrator | [Planning Nodes](../configuration/planning-nodes.mdx) |
+| **Routes** | Named repeatable sequences | Planner | [Routes and Stop Activities](../configuration/routes-and-stop-activities.mdx) |
+| **Stop Activities** | Kinds of work done at a stop | Planner | [Routes and Stop Activities](../configuration/routes-and-stop-activities.mdx) |
+| **Service Commitments** | What was promised to a customer | SCOP User | [Service Commitments](../configuration/service-commitments.mdx) |
+| **Supplier Commitments** | What a supplier promised us | Procurement | [Service Commitments](../configuration/service-commitments.mdx) |
+| **Capacity Profiles** | The dimensions vehicles are measured in | SCOP User | [Catalogues](../configuration/catalogues.mdx) |
+| **Handling Profiles** | How goods must be handled | SCOP User | [Catalogues](../configuration/catalogues.mdx) |
+| **Compatibility Groups** | What may not travel together | SCOP User | [Catalogues](../configuration/catalogues.mdx) |
+| **Shelf-Life Profiles** | Remaining-life rules | SCOP User | [Catalogues](../configuration/catalogues.mdx) |
+| **Qualification Types** | Kinds of driver qualification | SCOP User | [Drivers](../configuration/drivers.mdx) |
+| **Driver Qualifications** | Which driver holds which | SCOP User | [Drivers](../configuration/drivers.mdx) |
+| **Vehicle Availability** | When a vehicle can be used | Planner | [Fleet and Vehicles](../configuration/fleet-and-vehicles.mdx) |
+| **Driver Availability** | When a driver can be used | Planner | [Drivers](../configuration/drivers.mdx) |
+| **Onboarding** | The three go-live wizards, in order | Administrator | [Onboarding and Migration](../configuration/onboarding-and-migration.mdx) |
+
+The **Onboarding** submenu is numbered because the order matters:
+
+```text
+1 · Consignment Partners   →   2 · Inventory Ownership   →   3 · Pilot Readiness
+```
+
+## Governance
+
+| Entry | What it holds | Role | Chapter |
+| --- | --- | --- | --- |
+| **Business Rules** | The six enforced rules, versioned | SCOP User | [Business Rules](../reference/business-rules.mdx) |
+| **Rule Evaluations** | Every check that was made, and its answer | SCOP User | [The Governance Model](../concepts/the-governance-model.mdx) |
+| **Rule Exemptions** | Authorised, time-boxed waivers | Planner | [The Governance Model](../concepts/the-governance-model.mdx) |
+| **Reason Codes** | The 51 controlled reasons | SCOP User | [Reason Codes](../reference/reason-codes.mdx) |
+| **Objective Profiles** | What planning optimises for | Planner | [Planning Overview](../planning/planning-overview.mdx) |
+| **Approval Authorities** | Who may do what to which object | Administrator | [The Governance Model](../concepts/the-governance-model.mdx) |
+| **Feature Flags** | Switches for optional behaviour | Administrator | [Administrator](../roles/administrator.mdx) |
+| **Exception Categories** | The 12 categories, with severity and SLA | SCOP User | [Exception Management](../exceptions/exception-management.mdx) |
+
+## Reporting
+
+| Entry | Question it answers | Role | Chapter |
+| --- | --- | --- | --- |
+| **Plan Coverage** | Did we plan what could be planned? | Planner | [Plan Coverage](../reporting/plan-coverage.mdx) |
+| **Unplanned Demand** | What did we miss, and why? | Planner | [Unplanned Demand Report](../reporting/unplanned-demand-report.mdx) |
+| **Vehicle Utilization** | How full were the vehicles? | Planner | [Vehicle Utilization](../reporting/vehicle-utilization.mdx) |
+| **OTIF** | Did we deliver on time and in full? | SCOP User | [OTIF](../reporting/otif.mdx) |
+| **Trip Planned vs Actual** | How close was the plan to reality? | SCOP User | [Trip Planned vs Actual](../reporting/trip-planned-vs-actual.mdx) |
+| **Exception Ageing** | What is overdue? | SCOP User | [Exception Ageing](../reporting/exception-ageing.mdx) |
+| **Decision Quality** | How often did we override the recommendation? | Planner | [Decision Quality](../reporting/decision-quality.mdx) |
+| **Operation Timeline** | What happened, in order, to this operation? | SCOP User | [Operation Timeline](../reporting/operation-timeline.mdx) |
+| **Failed Projections** | What did SCOP fail to record? | Administrator | [Data Quality Reports](../reporting/data-quality-reports.mdx) |
+| **Orphan Moves** | What moved that no demand covers? | Administrator | [Data Quality Reports](../reporting/data-quality-reports.mdx) |
+| **Ownership Data Quality** | How much ownership is unresolved? | SCOP User | [Data Quality Reports](../reporting/data-quality-reports.mdx) |
+
+## Technical
+
+Administrator only. These are diagnostics, not daily work.
+
+| Entry | What it is | Chapter |
+| --- | --- | --- |
+| **Domain Events** | Every fact SCOP recorded about what it did or declined to do | [Identity and Traceability](../concepts/identity-and-traceability.mdx) |
+| **Sequence Counters** | The counters behind the business IDs | [Administrator](../roles/administrator.mdx) |
+| **Execution Events** | What physically happened during a trip | [Identity and Traceability](../concepts/identity-and-traceability.mdx) |
+| **Capacity Snapshots** | The vehicle load at every point of every route | [Trips](../execution/trips.mdx) |
+| **Travel Matrix** | Stored distances and durations between nodes | [Planning Nodes](../configuration/planning-nodes.mdx) |
+| **Pilot Scope** | Which operation types SCOP reacts to, and from when | [Pilot Scope](../configuration/pilot-scope.mdx) |
+| **Releases** | Release records for the deployment | [Pilot Scope](../configuration/pilot-scope.mdx) |
+
+## If a menu you expect is missing
+
+| Missing | Reason |
+| --- | --- |
+| **Planning** | Not a Planner or Operations Manager |
+| **Technical** | Not an Administrator |
+| **Warehouse Readiness**, **Loading Tasks** | Not a Warehouse user |
+| **Supplier Commitments** | Not a Procurement user |
+| **Rule Exemptions**, **Objective Profiles**, **Vehicle/Driver Availability**, **Routes**, **Stop Activities**, **Resource Assignments** | Not a Planner |
+| **Approval Authorities**, **Feature Flags**, **Import Locations**, **Onboarding** | Not an Administrator |
+| **Trips**, **Stops** | You are a Driver — use **My Work** |
+| Everything below `SCOP` | You hold only **Finance User**, which has no menu in Release 1 |
+
+## Related Pages
+
+- [Accessing SCOP](./accessing-scop.mdx)
+- [Working with Lists and Forms](./working-with-lists-and-forms.mdx)
+- [Roles Overview](../roles/roles-overview.mdx)
+
+## Next
+
+[Working with Lists and Forms](./working-with-lists-and-forms.mdx).

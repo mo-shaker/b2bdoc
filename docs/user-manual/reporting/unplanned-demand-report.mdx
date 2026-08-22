@@ -1,0 +1,135 @@
+---
+id: unplanned-demand-report
+title: Unplanned Demand Report
+description: The pivot and graph views over unplanned demand — reading the pattern rather than the individual rows.
+sidebar_label: Unplanned Demand Report
+sidebar_position: 4
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+import Screenshot from '@site/src/components/Screenshot';
+
+# Unplanned Demand Report
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Planning', 'Management', 'Operations', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="4 min"
+/>
+
+## Purpose
+
+The operational list at `Planning → Unplanned Demand` tells you **what to fix today**. This
+report tells you **what keeps happening**.
+
+Same data, different question.
+
+## Audience
+
+Planner / Dispatcher and Management.
+
+## Navigate to
+
+`SCOP → Reporting → Unplanned Demand`
+
+## Filters
+
+Opens grouped by **reason**. Filter by date range to compare periods.
+
+## Dimensions
+<Screenshot
+  src="user-manual/61-report-unplanned-demand.png"
+  alt="The SCOP Unplanned Demand report grouped by reason."
+  caption="The pattern, not the individual rows. One dominant reason is the signal to look for."
+/>
+
+
+| Dimension | Use |
+| --- | --- |
+| **Reason** | The default row dimension. Which constraint is costing most |
+| **Plan Date** | The default column dimension. How it changes over time |
+| **Customer** | Which customers are being under-served |
+| **Next Action** | What the provider suggested |
+| **Plan** | Which run |
+
+## Measures
+
+The count of unplanned demands. There is no other measure — the value is in the grouping.
+
+## How to read it
+
+<Screenshot
+  src="quick-start/41-report-unplanned-demand.png"
+  alt="The SCOP Unplanned Demand report grouped by reason."
+  caption="Reason on rows, plan date on columns. One dominant reason is the signal to look for."
+/>
+
+| What you see | What it means | What to do |
+| --- | --- | --- |
+| One reason dominating every day | A systematic constraint | Fix the constraint, not the demands |
+| A reason appearing then stopping | Something was fixed | Confirm it stays fixed |
+| Spread evenly across reasons | Ordinary operational friction | Work the daily list |
+| A spike on one date | Something changed that day | Check what — a node, a vehicle, a scope change |
+| One customer concentrated | Their node or commitments are misconfigured | Check the node |
+
+## Example
+
+A week grouped by reason and plan date:
+
+```text
+Reason                    Mon  Tue  Wed  Thu  Fri
+Warehouse not ready         4    3    5    4    6
+No feasible vehicle         0    0    0    0    0
+Missing required data      11    0    0    0    0
+Lower priority              1    2    1    2    1
+```
+
+Three readings:
+
+| Row | Reading |
+| --- | --- |
+| **Missing required data**, Monday only | A node was incomplete and was fixed. Resolved |
+| **Warehouse not ready**, every day, rising | A persistent staging backlog. This is the one to escalate |
+| **Lower priority** | The system making genuine choices with limited capacity. Healthy |
+
+## Common interpretation mistakes
+
+| Mistake | Why it is wrong |
+| --- | --- |
+| Treating the total as the headline | The **distribution** is the finding, not the sum |
+| Treating *Lower priority* as a failure | It means the system had a real choice and made it correctly |
+| Reading it without [Plan Coverage](./plan-coverage.mdx) | Twenty unplanned out of twenty-five is very different from twenty out of two hundred |
+| Assuming a fall means improvement | It can also mean less demand became eligible |
+| Ignoring rows caused by unplanning | A demand taken off a plan also writes a row here |
+
+:::note[Two things write a row here]
+
+A run that **could not place** a demand, and a demand that was **taken off** a plan or whose
+plan was cancelled.
+
+Both are legitimate. If a count seems high on a day when a plan was cancelled, that is why.
+
+:::
+
+:::warning[A falling count is not automatically good news]
+
+If fewer demands are becoming eligible — because ownership is unresolved, or readiness is
+poor — fewer will be offered to the run, and fewer will come back unplanned.
+
+Always read it against Plan Coverage's **Offered** count.
+
+:::
+
+## Related Pages
+
+- [Unplanned Demand](../planning/unplanned-demand.mdx) — the operational list and the twelve reasons
+- [Plan Coverage](./plan-coverage.mdx)
+- [Reason Codes](../reference/reason-codes.mdx)
+
+## Next
+
+[Vehicle Utilization](./vehicle-utilization.mdx).

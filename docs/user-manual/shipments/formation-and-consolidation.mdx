@@ -1,0 +1,235 @@
+---
+id: formation-and-consolidation
+title: Formation and Consolidation
+description: How shipments form themselves, the exact key that decides whether two demands travel together, and why one demand does not always mean one shipment.
+sidebar_label: Formation and Consolidation
+sidebar_position: 2
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+import Screenshot from '@site/src/components/Screenshot';
+
+# Formation and Consolidation
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Planning', 'Operations', 'Warehouse', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="7 min"
+/>
+
+:::info[This is the canonical page for shipment formation]
+
+Other chapters refer here rather than restating it.
+
+:::
+
+**Role**
+Nobody. SCOP does this.
+
+## The rule in one line
+
+:::warning[One Demand ≠ always one Shipment]
+
+A shipment is a **transport requirement**, not a copy of a demand. Two compatible demands
+form **one** shipment; two incompatible ones form two.
+
+:::
+
+## When formation happens
+
+The moment a demand reaches **Eligible for Planning**.
+
+```text
+Validated Demand  →  Allocate Inventory  →  Create Shipment
+                     └── both done by Mark Eligible ──┘
+```
+
+Nobody presses a formation button. **Mark Eligible** refreshes allocation and forms the
+shipment in the same action, because that is the point in the flow where availability is
+asserted.
+
+:::info[Why grouping is decided here and not at demand creation]
+
+Grouping is a **planning** judgement. Two demands to one branch may travel together tomorrow
+and separately the day after, depending on capacity and dates.
+
+Forming a shipment per demand at generation time would fix that choice before anyone had the
+information to make it.
+
+:::
+
+## The consolidation key
+
+Two demands form one shipment when **all five** of these match:
+
+| # | Must match | Why |
+| --- | --- | --- |
+| 1 | **Origin node** | A vehicle loads at one place |
+| 2 | **Destination node** | A different branch is a different place |
+| 3 | **Shipment type** | A pickup is not a delivery |
+| 4 | **Company** | Records never cross companies |
+| 5 | **Required date** | Next Thursday's requirement must not be folded into today's |
+
+If any differ, two shipments are formed.
+
+:::note[Inbound demands become collections]
+
+A receipt SCOP transports is a **collection** from the supplier's node. There is no separate
+inbound shipment type, because calling it one would put it on the wrong side of every
+direction-aware rule.
+
+:::
+
+## Joining an open shipment
+
+When a second demand becomes eligible and matches the key, it **joins the shipment already
+open** rather than forming another.
+
+**Open** means both of:
+
+| Condition | Why |
+| --- | --- |
+| The shipment is still **Created** or **Ready** | |
+| It is **not yet on a trip** | Its capacity was sized when the plan was approved |
+
+:::warning[A planned shipment is never joined]
+
+Once a shipment is on a trip, a planner has already sized a vehicle against its weight and
+volume. Quietly adding a pallet to it would break the capacity figure the plan was approved
+on.
+
+A later demand for the same route and date forms a **second** shipment instead, which the
+next planning run can place.
+
+:::
+
+## Why consolidation is done at the moment, not later
+
+Demand becomes eligible one record at a time. Forming a fresh shipment for each would mean
+the daily plan never sees two requirements travel together — the exact opposite of what
+consolidation exists for.
+
+Joining at the moment the second requirement appears is what makes it happen without anyone
+having to notice the opportunity.
+
+## Formation is idempotent
+
+A demand that already has shipment lines is **already formed**. Running formation again
+returns its existing shipment rather than creating a second.
+
+That is what makes **Create Shipment** safe to press.
+
+## Create Shipment — the re-run
+
+**Create Shipment** appears on a demand in **Eligible for Planning**.
+
+| Use it for | Not for |
+| --- | --- |
+| A demand made eligible before automatic formation shipped | Normal operation |
+| A demand whose shipment was cancelled | Trying to force a separate shipment |
+
+Pressing it on a normal demand **returns the shipment that already exists**. It never
+creates a duplicate.
+
+It is refused on a demand that is not yet eligible: a shipment built from an unvalidated
+demand would carry ownership nobody has checked onto a vehicle.
+
+## What the shipment inherits
+
+| From the demand line | Onto the shipment line |
+| --- | --- |
+| Product | Product |
+| **Remaining** quantity, or requested if none | Quantity |
+| Owner | Owner |
+| Ownership source | Ownership source |
+| The demand itself | **Demand** — the traceability link |
+
+Using **remaining** rather than requested is what makes a follow-up demand form a shipment
+for the outstanding part only.
+
+## After formation
+
+SCOP immediately:
+
+1. Attaches the relevant Odoo transfers to the shipment.
+2. Creates the **Warehouse Readiness** record.
+3. Computes readiness for the first time.
+
+**Expected result:** a shipment in state **Created** or **Ready**, usually with readiness
+**Conditionally Ready** — reserved for the whole shipment but not yet staged.
+
+## Reading a consolidated shipment
+<Screenshot
+  src="user-manual/42-shipment-form-consolidated.png"
+  alt="A consolidated SCOP shipment form showing three lines drawn from two different demands, each line naming its own demand."
+  caption="SHP-2026-000007 on b2b: three lines, two demands. Two came from DMD-2026-000012 and one from DMD-2026-000014, and each line still names the demand it belongs to."
+/>
+
+
+<Screenshot
+  src="quick-start/08-shipment-list.png"
+  alt="SCOP Shipments list showing several shipments, one of which is consolidated across two demands."
+  caption="A consolidated shipment carries the combined weight and volume of every demand in it."
+/>
+
+| To find out | Look at |
+| --- | --- |
+| How many demands it carries | The **Lines** tab, **Demand** column |
+| Whether it is consolidated | More than one distinct demand in that column |
+| Which demands | The same column |
+| From a demand's side | The demand's **Shipments** tab |
+
+## Verify consolidation worked
+
+| Check | Expect |
+| --- | --- |
+| Two eligible demands, same route and date | **One** shipment |
+| Its total weight | The sum of both demands |
+| Its **Lines** tab | Lines naming **both** demands |
+| The resulting trip | **One** customer delivery stop, not two |
+
+The last one is the point of it all — see [The Physical Visit](./the-physical-visit.mdx).
+
+## If consolidation did not happen
+
+| Symptom | Cause |
+| --- | --- |
+| Two shipments for the same customer | Different **branch** — a different node is a different destination |
+| Two shipments for the same node | Different **required date** |
+| Two shipments, same node and date | Different **shipment type** — one is a pickup |
+| A late demand formed its own shipment | The first shipment was already **planned** onto a trip |
+| Consolidation happened when you did not want it | It is automatic. Change the required date, or plan them separately |
+
+## If formation did not happen at all
+
+| Check | Where |
+| --- | --- |
+| Is the demand actually **Eligible for Planning**? | The demand's status bar |
+| Does it have lines? | The **Lines** tab. A demand with no lines forms no shipment |
+| Did **Mark Eligible** complete? | The chatter on the demand |
+
+:::note[Formation failing means eligibility fails too]
+
+Formation is deliberately not wrapped in something that swallows failures. A demand that
+reached **Eligible for Planning** with no shipment is precisely the state a pilot cannot
+plan around — the warehouse has nothing to stage against and the planner has nothing to put
+on a vehicle.
+
+If formation cannot succeed, the demand does not become eligible either.
+
+:::
+
+## Related Pages
+
+- [The Physical Visit](./the-physical-visit.mdx)
+- [Shipment Management](./shipment-management.mdx)
+- [Planning Eligibility](../demand/planning-eligibility.mdx)
+- [Two Orders, One Visit](../scenarios/two-orders-one-visit.mdx)
+
+## Next
+
+[The Physical Visit](./the-physical-visit.mdx).

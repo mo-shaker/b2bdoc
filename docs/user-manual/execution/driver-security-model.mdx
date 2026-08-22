@@ -1,0 +1,247 @@
+---
+id: driver-security-model
+title: Driver Security Model
+description: Exactly what a Driver can and cannot reach in SCOP, how it is enforced, and the one configuration mistake that undoes it.
+sidebar_label: Driver Security Model
+sidebar_position: 6
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+import Screenshot from '@site/src/components/Screenshot';
+
+# Driver Security Model
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Operations', 'Management', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="5 min"
+/>
+
+:::info[This is the canonical page for what a Driver can reach]
+
+Other chapters refer here rather than restating it.
+
+:::
+
+**Audience**
+Operations Managers, Administrators, and anyone assessing SCOP's access model. Drivers do
+not need to read this page — [Driver Delivery](./driver-delivery.mdx) is theirs.
+
+## The principle
+
+A driver is an **internal user with a heavily restricted role**, not a portal user.
+
+That choice buys the standard backend signature and attachment widgets, which are what make
+proof of delivery work on a phone. It costs this: an internal user can, in principle, reach
+any model their permissions allow.
+
+So the driver's permissions are drawn as narrowly as the job allows, and the boundary is
+enforced in two independent layers.
+
+## What a Driver can reach
+
+| Object | Access | Narrowed to |
+| --- | --- | --- |
+| **Trip** | Read and change | Trips where **they** are the driver |
+| **Stop** | Read and change | Stops on those trips |
+| **Stop Line** | **Read only** | Lines on those stops |
+| **Load** | **Read only** | Loads on those trips |
+| **Load Line** | **Read only** | Lines on those loads |
+| **Execution Event** | Read, change, create | Events on those trips |
+| **Planning Node** | **Read only** | All — they need to know where they are going |
+
+That is the complete list.
+
+## What a Driver cannot reach
+
+| Object | Why not |
+| --- | --- |
+| **Demand** | Not part of the job. No permission of any kind |
+| **Shipment** | Same |
+| **Daily Plan** | Same |
+| **Planning Run** | Same |
+| **Warehouse Readiness** | Same |
+| **Loading Task** | Same |
+| **Exception** | Same |
+| **Odoo stock moves** — the transfer *lines* | Standard Odoo restricts these to the Inventory, Sales, Purchase and Accounting groups |
+| **Business rules, evaluations, authorities** | Same |
+| **Reports** | Same |
+| **Other drivers' trips and stops** | Narrowed to their own |
+
+:::note[Not "hidden" — absent]
+
+These are not menus that were switched off. The Driver group carries **no access rights** to
+these models at all. Reaching one produces an access error, not an empty list.
+
+:::
+
+### Verified on `b2b`
+
+Signed in as the driver, every one of these was attempted and refused:
+
+```text
+scop.demand              AccessError
+scop.shipment            AccessError
+scop.plan                AccessError
+scop.plan.run            AccessError
+scop.warehouse.readiness AccessError
+scop.loading.task        AccessError
+scop.exception           AccessError
+scop.business.rule       AccessError
+sale.order               AccessError
+stock.move               AccessError
+```
+
+Reading **another driver's trip** by its identifier was refused too, which is the record
+rule rather than the access right doing the work.
+
+And the whole application, as the driver sees it:
+
+<Screenshot
+  src="user-manual/D06-driver-menu.png"
+  alt="The SCOP menu bar as seen by a Driver, showing only My Work, with the My Trips card view beneath it."
+  caption="The Driver's entire SCOP. One menu, two entries — and My Trips is already filtered to their own released trips."
+/>
+
+:::danger[One gap found, and it is not SCOP's]
+
+A driver **can** read Odoo **transfer headers** — `stock.picking` — including every
+customer's name and scheduled date across the company. On `b2b` that is 21,181 records.
+
+SCOP grants the Driver group nothing on `stock.picking`. The access comes from a
+third-party module, whose access rule `stock_return_approval.user` grants **every internal
+user** read, write, create and delete on `stock.picking`.
+
+The transfer **lines** (`stock.move`) are still protected, so products and quantities are
+not exposed this way. But the claim that a driver cannot see the company's transfers does
+**not** hold as this database is configured.
+
+Recorded as a defect — see [Release 1 Scope](../about/release-1-scope.mdx). It is an Odoo
+configuration matter rather than a SCOP one, and it is fixed by narrowing that module's
+access rule.
+
+:::
+
+## The two layers
+
+### Layer 1 — The Driver group grants almost nothing
+
+```text
+Odoo Internal User
+   └── Driver          ← does NOT inherit SCOP User
+```
+
+Every other operational role builds on **SCOP User**, which grants read access across the
+operation. **Driver does not.** It builds directly on the Odoo internal user.
+
+That is why the list of what a driver cannot reach is so long: no group they hold grants it.
+
+### Layer 2 — Record rules narrow what is left
+
+Access rights say a driver may read trips. A record rule then narrows *which* trips.
+
+| Object | Rule |
+| --- | --- |
+| Trip | The driver on the trip is you |
+| Stop | Its trip's driver is you |
+| Stop Line | Its stop's trip's driver is you |
+| Load, Load Line | Their trip's driver is you |
+| Execution Event | Its trip's driver is you |
+
+The match is on the **employee's linked user account**, not on the employee record alone.
+Matching on the employee alone would let two employees sharing a login see each other's
+work; matching on the user alone would break the moment an employee record is re-pointed.
+
+:::info[Reading is restricted, not only writing]
+
+A driver who could *read* every trip could read every customer's address, every delivery
+quantity and every price-bearing line on the board.
+
+So the rules constrain **reading** first and writing second — and they hold through counts
+and grouped views as well as when opening a record. A rule that covered only opening would
+leak through aggregates: a driver could count trips they cannot open, and a grouped view
+would disclose the names in its headers.
+
+:::
+
+## How the driver still moves the operation forward
+
+A driver presses **Depart**, and shipments and demands move into execution. But they have no
+access to shipments or demands. Both are true.
+
+:::info[The cascade runs on the system's behalf]
+
+Departing is the driver's act, and their right to it is checked properly.
+
+Moving the shipments and demands is the system **recording the consequence** — a shipment on
+a departed vehicle *is* in execution, and so is the demand it serves. That bookkeeping runs
+on the system's behalf, not the driver's.
+
+The alternative was to grant drivers write access to shipments and demands so the cascade
+would run under their own rights. That would have handed the narrowest role in the system a
+foothold on the demand register to make a side effect work — trading a real security
+boundary for an implementation convenience.
+
+:::
+
+The same pattern applies at every point where a driver's action has downstream effects.
+
+## Why Trips and Stops are hidden from the Driver menu
+
+`Operations → Trips` and `Operations → Stops` serve the **dispatcher's** full forms. The
+driver's simplified forms are served only from `My Work`.
+
+Hiding those two menu entries from the Driver group stops the two being confused. It is a
+convenience, **not** the security — the record rules are.
+
+## The one mistake that undoes all of this
+
+:::danger[Never add SCOP User to a driver]
+
+`SCOP User` grants read access across the whole operation. A driver who holds it can read
+every demand, every shipment and every plan in the company.
+
+The record rules still narrow their **trips**, but everything else opens up.
+
+If a driver "cannot see something they need", the answer is never to add SCOP User. Work out
+what they actually need and whether the job requires it.
+
+:::
+
+Two related mistakes worth naming:
+
+| Mistake | Consequence |
+| --- | --- |
+| Giving a driver Odoo **Inventory → User** | They can read every stock movement in the company |
+| Not linking the employee to the user account | The trip cannot be assigned, and **My Trips** stays empty |
+
+## Verifying the boundary
+
+Worth doing once per deployment, and after any permission change.
+
+| Test | Expect |
+| --- | --- |
+| Sign in as a driver | Only **My Work** under `SCOP` |
+| Open `My Trips` | Only their own trips |
+| Open another driver's trip by URL | Access error |
+| Look for `Operations → Demands` | Not present |
+| Reach a demand by URL | Access error |
+| Group **My Trips** by driver | Only themselves in the headers |
+| Check the trip count | Matches only their own |
+
+The last two matter: an access model that leaks through aggregates is not an access model.
+
+## Related Pages
+
+- [Driver Delivery](./driver-delivery.mdx)
+- [Permissions Reference](../roles/permissions-reference.mdx)
+- [Driver](../roles/driver.mdx)
+- [Drivers](../configuration/drivers.mdx)
+
+## Next
+
+[Proof of Delivery](./proof-of-delivery.mdx).

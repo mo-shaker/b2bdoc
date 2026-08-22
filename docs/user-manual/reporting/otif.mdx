@@ -1,0 +1,255 @@
+---
+id: otif
+title: OTIF
+description: On Time, In Full — exactly how each half is computed, where the commitment comes from, how timezones are handled, and why no-commitment records are never counted late.
+sidebar_label: OTIF
+sidebar_position: 6
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+import Screenshot from '@site/src/components/Screenshot';
+
+# OTIF
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Management', 'Operations', 'Planning', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="8 min"
+/>
+
+:::info[This is the canonical page for OTIF]
+
+Other chapters refer here rather than restating it.
+
+:::
+
+## Purpose
+
+**On Time, In Full.** Did the customer get everything they were promised, when they were
+promised it?
+
+## Audience
+
+Everyone. It is the headline service measure.
+
+## Navigate to
+
+`SCOP → Reporting → OTIF`
+
+## Filters
+
+:::warning[It opens filtered to records that have a commitment]
+
+That default is deliberate. Clear it and you will be averaging records that cannot be
+measured against a promise, because no promise was made.
+
+:::
+
+## Dimensions
+<Screenshot
+  src="user-manual/63-report-otif.png"
+  alt="The SCOP OTIF report showing demands with commitment window, local arrival hour, and the on-time, in-full and OTIF flags."
+  caption="OTIF on b2b, opened on its default commitment filter. Arrived (local) is the arrival converted into the destination's own timezone."
+/>
+
+
+| Dimension | Use |
+| --- | --- |
+| **Customer** | The default row dimension |
+| **Required Date** | The default column dimension |
+| **Destination** | Which node |
+| **Has Commitment** | **Group on this before averaging anything** |
+| **Commitment Type** | Date or window |
+| **Window Source** | Commitment · Location · None |
+
+## Measures
+
+| Measure | Meaning |
+| --- | --- |
+| **On Time** | The arrival met the commitment |
+| **In Full** | Nothing was left outstanding |
+| **OTIF** | Both |
+| **Has Commitment** | The denominator flag |
+| **Requested / Fulfilled / Remaining** | The quantities |
+| **Arrived (local)** | The arrival hour, in the **destination's own timezone** |
+
+## Which demands appear
+
+Only demands that have finished: **Completed**, **Partially Completed** or **Failed**.
+
+A demand still in execution has no arrival to measure, so it is not there. That is not a gap.
+
+## In Full
+
+The simpler half.
+
+```text
+In Full  =  nothing remaining
+```
+
+| Situation | In Full |
+| --- | --- |
+| Everything requested was delivered | **True** |
+| A short delivery, with a backorder outstanding | **False** |
+| Nothing delivered | **False** |
+| A partial delivery whose follow-up has since completed | **True** — nothing remains |
+
+It depends only on quantities, so it is measurable **even when there is no commitment**.
+
+## On Time
+
+Depends on what was promised, and it is computed differently for each kind of promise.
+
+### Where the commitment comes from
+
+Precedence, first match wins:
+
+| # | Source | Window Source shows |
+| --- | --- | --- |
+| 1 | A **service commitment** on the demand, valid for the required date | `commitment` |
+| 2 | A **mandatory opening window** on the destination node | `location` |
+| 3 | Neither | `none` |
+
+:::info[A promise outranks an opening time]
+
+A commitment is more specific than an opening hour, so it wins whenever one exists.
+
+→ [Service Commitments](../configuration/service-commitments.mdx)
+
+:::
+
+### A date commitment
+
+Scored on the **day**, not the clock. A date commitment has no promised hour, so there is
+none recorded — the window fields stay empty, which is the honest record.
+
+```text
+On Time  =  the arrival's local date  ≤  the promised date
+```
+
+Arriving on the promised day at any hour is on time. Arriving the day before is on time.
+
+### A window commitment
+
+Scored on the **hour**.
+
+```text
+On Time  =  the arrival's local hour  is between  Time From  and  Time To
+```
+
+### If there is no commitment
+
+```text
+On Time  =  false
+```
+
+:::danger[But "false" here does not mean "late"]
+
+A record with no commitment has **On Time false** because there is nothing it could be on
+time against — not because it arrived late.
+
+This is exactly why the report opens filtered to records that **have** a commitment, and why
+**Has Commitment** is the denominator flag.
+
+**Group on Has Commitment before averaging anything.** Otherwise you are averaging a
+denominator that changes shape.
+
+:::
+
+### If there is no arrival
+
+```text
+On Time  =  false
+```
+
+A demand that was never delivered is not on time. That one is straightforward.
+
+## Timezones
+
+:::warning[Every arrival is converted into the destination node's own timezone]
+
+Not the server's, not the reader's.
+
+A window of 08:00–12:00 means eight until noon **at the location**. Comparing a UTC timestamp
+against a local window would make the measure wrong by the offset for every location — and
+wrong by a different amount for each.
+
+This is why every planning node carries a required timezone.
+
+→ [Planning Nodes](../configuration/planning-nodes.mdx)
+
+:::
+
+**Arrived (local)** shows the converted hour, so you can check the comparison yourself.
+
+## How to read it
+
+<Screenshot
+  src="quick-start/42-report-otif.png"
+  alt="The SCOP OTIF report showing demands with their commitment window, arrival, and on-time, in-full and OTIF flags."
+  caption="One row per finished demand. The window and the local arrival hour are shown side by side."
+/>
+
+| Pattern | Reading |
+| --- | --- |
+| **In Full** high, **On Time** low | A scheduling problem. The goods exist; the timing is wrong |
+| **On Time** high, **In Full** low | A stock problem. You arrive well and deliver short |
+| Both falling together | Something upstream — readiness, or planning |
+| **OTIF** far below both | The two failures are hitting different deliveries |
+| Very few rows carry a commitment | The measure is thin. Fix the commitments before trusting it |
+
+## Example
+
+```text
+Customer                    Deliveries   On Time   In Full   OTIF
+SCOP Manual Demo Customer        8         88%       75%     63%
+```
+
+Reading: timing is good, quantity is not. Six of eight arrived within the promise, two were
+short. OTIF at 63% is lower than either half because the failures are on different
+deliveries — a delivery must be both to count.
+
+That is a **stock availability** conversation, not a planning one.
+
+## Common interpretation mistakes
+
+| Mistake | Why it is wrong |
+| --- | --- |
+| Clearing the commitment filter without grouping | You average measurable and unmeasurable records together |
+| Reading a no-commitment record as late | It is not late. It is not measured |
+| Expecting OTIF to equal On Time × In Full | It does not. A delivery must be both, on the same delivery |
+| Comparing periods across a timezone correction | A node whose timezone was wrong produces incomparable history |
+| Measuring from before go-live | There is no backfill. The first cycle is not comparable |
+| Assuming the backorder fixes On Time | It fixes **In Full**. The original arrival is still when it was |
+
+:::warning[A rising OTIF with a falling commitment count is not an improvement]
+
+If fewer deliveries carry commitments, fewer are measured — and the ones that remain may be
+the easy ones.
+
+Always read the **number of rows with a commitment** alongside the percentage.
+
+:::
+
+## Improving OTIF
+
+| Half | Levers |
+| --- | --- |
+| **On Time** | Node timezones and opening hours; realistic commitments; planning against the right windows; departure discipline |
+| **In Full** | Stock availability; readiness before planning; ownership resolved so demand is not held back |
+
+## Related Pages
+
+- [Service Commitments](../configuration/service-commitments.mdx)
+- [Partial Deliveries and Backorders](../execution/partial-deliveries-and-backorders.mdx)
+- [Planning Nodes](../configuration/planning-nodes.mdx)
+- [Plan Coverage](./plan-coverage.mdx)
+- [Reporting Problems](../troubleshooting/reporting-problems.mdx)
+
+## Next
+
+[Trip Planned vs Actual](./trip-planned-vs-actual.mdx).

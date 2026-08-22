@@ -1,0 +1,269 @@
+---
+id: demand-management
+title: Demand Management
+description: What a Demand is, what the list and form show, what its lines carry, and why a demand is not the same object as an Odoo transfer.
+sidebar_label: Demand Management
+sidebar_position: 1
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+import Screenshot from '@site/src/components/Screenshot';
+
+# Demand Management
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Operations', 'Planning', 'Warehouse', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="9 min"
+/>
+
+:::info[This is the canonical definition of a Demand]
+
+Other chapters refer here rather than restating it.
+
+:::
+
+**Role**
+Planner owns it. Everyone with a SCOP role can read it.
+
+**Navigate to**
+`SCOP → Operations → Demands`
+
+## What a Demand is
+
+A **Demand** is one business requirement to move goods: *this much of this product, from
+here to there, by this date, owned by this party.*
+
+It is deliberately separate from the paperwork behind it. The customer order is Odoo's
+record of a commercial agreement; the delivery order is Odoo's record of a warehouse
+transaction. The **demand** is SCOP's record of *what must move*, and it survives both.
+
+## Why it is not the same as a transfer
+
+There is **no one-to-one link** between a demand and an Odoo transfer.
+
+```text
+One transfer  →  may carry several demands
+One demand    →  may be fulfilled by several transfers
+                 (the original, plus every backorder)
+```
+
+The authoritative link is at **move level**. That is what makes a backorder attach itself
+to the demand it came from without anyone re-keying anything:
+
+:::info[A backorder is another fulfilment of the same demand, not a new one]
+
+If a demand were tied to a single transfer, every partial delivery would appear as a
+brand-new requirement, and the customer's original promise would be lost after the first
+short delivery.
+
+Because the link is at move level, `DMD-2026-000010` stays one requirement whether it
+takes one delivery or four.
+
+:::
+
+## Where a demand comes from
+
+You do not create one. A demand is generated **automatically** when Odoo creates a transfer
+whose operation type is inside the pilot scope.
+
+→ [How Demands Are Created](./how-demands-are-created.mdx)
+
+## The Demands list
+
+`SCOP → Operations → Demands`
+
+<Screenshot
+  src="quick-start/03-scop-demand-list.png"
+  alt="SCOP Demands list showing several demands with their required date, customer, destination, quantities, ownership flag and status badge."
+  caption="One row per demand. The Ownership column tells a planner which demands will refuse to validate — before they press the button and find out."
+/>
+
+| Column | Meaning |
+| --- | --- |
+| **Reference** | The business identifier, `DMD-2026-000010` |
+| **Required Date** | When the goods must be there |
+| **Requesting Party** | The party the movement is for |
+| **Destination Location** | The planning node it goes to |
+| **Demand Type** | Delivery · Collection · Transfer · Return · Inbound |
+| **Priority** | Low · Normal · High · Urgent |
+| **Requested / Fulfilled / Remaining** | Quantities, with column totals |
+| **Ownership** | Whether the owner is resolved on every line |
+| **Status** | The lifecycle state, as a badge |
+
+Two optional columns can be switched on: **Origin** (the node it comes from) and **Origin
+Type** (where the requirement came from).
+
+### Reading the colours
+
+| What you see | Meaning |
+| --- | --- |
+| **Red row** | Ownership unresolved, and the demand is past Draft. It cannot validate |
+| **Grey row** | Cancelled or Rejected |
+| **Green badge** | Completed |
+| **Amber badge** | Partially Completed |
+| **Red badge** | Failed |
+
+### The kanban board
+<Screenshot
+  src="user-manual/40-demand-form.png"
+  alt="A SCOP demand form showing the status bar, requirement and routing groups, and the Lines tab with owner and ownership source per line."
+  caption="DMD-2026-000012 on b2b, eligible for planning, with ownership resolved on every line."
+/>
+
+
+The card view groups by status by default, and shows **every** lifecycle column including
+the empty ones. Grouping the list by **Status** gives the same answer in table form.
+
+This is the fastest daily health check there is: anything piled up in **Submitted** or
+**Validated** is work waiting for someone.
+
+## The Demand form
+
+<Screenshot
+  src="quick-start/04-scop-demand-form.png"
+  alt="SCOP Demand form showing the status bar, requirement and routing fields, and the Lines tab with product, quantity and owner."
+  caption="The demand form. The status bar across the top is the lifecycle; the buttons beside it are the only way to move along it."
+/>
+
+### The header
+
+The status bar shows the lifecycle:
+
+```text
+Draft → Submitted → Validated → Eligible for Planning → Planned → Released → In Execution → Completed
+```
+
+**Rejected**, **Cancelled** and **Failed** are not on the bar because they are not steps on
+the way anywhere. The record still shows them once it reaches one.
+
+The buttons beside it offer only what is legal now — see
+[Demand Lifecycle](./demand-lifecycle.mdx).
+
+### The ownership banner
+
+If ownership is unresolved on any line, a warning appears at the **top** of the form, not
+buried in a tab:
+
+> Ownership is unresolved on at least one line. This demand stays visible and editable, but
+> it cannot pass validation until an owner is recorded — it is never defaulted to the
+> company.
+
+That placement is deliberate: an unresolved owner is the single most common reason a demand
+cannot move, and it is a legal problem rather than a tidiness one.
+
+→ [Inventory Ownership](../ownership/inventory-ownership.mdx)
+
+### Requirement
+
+| Field | Meaning | Editable |
+| --- | --- | --- |
+| **Requesting Party** | The party the movement is for | In Draft |
+| **Demand Type** | The kind of movement | In Draft |
+| **Origin Type** | Where the requirement came from | In Draft |
+| **Source Document** | The captured number of the order behind it, e.g. `S09520` | No — captured at generation |
+| **Source Document Link** | The technical reference to that record | Administrator only |
+| **Priority** | Low · Normal · High · Urgent | Yes |
+
+:::note[Source Document is a captured label, not a live link]
+
+The demand stores the source order's **number** when it is generated. Reading it needs no
+rights over the order — a planner sees `S09520` without holding any Sales permission, and
+gains none.
+
+The live **Source Document Link** is shown only to an Administrator, because rendering it
+makes the browser resolve the target record under the reader's own rights.
+
+:::
+
+### Route and Timing
+
+| Field | Meaning |
+| --- | --- |
+| **Origin** | The planning node the goods leave from |
+| **Destination** | The planning node they go to |
+| **Required Date** | When they must be there |
+| **Service Commitment** | What was promised to this party, if anything |
+
+Both endpoints must resolve to a [planning node](../configuration/planning-nodes.mdx), or
+the demand is never created in the first place.
+
+### The Transfers button
+
+The stat button at the top right shows how many Odoo transfers are fulfilling this demand,
+and opens them. It is the fastest way to cross from SCOP into Odoo.
+
+A count above one is normal and expected — it means backorders.
+
+## Demand lines
+
+The **Lines** tab is where the substance is. One line per product.
+
+| Field | Meaning | Source |
+| --- | --- | --- |
+| **Product** | What must move | The Odoo move |
+| **Unit of Measure** | How it is counted | The product |
+| **Requested** | How much was asked for | The Odoo move |
+| **Fulfilled** | How much has actually moved | **Read from validated Odoo transfers** |
+| **Remaining** | Requested minus fulfilled | Computed |
+| **Owner** | Who owns these goods | **Derived**, never defaulted |
+| **Ownership Source** | How the owner was established | Derived |
+| **Lot** and **Expiry** | Where tracked | Optional columns |
+
+:::warning[Fulfilled quantity is never typed]
+
+**Fulfilled** is read back from validated Odoo transfers. There is no place in SCOP where
+anyone enters how much was delivered.
+
+→ [Odoo Delivery Validation](../execution/odoo-delivery-validation.mdx)
+
+:::
+
+Ownership is resolved **per line**, not per demand, because one requirement can legitimately
+mix company-owned and customer-owned goods.
+
+## The other tabs
+
+| Tab | Shows | Notes |
+| --- | --- | --- |
+| **Allocations** | The specific stock reserved — location, lot, owner, quantity | Read-only. Refreshed on Validate and Mark Eligible |
+| **Shipments** | The shipment or shipments carrying this demand | A consolidated shipment may carry several demands |
+| **Follow-Up and Returns** | The demand chain, the return sub-cycle, and outcome reasons | See [Demand Completion](./demand-completion.mdx) |
+| **Technical** | Correlation reference, company, archive flag | Administrator only |
+
+### The Follow-Up and Returns tab
+
+| Group | Field | Meaning |
+| --- | --- | --- |
+| Chain | **Parent Demand** | The demand this one follows up |
+| Chain | **Is Follow-Up** | Whether this demand exists because an earlier one was short |
+| Chain | **Root Demand** | The original requirement at the head of the chain |
+| Chain | **Split From** | Where the demand was split rather than followed up |
+| Return | **Return Status**, **Return Reason**, **Disposition** | Only for return demands |
+| Outcome | **Rejection Reason**, **Unplanned Reason**, **Next Action** | Why it was rejected, or not planned |
+
+## Who can do what
+
+| Action | Role |
+| --- | --- |
+| Read a demand | Any SCOP role except Driver |
+| Validate, Mark Eligible, Resolve Ownership, Reject, Cancel, Replan | **Planner** |
+| Delete a demand | **Administrator** |
+| See it at all | **Not a Driver** — see [Driver Security Model](../execution/driver-security-model.mdx) |
+
+## Related Pages
+
+- [How Demands Are Created](./how-demands-are-created.mdx)
+- [Demand Lifecycle](./demand-lifecycle.mdx)
+- [Planning Eligibility](./planning-eligibility.mdx)
+- [Demand Completion](./demand-completion.mdx)
+- [Inventory Ownership](../ownership/inventory-ownership.mdx)
+- [Demand Diagnostics](./demand-diagnostics.mdx)
+
+## Next
+
+[How Demands Are Created](./how-demands-are-created.mdx).

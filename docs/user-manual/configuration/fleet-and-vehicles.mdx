@@ -1,0 +1,256 @@
+---
+id: fleet-and-vehicles
+title: Fleet and Vehicles
+description: The SCOP attributes on a vehicle — capacity, availability, cost rates, compartments and restrictions — and how a vehicle is held for a trip.
+sidebar_label: Fleet and Vehicles
+sidebar_position: 4
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+import Screenshot from '@site/src/components/Screenshot';
+
+# Fleet and Vehicles
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Planning', 'Operations', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="7 min"
+/>
+
+**Role**
+Planner maintains availability. Administrator maintains the rest.
+
+**Navigate to**
+Odoo **Fleet → Vehicles**, then the SCOP fields; plus
+`SCOP → Master Data → Vehicle Availability`
+
+:::note[This is not a general Odoo Fleet manual]
+
+Only the attributes SCOP adds and uses are covered. Registration, maintenance, contracts and
+odometer readings are Odoo Fleet's own subject.
+
+:::
+
+## The one field that stops planning
+
+:::danger[A vehicle with no capacity profile cannot be used]
+
+The planning provider filters to vehicles that declare a **capacity profile**. A vehicle
+without one is invisible to planning.
+
+If **every** demand in a run comes back with *No feasible vehicle*, the usual cause is not a
+fleet shortage. It is that no selected vehicle has a capacity profile.
+
+:::
+
+## The SCOP attributes on a vehicle
+
+| Field | Meaning |
+| --- | --- |
+| **Capacity Profile** | The dimensions this vehicle is measured in, and its limits |
+| **Compartments** | Separately-loaded sections, each with its own profile |
+| **Restrictions** | Where and when it may not go |
+| **Availability** | When it can be used |
+| **Home Location** | The planning node it starts and ends at |
+| **Average Speed (km/h)** | Used for travel estimates |
+| **Handling Capabilities** | What it can carry — tail lift, refrigeration |
+| **Cost per km**, **Cost per hour**, **Fixed cost per trip** | Planning cost estimates |
+| **Cost Rate Version** | Which version of the rates applies |
+| **Planning Ready** | Whether the vehicle has what planning needs |
+
+**Planning Ready** is the fastest single check. If it is false, planning will not use the
+vehicle.
+
+## Capacity profiles
+
+`SCOP → Master Data → Capacity Profiles`
+
+A capacity profile names the **dimensions** a vehicle is measured in and the limit in each.
+
+| Typical dimension | Unit |
+| --- | --- |
+| Weight | kg |
+| Volume | m³ |
+
+Capacity is validated at **every point of the stop sequence**, not only at departure —
+because a mixed pickup-and-delivery trip changes load after each stop.
+
+→ [Trips](../execution/trips.mdx)
+
+## Compartments
+
+A vehicle with separately-loaded sections — a chilled compartment and an ambient one, for
+example — declares each as a compartment with its own capacity profile and handling
+capabilities.
+
+| Field | Meaning |
+| --- | --- |
+| **Name** | The compartment |
+| **Sequence** | Loading order |
+| **Capacity Profile** | Its own limits |
+| **Handling Capabilities** | What it can carry |
+
+## Restrictions
+
+Where and when a vehicle may not go.
+
+| Restriction Type | Example |
+| --- | --- |
+| **Zone** | Not permitted in the city centre |
+| **Time of day** | No night deliveries |
+| **Legal** | A regulatory restriction |
+| **Load type** | Cannot carry a class of goods |
+
+Each carries a **Valid From** and **Valid To**, so a temporary restriction expires by itself.
+
+A demand that no unrestricted vehicle can serve comes back unplanned with *Route
+restriction*.
+
+## Vehicle availability
+
+`SCOP → Master Data → Vehicle Availability` *(Planner)*
+
+| Field | Meaning |
+| --- | --- |
+| **Vehicle** | Which one |
+| **From** / **To** | The period |
+| **Availability Type** | Available · Maintenance · Blocked |
+| **Reason** | Why |
+
+Planning uses only vehicles that are **Available** for the window it is planning.
+
+:::note[Record maintenance before planning, not after]
+
+A vehicle booked into the workshop next Tuesday must be recorded as unavailable **before**
+Tuesday's plan is generated. Planning has no way to know otherwise.
+
+:::
+
+## Cost rates
+
+| Field | Used for |
+| --- | --- |
+| **Cost per km** | Distance-based cost |
+| **Cost per hour** | Time-based cost |
+| **Fixed cost per trip** | A per-journey charge |
+| **Cost Rate Version** | Recorded on the trip, so a past estimate stays explainable |
+
+:::warning[Cost rates are operational estimates, not accounting figures]
+
+They exist so two plans can be compared. Nothing reconciles them to the ledger, and they
+must never be quoted as a cost of sale.
+
+→ [Release 1 Scope](../about/release-1-scope.mdx)
+
+:::
+
+The trip's **Estimate Cost** button computes a planned cost from these and records which
+version was used.
+
+## Resource assignments — how a vehicle is held
+<Screenshot
+  src="user-manual/10-resource-assignments.png"
+  alt="The SCOP Resource Assignments list showing vehicles and drivers held for trips with their assignment state."
+  caption="Only committed assignments are mutually exclusive."
+/>
+
+
+`SCOP → Operations → Resource Assignments` *(Planner)*
+
+An assignment holds a vehicle or a driver for a trip, over a window.
+
+| State | Meaning |
+| --- | --- |
+| **Candidate** | Being considered |
+| **Reserved** | The plan was released. The resource is held |
+| **Committed** | The trip was released. An operational commitment |
+| **Closed** | The trip finished |
+| **Cancelled** | The trip was cancelled |
+
+:::info[Two plans may evaluate the same vehicle. Only one may commit it]
+
+Distinguishing candidate from reserved from committed is what lets competing plans consider
+the same vehicle — which is what planning *is* — while keeping operational commitments
+mutually exclusive.
+
+:::
+
+Assignments are created when the trip is **released**, not when it is drafted. An unreleased
+trip holds nothing, and rows for candidates that never fly would make the conflict view
+unreadable.
+
+:::warning[A trip with no planned window cannot hold its resources]
+
+Releasing such a trip is refused. Set the planned start and end first.
+
+:::
+
+### Double booking
+
+Two committed assignments on the same vehicle over the same window is a conflict. Read the
+list grouped by vehicle to spot it.
+
+## Handling and compatibility
+
+| Catalogue | Purpose |
+| --- | --- |
+| **Handling Profiles** | How a product must be handled — refrigerated, fragile |
+| **Compatibility Groups** | What may not travel together |
+
+A vehicle's **Handling Capabilities** must cover what a shipment needs, or the demand comes
+back unplanned.
+
+→ [Catalogues](./catalogues.mdx)
+
+## Setting up a vehicle for SCOP — the checklist
+
+| # | Set | Or else |
+| --- | --- | --- |
+| 1 | **Capacity Profile** | Planning cannot use it at all |
+| 2 | **Home Location** | Routes have no start point |
+| 3 | **Average Speed** | Travel estimates are wrong |
+| 4 | **Handling Capabilities** | It will not be offered work it could do |
+| 5 | **Cost rates** | Cost estimates are empty |
+| 6 | **Availability** | It will be planned when it is in the workshop |
+| 7 | **Restrictions**, where they apply | It will be sent where it may not go |
+
+Then confirm **Planning Ready** is true.
+
+## Verify
+
+| Check | Where | Expect |
+| --- | --- | --- |
+| The vehicle is planning-ready | The vehicle's SCOP fields | **Planning Ready** true |
+| It appears in the wizard | `Planning → Generate a Plan` | In **Available Vehicles** |
+| Its capacity is respected | The trip's **Capacity** tab | Feasible at every point |
+| It is held for its trip | `Operations → Resource Assignments` | **Committed** |
+| Utilisation is sensible | [Vehicle Utilization](../reporting/vehicle-utilization.mdx) | A reasonable peak |
+
+## If it does not work
+
+| Symptom | Cause |
+| --- | --- |
+| `Access Error` on `Vehicle` when planning | The planner lacks Odoo **Fleet → Administrator** |
+| The vehicle is not offered | No capacity profile, or it is not available for that window |
+| Every demand comes back *No feasible vehicle* | No selected vehicle has a capacity profile |
+| Demands come back *Route restriction* | A restriction excludes every candidate |
+| The trip is not capacity-feasible | `BR-RTE-001` — read **First Breach Sequence** |
+| A utilisation warning on every trip | `BR-RTE-002` — a fleet-sizing signal, not an error |
+| One vehicle on two trips at once | Check assignment states — only **committed** is exclusive |
+| Cost estimates are empty | No cost rates on the vehicle |
+
+## Related Pages
+
+- [Drivers](./drivers.mdx)
+- [Catalogues](./catalogues.mdx)
+- [Trips](../execution/trips.mdx)
+- [Vehicle Utilization](../reporting/vehicle-utilization.mdx)
+- [No Feasible Vehicle](../scenarios/no-feasible-vehicle-scenario.mdx)
+
+## Next
+
+[Drivers](./drivers.mdx).

@@ -1,0 +1,189 @@
+---
+id: the-physical-visit
+title: The Physical Visit
+description: Why a Stop is one arrival rather than one customer, exactly what keeps two requirements apart, and how traceability survives a shared visit.
+sidebar_label: The Physical Visit
+sidebar_position: 3
+---
+
+import DocumentInfo from '@site/src/components/DocumentInfo';
+
+# The Physical Visit
+
+<DocumentInfo
+  category="User Manual"
+  audience={['Planning', 'Operations', 'Driver', 'UAT']}
+  status="Draft"
+  version="1.0"
+  owner="Product Team"
+  updated="August 2026"
+  readingTime="6 min"
+/>
+
+**Role**
+Planner reads it. Driver experiences it.
+
+## The idea
+
+A **Stop** is one **physical arrival**: one drive up to the door, one service period, one
+departure, one proof of delivery.
+
+It is *not* "one customer" and *not* "one order".
+
+```text
+Multiple compatible Demands
+    → one Shipment
+        → one physical delivery Stop
+```
+
+If arriving once can genuinely satisfy two requirements, they share a stop. If it cannot,
+they do not.
+
+## What makes two requirements the same visit
+
+Four things must match. All four.
+
+| # | Must match | A difference means |
+| --- | --- | --- |
+| 1 | **The planning node** | A different branch is a different place. Two orders for one commercial customer at two branches are two stops |
+| 2 | **The activity** | A pickup is not a delivery, even at the same address |
+| 3 | **The required date** | Two dates cannot be served by one arrival |
+| 4 | **The effective time window** | Two different promises cannot both be kept by arriving once |
+
+:::info[The window is the promise, not the opening hours]
+
+The **effective window** is the same precedence planning itself uses: a
+[service commitment](../configuration/service-commitments.mdx) outranks the location's own
+opening hours.
+
+So two orders to the same branch on the same day are still two stops if one was promised for
+the morning and the other for the afternoon. Merging them would silently break one promise.
+
+:::
+
+## What a merged visit looks like
+
+When requirements merge:
+
+| Property | Behaviour |
+| --- | --- |
+| **Position in the route** | The merged stop sits where its **earliest** member sat |
+| **Arrival** | The vehicle waits for the **earliest** promise |
+| **Departure** | It leaves after the **last** requirement is served |
+| **Service duration** | Asked of the **node**, for the combined line count |
+
+:::note[Service duration is not the sum of the parts]
+
+Adding the members' own service figures would charge the node's fixed set-up time once per
+requirement — a merged visit would look **longer** than the two separate visits it replaced,
+which is the opposite of the truth.
+
+The node's own service model is asked instead, with the number of lines the visit really
+carries.
+
+:::
+
+## Traceability inside a shared stop
+
+A shared stop does **not** merge the demands into one fulfilment record.
+
+```text
+One physical Stop
+  → multiple delivery lines
+    → each line still traceable to its own Demand
+      → and its own Odoo transfer
+```
+
+This is what makes mixed outcomes possible, and correct:
+
+| Within one arrival | Outcome |
+| --- | --- |
+| `Demand A` — its transfer validated in full | **Completed** |
+| `Demand B` — its transfer validated short, backorder created | **Partially Completed** |
+
+**One stop outcome does not force every demand into the same fulfilment state.**
+
+→ [Partial Deliveries and Backorders](../execution/partial-deliveries-and-backorders.mdx)
+
+## The stop's own outcome
+
+The stop itself also carries an outcome, which describes the **visit**, not each requirement.
+
+| Outcome | Meaning |
+| --- | --- |
+| **Completed** | The visit did what it came to do |
+| **Partially Completed** | Some of the work was done |
+| **Failed** | The visit achieved nothing. **A reason is required** |
+| **Skipped** | The visit was not attempted. **A reason is required** |
+| **Rescheduled** | Moved to another occasion |
+
+## Why not just make one stop per demand?
+
+Because it would be a lie about the physical world.
+
+| One stop per demand would mean | Reality |
+| --- | --- |
+| Two arrivals recorded at one door | The driver arrived once |
+| Two service periods | One service period |
+| Two proofs of delivery | One signature |
+| Double-counted service time | The route estimate would be wrong |
+| The driver ticking the same visit twice | Confusing and error-prone |
+
+## Why not merge everything at one address?
+
+Because that would silently break promises.
+
+| Merging by address would mean | Reality |
+| --- | --- |
+| A morning promise and an afternoon promise served together | One of them is broken |
+| A pickup folded into a delivery | Two different jobs |
+| Tomorrow's requirement served today | A different day's work |
+
+The four-part key is the smallest set that gets both right.
+
+## What the driver sees
+
+One card in **My Stops**, with all the lines for that arrival.
+
+They confirm arrival once, start service once, and record one outcome. The system splits the
+result back across the demands afterwards, using each line's own transfer.
+
+→ [Driver Delivery](../execution/driver-delivery.mdx)
+
+## Verify
+
+| Check | Where | Expect |
+| --- | --- | --- |
+| Two demands, same branch and date | `Operations → Demands` | Both **Eligible for Planning** |
+| One shipment | `Operations → Shipments` | Combined weight |
+| One customer stop | The trip's **Stops** tab | Warehouse pickup plus **one** delivery stop |
+| Lines for both demands | The stop's **Quantities** tab | A line traceable to each demand |
+
+## If two stops appeared where you expected one
+
+| Check | Difference |
+| --- | --- |
+| The destination node | Different branch |
+| The activity | One is a pickup |
+| The required date | Different day |
+| The service commitment | Different promised window |
+
+Any one of those correctly keeps the stops apart.
+
+## If one stop appeared where you expected two
+
+That is consolidation working. Check that the stop's lines cover both demands — they will.
+
+If the two genuinely must be separate visits, give them different required dates or record
+different service commitments.
+
+## Related Pages
+
+- [Formation and Consolidation](./formation-and-consolidation.mdx)
+- [Stops](../execution/stops.mdx)
+- [Service Commitments](../configuration/service-commitments.mdx)
+- [Two Orders, One Visit](../scenarios/two-orders-one-visit.mdx)
+
+## Next
+
+[Warehouse Readiness](../readiness/warehouse-readiness.mdx).
