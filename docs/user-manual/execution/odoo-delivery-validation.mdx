@@ -108,6 +108,41 @@ their goods.
 
 :::
 
+
+:::danger[Verified defect — the projection fails when the **warehouse** validates]
+
+SCOP reads the quantities back correctly, but the step that advances the **demand's state**
+raises an access error whenever the acting user holds the **Warehouse** role — which is
+precisely who this page tells to press Validate.
+
+The Warehouse role has **read but not write** on `scop.demand`. Generation is non-blocking,
+so the error is swallowed into `Reporting → Failed Projections` and the transfer saves anyway:
+
+```text
+PickingDone   failed   You are not allowed to modify 'SCOP Demand' (scop.demand) records.
+```
+
+On `b2b` that is **13 failed projections against 13 processed**.
+
+**Why it is easy to miss.** **Fulfilled** and **Actual Qty** are computed from the Odoo moves,
+so the numbers are right. Only the demand's **state** is stuck at **In Execution**.
+
+A transfer the warehouse **creates** fails the same way — `DemandGenerated` raises, and **no
+demand appears at all**. There is no `DemandGenerationSkipped` row either, so it does not look
+like a missing planning node.
+
+**Until it is fixed**
+
+| Who | Does what |
+| --- | --- |
+| Anyone | Read `Reporting → Failed Projections` daily during the pilot |
+| **Administrator** | Presses **Retry**. Retry needs SCOP/Administrator — nobody below can clear the queue |
+| Planner | Can advance a stuck demand directly, which works |
+
+→ [Data Quality Reports](../reporting/data-quality-reports.mdx)
+
+:::
+
 ## What SCOP does with it
 
 | Reads onto | Field |

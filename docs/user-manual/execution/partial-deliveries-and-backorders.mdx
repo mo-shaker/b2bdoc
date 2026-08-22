@@ -42,26 +42,24 @@ All three are decided by the quantity on the validated transfer. Nobody chooses.
 | 3 | Odoo | Odoo | Creates a **backorder** for the remainder |
 | 4 | SCOP | — | Reads the actual quantity onto the stop line and the demand line |
 | 5 | SCOP | — | Derives the outcome: **Partially Completed** |
-| 6 | SCOP | — | *Should* create a **follow-up demand** for the remainder — **does not in Release 1** |
+| 6 | SCOP | — | No follow-up demand is created. **The Odoo backorder carries the remainder** on the same demand |
 | 7 | Driver | The stop | Presses **Delivered**. `BR-EXE-001` asks for a reason |
 | 8 | Planner | Next planning run | Plans the follow-up |
 
 
-:::danger[Verified defect — the follow-up demand is not created]
+:::warning[Two verified findings — read both]
 
-Reproduced on `b2b`, on both a partial delivery and a total failure. A demand that is not
-**fully** fulfilled never leaves **In Execution**, and **no follow-up demand is created** —
-there is not one record with **Is Follow-Up** set anywhere in the database.
+**1 · No follow-up demand is created.** There is not one record with **Is Follow-Up** set
+anywhere on `b2b`. For a partial delivery that costs nothing: the Odoo **backorder** carries
+the remainder against the *same* demand, and validating it completes the original. Verified
+end to end — 6 of 10, then 4, then **Completed** across two transfers.
 
-Everything up to that point works: Odoo raises the backorder, SCOP reads the actual quantity
-back on its own, and the stop and trip both close **Partially Completed**. Only the demand
-does not move, and nothing raises the remainder.
+**2 · The demand does not advance when a Warehouse user validates.** The Warehouse role has
+read but not write on `scop.demand`, so the projection fails into
+`Reporting → Failed Projections` while the transfer saves anyway. Quantities still appear —
+only the **state** is stuck.
 
-**Until it is fixed:** after every trip closes, read `Operations → Demands` filtered to
-**In Execution**. Any row whose trip has finished is a remaining requirement that has to be
-raised by hand.
-
-→ [Demand Completion](../demand/demand-completion.mdx) carries the full finding.
+→ [Demand Completion](../demand/demand-completion.mdx) carries both findings in full.
 
 :::
 
@@ -72,7 +70,7 @@ Two things are created, in two different systems, and they are not the same thin
 | | Created by | Represents |
 | --- | --- | --- |
 | **Backorder** | **Odoo** | The remaining stock movement |
-| **Follow-up demand** | **SCOP** | The remaining business requirement. **Not created in Release 1** |
+| **Follow-up demand** | **SCOP** | The remaining business requirement. **Never created** — the backorder does this job |
 
 :::info[The original demand is not replaced]
 

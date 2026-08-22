@@ -119,6 +119,21 @@ Until you validate the transfer, the stop's actual quantities are zero, and the 
 
 Full workflow: [Odoo Delivery Validation](../execution/odoo-delivery-validation.mdx).
 
+:::danger[Verified defect — your validations do not advance the demand]
+
+Your role has **read but not write** on `scop.demand`, so every transfer you validate leaves
+its demand stuck at **In Execution**, and every transfer you **create** produces no demand at
+all. The quantities look right, because they are computed from the Odoo moves.
+
+Nothing on screen tells you. The failures land in `Reporting → Failed Projections`, and only
+an Administrator can retry them.
+
+**Ask your Administrator to check that screen daily during the pilot.**
+
+→ [Odoo Delivery Validation](../execution/odoo-delivery-validation.mdx)
+
+:::
+
 ## What you may not do
 
 | Not permitted | Who does it |

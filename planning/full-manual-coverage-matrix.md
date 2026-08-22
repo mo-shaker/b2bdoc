@@ -467,58 +467,113 @@ Recorded, not written around, per the brief.
 | 1 | Low | **Compute Capacity** is offered to users who cannot use it — creating `scop.trip.capacity.snapshot` is SCOP/Administrator-only |
 | 2 | Cosmetic | `Capacity Feasible` reads `false` when capacity has merely never been computed. Distinguish by `First Breach Sequence = 0` with zero peaks |
 | 3 | High | Third-party ACL `stock_return_approval.user` grants **every internal user** RWCU on `stock.picking`. A Driver can list 21,181 transfer headers with customer names and dates. **Not SCOP's** — SCOP grants the Driver group nothing there, and `stock.move` stays protected. The fix is narrowing that module's ACL |
-| 4 | **High** | **No follow-up demand is ever created, and a demand that is not fully fulfilled never leaves `in_execution`** — see below |
+| 4 | **Blocker** | **Every SCOP projection triggered by the Warehouse role fails on an access error** — see below |
+| 5 | Medium | The specification's *"follow-up demand created"* side effect is not implemented. For a partial delivery the Odoo backorder carries the remainder on the **same** demand, which works; for a **total failure** nothing carries it |
 
-### Defect 4 — the follow-up demand is never created
+### Defect 4 — the Warehouse role cannot drive the demand it is told to drive
 
-**Expected**, from `scop_base/data/state_machines.json`:
+**Severity Blocker.** It breaks the manual's central instruction: *"the warehouse validates
+the transfer in Odoo, and SCOP reads the result."*
 
-| Transition | Promised side effect |
+**Expected.** Validating a transfer runs `stock.picking._scop_after_done`, which calls
+`demand.action_record_execution()` and advances the demand. Creating a transfer runs
+`_scop_generate_demand`.
+
+**Actual.** Both fail whenever the acting user is the **Warehouse** role.
+
+| Model | Warehouse rights |
 | --- | --- |
-| trip `in_progress → partially_completed` | *"follow-up demand created per failed line"* |
-| demand `in_execution → partially_completed` | *"follow-up demand created"* |
-| demand `in_execution → failed` | *"follow-up demand created"* |
+| `stock.picking` | read · write · create |
+| `scop.shipment`, `scop.shipment.line` | read · write |
+| `scop.warehouse.readiness`, `scop.loading.task` | read · write · create |
+| **`scop.demand`** | **read only — no write, no create** |
 
-**Actual.** None of the three fires.
+`_scop_after_done` and `_scop_generate_demand` touch `scop.demand` **without `sudo()`**, unlike
+`scop.trip._scop_cascade_complete`, which does use it. So the projection raises, the
+non-blocking guard swallows it into `scop.event.log`, and the transfer saves anyway.
 
-- `scop.trip._scop_cascade_complete` advances a demand only when
-  `qty_fulfilled > 0 and qty_remaining <= 0` — that is, **only complete fulfilment**. A demand
-  that is short, or that received nothing, is never moved.
-- Nothing anywhere writes `parent_demand_id`. The field, `root_demand_id`, `is_follow_up` and
-  the **Follow-Up and Returns** tab all exist and are all only ever read.
-- `scop.demand` has **0** records with `is_follow_up` set, across the whole database.
+**Verbatim, from `Reporting → Failed Projections`:**
 
-**Reproduction** — two independent paths, both on `b2b`:
+```text
+PickingDone      failed   stock.picking,21300
+You are not allowed to modify 'SCOP Demand' (scop.demand) records.
 
-| Path | Steps | Result |
+DemandGenerated  failed   stock.picking,21305
+You are not allowed to create 'SCOP Demand' (scop.demand) records.
+```
+
+**Scale on `b2b`:** **13 failed against 13 processed** — half the event log. Ten `PickingDone`
+and three `DemandGenerated`.
+
+**Two visible consequences**
+
+| What the user sees | Why |
+| --- | --- |
+| A transfer the **warehouse** creates produces **no demand at all** | `DemandGenerated` failed. There is no `DemandGenerationSkipped` row either, so it does not look like a missing node |
+| A validated transfer leaves its demand at **In Execution** | `PickingDone` failed. Quantities *do* appear, because `qty_fulfilled` is computed from the moves — only the **state** is stuck |
+
+That second one is the trap: the demand shows the right numbers, so nothing looks wrong.
+
+**Proof the logic itself is sound.** Calling the same method as a role that *can* write
+`scop.demand` moved both demands immediately and correctly:
+
+| Demand | Fulfilled | Before | After `action_record_execution` |
+| --- | --- | --- | --- |
+| `DMD-2026-000010` | 6 of 10 | `in_execution` | **`partially_completed`** |
+| `DMD-2026-000013` | 0 of 5 | `in_execution` | **`failed`** |
+
+So this is an access-rights defect, not a state-machine one.
+
+**Reproduction**
+
+| # | Step | Result |
 | --- | --- | --- |
-| Total failure | Stop 14 (Branch B) failed with *Customer location closed*; `TRP-2026-000006` closed **partially_completed** | `DMD-2026-000013` stayed `in_execution`, remaining 5.0, no follow-up. Cancelling its transfer `QSD/OUT/00014` changed nothing |
-| Partial delivery | `QSD/OUT/00010` validated 6 of 10; backorder raised; stop closed with a reason; `TRP-2026-000005` closed **partially_completed** | `DMD-2026-000010` stayed `in_execution`, fulfilled 6.0 / remaining 4.0, no follow-up |
+| 1 | As `qs.warehouse`, create a delivery transfer and confirm it | No demand. A **failed** `DemandGenerated` row |
+| 2 | As `qs.warehouse`, validate a transfer behind an existing demand | Quantities read back; demand stays `in_execution`. A **failed** `PickingDone` row |
+| 3 | As `qs.planner`, call `action_record_execution` on that demand | It advances correctly |
 
-A third instance predates this session: `TRP-2026-000002` closed partially_completed and left
-`DMD-2026-000004` and `DMD-2026-000005` at `in_execution` with nothing delivered.
+**Fix.** Run both projections under `sudo()`, as `_scop_cascade_complete` already does — the
+warehouse is not being granted authority over demand, the *system* is doing the projection.
 
-**Perfect correlation observed:** every demand whose Odoo transfer is `done` reached
-`completed`; every demand whose transfer is `assigned` or `cancel` is stuck at `in_execution`.
+**Recovery today.** `Reporting → Failed Projections` → **Retry**, which needs
+**SCOP/Administrator**. Nobody below that can clear the queue.
 
-**Affected roles** Planner, Operations Manager, Customer Service.
+**Affected chapters** Odoo Delivery Validation · Demand Completion · Warehouse · Partial
+Deliveries and Backorders · Failed Delivery · Data Quality Reports · Demand Problems.
 
-**Affected chapters** Demand Completion · Demand Lifecycle · Partial Deliveries and Backorders ·
-Failed Delivery · Trip Lifecycle · Status Glossary · Lifecycle Reference · both affected
-scenarios · Demand Problems.
+### Defect 5 — no follow-up demand is created
 
-**Consequences**
+**Expected**, from `scop_base/data/state_machines.json`: *"follow-up demand created"*, on the
+trip's `in_progress → partially_completed` and on the demand's `in_execution → partially_completed`
+and `→ failed`.
 
-| | |
+**Actual.** Nothing anywhere writes `parent_demand_id`. `scop.demand` has **0** records with
+`is_follow_up` set. The field, `root_demand_id`, `is_follow_up` and the **Follow-Up and
+Returns** tab all exist and are only ever read.
+
+**But the partial case does not need one, and works.** The code treats the Odoo **backorder**
+as the continuation of the *same* demand — its own comment on `partially_completed → completed`
+says so. Verified end to end on `b2b`:
+
+| Step | `DMD-2026-000010` |
 | --- | --- |
-| The customer's remaining requirement is **silently lost** | Nobody is told to re-raise it |
-| Those demands never reach a finished state | So they never appear in [OTIF](../docs/user-manual/reporting/otif.mdx) at all — the measure is quietly narrowed to deliveries that went well |
-| `partially_completed → completed` is unreachable | Its trigger is *"follow-up fulfils remainder"*, and no follow-up exists |
-| Plan Coverage is unaffected | Those demands are not eligible, so they are not offered |
+| `QSD/OUT/00010` validated 6 of 10 | `partially_completed`, remaining 4 |
+| Odoo raised backorder `QSD/OUT/00017` | — |
+| Backorder validated for 4 | **`completed`**, fulfilled 10 of 10, **2 transfers** |
 
-**Operational workaround until it is fixed.** Watch
-`Operations → Demands` filtered to **In Execution** after every trip closes. Any row there
-whose trip has finished is a remaining requirement that must be raised by hand.
+The original demand was never replaced, so OTIF still measures the original promise. That is
+the documented design working — with **no child demand involved**.
 
-**Documentation response.** The manual states the behaviour as designed *and* carries this
-finding beside it, in English and Arabic, rather than describing a follow-up nobody will see.
+**The real gap is total failure.** `DMD-2026-000013` is `failed`, terminal, with 5.0 remaining
+and its transfer cancelled. There is no backorder, and no follow-up. **Nothing carries that
+requirement**, and nobody is told.
+
+**Severity Medium**, not High: the common partial case is covered by the backorder. Only a
+complete failure loses the requirement.
+
+**Operational workaround.** After a failed delivery, raise the replacement demand by hand.
+`Operations → Demands` filtered to **Failed** with remaining quantity is the list to work.
+
+**Documentation response.** The manual describes the backorder mechanism as what actually
+carries a partial remainder, and states plainly that a total failure leaves nothing behind —
+rather than promising a follow-up demand that is never created.

@@ -64,6 +64,7 @@ The cost of that guarantee is that failures are **quiet at the moment they happe
 | Empty | Nothing failed | Nothing |
 | A few, all the same error | One systematic cause | Fix it, re-save the transfers |
 | Rising attempt counts | Something is retrying and still failing | Fix the cause |
+| Many `PickingDone` / `DemandGenerated` rows, all access errors | **Known defect** — the Warehouse role cannot write `scop.demand` | Retry as Administrator; see [Odoo Delivery Validation](../execution/odoo-delivery-validation.mdx) |
 | Various errors | Investigate individually | — |
 
 ### Example

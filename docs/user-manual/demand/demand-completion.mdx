@@ -74,36 +74,45 @@ When a delivery is short:
 | 1 | The warehouse validates the transfer with the quantity that actually moved | **Odoo** |
 | 2 | Odoo creates a **backorder** for the remainder | **Odoo** |
 | 3 | The stop outcome becomes **Partially Completed** | SCOP |
-| 4 | The demand *should* become **Partially Completed** | SCOP — **does not happen in Release 1** |
-| 5 | A **follow-up demand** *should* be created for the remainder | SCOP — **does not happen in Release 1** |
+| 4 | The demand becomes **Partially Completed** | SCOP — **fails when a Warehouse user validates**, see below |
+| 5 | A **follow-up demand** *should* be created for the remainder | SCOP — **never created**. The backorder carries the remainder instead |
 
-:::danger[Verified defect — steps 4 and 5 do not happen]
+:::danger[Verified defect — the demand does not advance when the **warehouse** validates]
 
-Reproduced on `b2b`. A demand that is **not fully** fulfilled never leaves **In Execution**,
-and **no follow-up demand is created** — there is not one record with **Is Follow-Up** set
-anywhere in the database.
+Steps 4 and 5 are correct as designed, and step 4 works — **but not when a Warehouse user
+presses Validate**, which is exactly who the manual tells to press it.
 
-`QSD/OUT/00010` was validated at 6 of 10. Odoo raised the backorder, SCOP read the 6.0 back
-onto the stop and demand lines, the stop closed **Partially Completed**, and the trip closed
-**Partially Completed** — and `DMD-2026-000010` is still **In Execution** with 4.0 remaining
-and no child demand.
+The Warehouse role has **read but not write** on `scop.demand`, so the projection that
+advances the demand raises an access error. Generation is non-blocking, so the error is
+swallowed into `Reporting → Failed Projections` and the transfer saves anyway:
 
-The same happens on a total failure: `DMD-2026-000013` behind a failed stop is still
-**In Execution** with nothing delivered, and cancelling its transfer changed nothing.
+```text
+PickingDone   failed   You are not allowed to modify 'SCOP Demand' (scop.demand) records.
+```
 
-**What this costs you.** The remaining requirement is not raised by anybody, and because the
-demand never reaches a finished state it never appears in [OTIF](../reporting/otif.mdx) at
-all — so short and failed deliveries are quietly absent from the service measure rather than
-counting against it.
+On `b2b` that is **13 failed projections against 13 processed** — half the log.
 
-**Until it is fixed:** after every trip closes, read `Operations → Demands` filtered to
-**In Execution**. Any row whose trip has finished is a remaining requirement that has to be
-raised by hand.
+**The trap:** quantities still appear, because **Fulfilled** is computed from the Odoo moves.
+Only the demand's **state** is stuck. Nothing on screen looks wrong.
+
+**The logic itself is sound.** Run the same step as a Planner and the demand advances
+immediately — `DMD-2026-000010` (6 of 10) to **Partially Completed**, `DMD-2026-000013`
+(0 of 5) to **Failed**.
+
+**Until it is fixed:** watch `Reporting → Failed Projections` daily and have an Administrator
+press **Retry**. Retrying requires SCOP/Administrator; nobody below that can clear the queue.
+
+Step 5 is separate: **no follow-up demand is ever created**. For a partial delivery that costs
+nothing, because the Odoo **backorder** carries the remainder against the *same* demand —
+verified end to end below. For a **total failure** there is no backorder, and nothing carries
+the requirement.
 
 :::
 
-The chain back to the original is carried by three fields. They exist, and the
-**Follow-Up and Returns** tab displays them — but nothing populates them in Release 1:
+By design the chain back to the original is carried by three fields. They exist, and the
+**Follow-Up and Returns** tab displays them — but **nothing populates them in Release 1**,
+because no follow-up demand is created. For a partial delivery the Odoo backorder plays that
+role against the same demand instead:
 
 | Field | Meaning | Release 1 |
 | --- | --- | --- |
@@ -119,8 +128,10 @@ The chain back to the original is carried by three fields. They exist, and the
 That is what keeps the promise measurable: OTIF asks whether the *original* requirement was
 met, not whether the last backorder eventually arrived.
 
-**In Release 1 that transition is unreachable**, because its trigger is *"follow-up fulfils
-remainder"* and no follow-up is created. The demand stays at **In Execution** instead.
+**Verified on `b2b`:** that transition works, and the **backorder** is what triggers it.
+`DMD-2026-000010` was validated 6 of 10 → **Partially Completed**; the backorder was validated
+for the remaining 4 → **Completed**, fulfilled 10 of 10 across **two transfers**. The original
+demand was never replaced, so OTIF still measures the original promise.
 
 :::
 
@@ -132,10 +143,17 @@ By design a demand reaches **Failed** when nothing was delivered at all, and a f
 demand is created so the requirement is not simply lost. **Failed** is terminal for that
 demand, and the follow-up is where the second attempt lives.
 
-:::danger[Verified defect — neither half happens in Release 1]
+:::danger[Verified defect — a total failure leaves nothing behind]
 
-A demand behind a failed stop stays at **In Execution**. It does not reach **Failed**, and no
-follow-up is created. Raise the second attempt by hand.
+**Failed** is reached correctly once the projection runs. But there is **no backorder** behind
+a failed delivery and **no follow-up demand is created**, so nothing carries the requirement
+forward and nobody is told.
+
+On `b2b`, `DMD-2026-000013` is **Failed**, terminal, with 5.0 still owed and its transfer
+cancelled. Those units will never be delivered unless somebody notices.
+
+**Raise the replacement demand by hand.** `Operations → Demands` filtered to **Failed** with a
+remaining quantity is the list to work.
 
 :::
 
@@ -234,7 +252,7 @@ stateDiagram-v2
 | --- | --- | --- |
 | Stuck at **In Execution** with zero fulfilled | The Odoo transfer is not validated | Validate it |
 | Stuck at **In Execution** with the trip finished | The stop was never completed | Complete the stop |
-| **In Execution** after its trip closed | The demand was short or failed — **it will never move on its own** | Raise the remaining requirement by hand |
+| **In Execution** after its trip closed | The `PickingDone` projection failed — see `Reporting → Failed Projections` | An Administrator presses **Retry** |
 | **Completed** but missing from OTIF | It carries no commitment | See [OTIF](../reporting/otif.mdx) |
 | A very old demand stuck mid-flight | Records left mid-flight by an earlier release are not rewritten | See [Release 1 Scope](../about/release-1-scope.mdx) |
 

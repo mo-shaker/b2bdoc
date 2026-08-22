@@ -165,21 +165,18 @@ Skip a stop when the route was changed and you never went. Fail it when you went
 not work.
 
 
-:::danger[Verified defect — the follow-up demand is not created]
+:::danger[Verified finding — a total failure leaves nothing behind]
 
-Reproduced on `b2b`, on both a partial delivery and a total failure. A demand that is not
-**fully** fulfilled never leaves **In Execution**, and **no follow-up demand is created** —
-there is not one record with **Is Follow-Up** set anywhere in the database.
+There is **no backorder** behind a failed delivery, and **no follow-up demand is created** —
+there is not one record with **Is Follow-Up** set anywhere on `b2b`. So nothing carries the
+requirement forward and nobody is told.
 
-Everything up to that point works: Odoo raises the backorder, SCOP reads the actual quantity
-back on its own, and the stop and trip both close **Partially Completed**. Only the demand
-does not move, and nothing raises the remainder.
+`DMD-2026-000013` is **Failed**, terminal, with 5.0 still owed. Raise the replacement demand
+by hand.
 
-**Until it is fixed:** after every trip closes, read `Operations → Demands` filtered to
-**In Execution**. Any row whose trip has finished is a remaining requirement that has to be
-raised by hand.
-
-→ [Demand Completion](../demand/demand-completion.mdx) carries the full finding.
+Separately, the demand only reaches **Failed** once the `PickingDone` projection succeeds —
+and it **fails whenever a Warehouse user validates**. See
+[Demand Completion](../demand/demand-completion.mdx).
 
 :::
 
