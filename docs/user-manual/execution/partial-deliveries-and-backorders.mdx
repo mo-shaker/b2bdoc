@@ -47,21 +47,15 @@ All three are decided by the quantity on the validated transfer. Nobody chooses.
 | 8 | Planner | Next planning run | Plans the follow-up |
 
 
-:::warning[Two verified findings — read both]
+:::info[No follow-up demand is created — and a partial delivery does not need one]
 
-**1 · No follow-up demand is created.** There is not one record with **Is Follow-Up** set
-anywhere on `b2b`. For a partial delivery that costs nothing: the Odoo **backorder** carries
-the remainder against the *same* demand, and validating it completes the original. Verified
-end to end — 6 of 10, then 4, then **Completed** across two transfers.
+There is not one record with **Is Follow-Up** set anywhere on `b2b`.
 
-**2 · The demand does not advance when a Warehouse user validates.** The Warehouse role has
-read but not write on `scop.demand`, so the projection fails into
-`Reporting → Failed Projections` while the transfer saves anyway. Quantities still appear —
-only the **state** is stuck.
+That costs nothing here: the Odoo **backorder** carries the remainder against the *same*
+demand, and validating it completes the original. Verified end to end — 6 of 10, then the
+remaining 4, then **Completed** across two transfers.
 
-→ [Demand Completion](../demand/demand-completion.mdx) carries both findings in full.
-
-:::
+→ [Demand Completion](../demand/demand-completion.mdx) carries the finding in full.
 
 ## The backorder and the follow-up demand
 

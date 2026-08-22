@@ -468,10 +468,16 @@ Recorded, not written around, per the brief.
 | 1 | Low | **Compute Capacity** is offered to users who cannot use it — creating `scop.trip.capacity.snapshot` is SCOP/Administrator-only |
 | 2 | Cosmetic | `Capacity Feasible` reads `false` when capacity has merely never been computed. Distinguish by `First Breach Sequence = 0` with zero peaks |
 | 3 | High | Third-party ACL `stock_return_approval.user` grants **every internal user** RWCU on `stock.picking`. A Driver can list 21,181 transfer headers with customer names and dates. **Not SCOP's** — SCOP grants the Driver group nothing there, and `stock.move` stays protected. The fix is narrowing that module's ACL |
-| 4 | **Blocker** | **Every SCOP projection triggered by the Warehouse role fails on an access error** — see below |
+| 4 | **Blocker** | **Every SCOP projection triggered by the Warehouse role fails on an access error** — **FIXED**, see below |
 | 5 | Medium | The specification's *"follow-up demand created"* side effect is not implemented. For a partial delivery the Odoo backorder carries the remainder on the **same** demand, which works; for a **total failure** nothing carries it |
 
 ### Defect 4 — the Warehouse role cannot drive the demand it is told to drive
+
+> **Fixed on 22 August 2026.** Both projections now run under `sudo()`, in commit
+> `ca56445` on branch `fix/warehouse-projection-access` of the addon repository. Verified by
+> five new tests and live on `b2b` as `qs.warehouse`. Full record:
+> [defect-4-fix.md](./defect-4-fix.md). The manual has been updated to describe the corrected
+> behaviour.
 
 **Severity Blocker.** It breaks the manual's central instruction: *"the warehouse validates
 the transfer in Odoo, and SCOP reads the result."*

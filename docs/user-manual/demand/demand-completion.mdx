@@ -74,38 +74,20 @@ When a delivery is short:
 | 1 | The warehouse validates the transfer with the quantity that actually moved | **Odoo** |
 | 2 | Odoo creates a **backorder** for the remainder | **Odoo** |
 | 3 | The stop outcome becomes **Partially Completed** | SCOP |
-| 4 | The demand becomes **Partially Completed** | SCOP — **fails when a Warehouse user validates**, see below |
+| 4 | The demand becomes **Partially Completed** | SCOP |
 | 5 | A **follow-up demand** *should* be created for the remainder | SCOP — **never created**. The backorder carries the remainder instead |
 
-:::danger[Verified defect — the demand does not advance when the **warehouse** validates]
+:::info[Step 5 does not happen — and a partial delivery does not need it]
 
-Steps 4 and 5 are correct as designed, and step 4 works — **but not when a Warehouse user
-presses Validate**, which is exactly who the manual tells to press it.
+**No follow-up demand is ever created.** There is not one record with **Is Follow-Up** set
+anywhere on `b2b`.
 
-The Warehouse role has **read but not write** on `scop.demand`, so the projection that
-advances the demand raises an access error. Generation is non-blocking, so the error is
-swallowed into `Reporting → Failed Projections` and the transfer saves anyway:
+For a partial delivery that costs nothing: the Odoo **backorder** carries the remainder
+against the *same* demand, and validating it completes the original. Verified end to end
+below.
 
-```text
-PickingDone   failed   You are not allowed to modify 'SCOP Demand' (scop.demand) records.
-```
-
-On `b2b` that is **13 failed projections against 13 processed** — half the log.
-
-**The trap:** quantities still appear, because **Fulfilled** is computed from the Odoo moves.
-Only the demand's **state** is stuck. Nothing on screen looks wrong.
-
-**The logic itself is sound.** Run the same step as a Planner and the demand advances
-immediately — `DMD-2026-000010` (6 of 10) to **Partially Completed**, `DMD-2026-000013`
-(0 of 5) to **Failed**.
-
-**Until it is fixed:** watch `Reporting → Failed Projections` daily and have an Administrator
-press **Retry**. Retrying requires SCOP/Administrator; nobody below that can clear the queue.
-
-Step 5 is separate: **no follow-up demand is ever created**. For a partial delivery that costs
-nothing, because the Odoo **backorder** carries the remainder against the *same* demand —
-verified end to end below. For a **total failure** there is no backorder, and nothing carries
-the requirement.
+For a **total failure** there is no backorder, and nothing carries the requirement forward.
+That case is covered under [Failure](#failure).
 
 :::
 
@@ -252,7 +234,7 @@ stateDiagram-v2
 | --- | --- | --- |
 | Stuck at **In Execution** with zero fulfilled | The Odoo transfer is not validated | Validate it |
 | Stuck at **In Execution** with the trip finished | The stop was never completed | Complete the stop |
-| **In Execution** after its trip closed | The `PickingDone` projection failed — see `Reporting → Failed Projections` | An Administrator presses **Retry** |
+| **In Execution** after its trip closed | A projection failed — see `Reporting → Failed Projections` | Fix the cause named there; an Administrator can press **Retry** |
 | **Completed** but missing from OTIF | It carries no commitment | See [OTIF](../reporting/otif.mdx) |
 | A very old demand stuck mid-flight | Records left mid-flight by an earlier release are not rewritten | See [Release 1 Scope](../about/release-1-scope.mdx) |
 

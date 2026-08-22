@@ -120,10 +120,10 @@ Five, recorded in full in the coverage matrix rather than written around.
 | 1 | Low | **Compute Capacity** offered to users who cannot use it | Yes |
 | 2 | Cosmetic | `Capacity Feasible` reads `false` when never computed | Yes |
 | 3 | High | `stock_return_approval.user` grants every internal user RWCU on `stock.picking` — a Driver can list 21,181 transfer headers | **No** — third-party module |
-| 4 | **Blocker** | Every SCOP projection triggered by the **Warehouse** role fails on an access error | Yes |
+| 4 | ~~Blocker~~ **Fixed** | Every SCOP projection triggered by the **Warehouse** role failed on an access error. Both projections now run under `sudo()` | Yes |
 | 5 | Medium | The specification's *"follow-up demand created"* side effect is not implemented | Yes |
 
-### Defect 4 is the one that matters for go-live
+### Defect 4 — found, fixed and verified
 
 The Warehouse role has **read but not write or create** on `scop.demand`, and
 `_scop_after_done` / `_scop_generate_demand` touch it **without `sudo()`**. So the role the
@@ -138,7 +138,20 @@ On `b2b` that is **13 failed projections against 13 processed** — half the eve
 | A validated transfer leaves its demand at **In Execution** | Quantities *do* appear — `Fulfilled` is computed from the moves. Only the **state** is stuck |
 
 The state machine itself is sound: run the same call as a Planner and the demand advances
-correctly. **The fix is one `sudo()`.**
+correctly.
+
+**Fixed.** Both projections now run under `sudo()` — the same thing
+`scop.trip._scop_cascade_complete` already did. `sudo()` bypasses the access check without
+changing the user, so `create_uid` stays the person who did the work and separation of duties
+is untouched.
+
+| Evidence | Result |
+| --- | --- |
+| Full `scop_shipment` suite before / after | 6 failed + 5 errors → **2 failed + 5 errors** of 162. The difference is exactly the four new tests going green |
+| Live on `b2b` as `qs.warehouse` | A created transfer generates its demand; a demand stuck since before the fix reached **Completed**; a short validation gave **Partially Completed** and a backorder, which then completed it at 10 of 10 |
+| Failed projections since the fix | **None.** Processed went 13 → 23 |
+
+Full record: [defect-4-fix.md](./defect-4-fix.md).
 
 ---
 
@@ -183,10 +196,12 @@ English pages behave identically. **No RTL defect was found.**
 
 **The manual is ready for review.** The documentation itself is complete and verified.
 
-**Defect 4 should be fixed before go-live.** It is a one-line change, and until it lands the
-warehouse's daily work silently fails to reach SCOP. Until then, `Reporting → Failed
-Projections` needs a daily check by an Administrator, which the manual now says on the
-Warehouse, Odoo Delivery Validation and Data Quality pages.
+**Defect 4 is fixed** and the manual now describes the corrected behaviour. The change sits on
+branch `fix/warehouse-projection-access` in the addon repository and still needs to be merged
+and deployed; until it is, the documentation is ahead of the deployed system on that point.
+
+**Defect 5 remains open.** A total failure leaves nothing carrying the requirement, and the
+manual says so.
 
 Defect 3 is not SCOP's, but the customer data it exposes is real and worth raising with
 whoever owns that module.
