@@ -18,12 +18,12 @@ const config: Config = {
   url: 'https://mo-shaker.github.io',
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
-  baseUrl: '/b2b.github.io/',
+  baseUrl: '/b2bdoc/',
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
   organizationName: 'mo-shaker',
-  projectName: 'b2b.github.io',
+  projectName: 'b2bdoc',
 
   onBrokenLinks: 'throw',
 

@@ -23,7 +23,7 @@ export default function Screenshot({
   caption,
   device = 'desktop',
 }: ScreenshotProps): ReactNode {
-  // `useBaseUrl` keeps the path correct under the project's `/b2b.github.io/`
+  // `useBaseUrl` keeps the path correct under the project's `/b2bdoc/`
   // base URL, and identical for the English and Arabic builds — which is why the
   // images live in `static/` and are never duplicated per locale.
   const url = useBaseUrl(`/img/${src}`);
