@@ -291,3 +291,21 @@ Consequences:
 This is why the Arabic phase is all-or-nothing rather than incremental, and it is worth
 knowing before any future chapter is added: a new English page must be accompanied by its
 Arabic counterpart in the same change, or the Arabic build breaks.
+
+### How it was resolved
+
+Phase G ran to completion behind `planning/arabic-in-progress/`, outside the content path, so
+no intermediate state could break the Arabic build. When the 91st page was written the tree
+was moved into `i18n/ar/docusaurus-plugin-content-docs/current/user-manual/` in one commit,
+and both locales built clean.
+
+Two further link facts were established while doing it:
+
+| Case | What works |
+| --- | --- |
+| Manual page → manual page (both translated) | A relative `.mdx` link. Source and target share a translation state |
+| Manual page → Quick Start | An **extension-less URL path**, e.g. `../../quick-start/overview`, matching the English pages |
+| An explicit heading id in `.mdx` | The MDX comment form — `## Heading {/* #my-id */}`. The `{#my-id}` form is parsed as a JSX expression by this Docusaurus version and fails the build |
+
+The standing rule is unchanged: **a new English page must be accompanied by its Arabic
+counterpart in the same change**, or the Arabic build breaks.
