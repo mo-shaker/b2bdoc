@@ -49,15 +49,18 @@ Three of the steps below are wrong if done in the wrong order, and two of those 
 
 ```mermaid
 flowchart TB
-    A["<b>1 · People</b><br/>roles, Odoo groups,<br/><b>two</b> approvers"]
-    B["<b>2 · Places</b><br/>planning nodes"]
-    C["<b>3 · Capacity</b><br/>profiles → vehicles<br/>→ availability"]
-    D["<b>4 · Drivers</b><br/>user + employee<br/>+ the link"]
-    E["<b>5 · Vocabularies</b><br/>stop activities,<br/>catalogues if needed"]
-    F["<b>6 · Ownership</b><br/>flag, then migrate"]
-    G["<b>7 · Switch on</b><br/>pilot scope → Apply"]
-    H(["<b>8 · Prove it</b><br/>one transfer,<br/>end to end"])
-    A --> B --> C --> D --> E --> F --> G --> H
+    A["<b>1 · People</b><br/>roles · Odoo groups · <b>two</b> approvers"]
+    subgraph MID [" 2–6 · any order, and in parallel "]
+        direction LR
+        B["<b>Places</b><br/>planning nodes"]
+        C["<b>Capacity</b><br/>profiles → vehicles<br/>→ availability"]
+        D["<b>Drivers</b><br/>user + employee<br/>+ the link"]
+        E["<b>Vocabularies</b><br/>activities, and<br/>catalogues only if true"]
+        F["<b>Ownership</b><br/>flag, <i>then</i> migrate"]
+    end
+    G["<b>7 · Switch on</b><br/>pilot scope → <b>Apply</b>"]
+    H(["<b>8 · Prove it</b><br/>one transfer, end to end"])
+    A --> MID --> G --> H
 ```
 
 Steps 2 to 6 are independent of each other and can be done in parallel by different
